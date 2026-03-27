@@ -1,0 +1,64 @@
+{
+  "name": "@artisanpack-ui/react",
+  "version": "0.0.0",
+  "description": "80+ React UI components for the ArtisanPack UI ecosystem, styled with DaisyUI and Tailwind CSS",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./form": {
+      "import": "./dist/form.mjs",
+      "types": "./dist/form.d.ts"
+    },
+    "./layout": {
+      "import": "./dist/layout.mjs",
+      "types": "./dist/layout.d.ts"
+    },
+    "./navigation": {
+      "import": "./dist/navigation.mjs",
+      "types": "./dist/navigation.d.ts"
+    },
+    "./display": {
+      "import": "./dist/display.mjs",
+      "types": "./dist/display.d.ts"
+    },
+    "./data": {
+      "import": "./dist/data.mjs",
+      "types": "./dist/data.d.ts"
+    },
+    "./utility": {
+      "import": "./dist/utility.mjs",
+      "types": "./dist/utility.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@artisanpack-ui/tokens": "*"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0",
+    "@vitejs/plugin-react": "^4.3.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "license": "MIT"
+}
