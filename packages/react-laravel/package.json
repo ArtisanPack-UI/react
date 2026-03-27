@@ -15,9 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "build": "tsup"
   },
   "dependencies": {
     "@artisanpack-ui/react": "*"
