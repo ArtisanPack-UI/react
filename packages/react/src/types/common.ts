@@ -1,20 +1,5 @@
-export type DaisyColor =
-  | 'primary'
-  | 'secondary'
-  | 'accent'
-  | 'neutral'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'error';
-
-export type Size = 'xs' | 'sm' | 'md' | 'lg';
-
-export interface GlassProps {
-  glass?: boolean;
-  glassPreset?: string;
-}
-
-export interface ColorProps {
-  color?: DaisyColor;
-}
+/**
+ * Re-export shared types from the tokens package.
+ * These types are framework-agnostic and defined in @artisanpack-ui/tokens.
+ */
+export type { DaisyColor, Size, GlassProps, ColorProps } from '@artisanpack-ui/tokens';
