@@ -88,6 +88,28 @@ describe('Popover', () => {
     expect(screen.getByTestId('trigger')).toHaveAttribute('aria-expanded', 'true');
   });
 
+  it('closes on Escape when not persistent', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover trigger={<button>Click</button>} triggerMode="click" open onOpenChange={onOpenChange}>
+        Content
+      </Popover>,
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('closes on outside click when not persistent', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover trigger={<button>Click</button>} triggerMode="click" open onOpenChange={onOpenChange}>
+        Content
+      </Popover>,
+    );
+    fireEvent.mouseDown(document.body);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it('does not close when persistent', () => {
     const onOpenChange = vi.fn();
     render(

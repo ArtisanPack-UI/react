@@ -57,13 +57,15 @@ const sizeMap: Record<Size, string> = {
   lg: 'tabs-lg',
 };
 
-const variantMap: Record<string, string> = {
+type Variant = NonNullable<TabsProps['variant']>;
+
+const variantMap: Record<Variant, string> = {
   bordered: 'tabs-bordered',
   lifted: 'tabs-lifted',
   boxed: 'tabs-boxed',
 };
 
-const colorMap: Record<string, string> = {
+const colorMap: Record<DaisyColor, string> = {
   primary: 'tab-primary',
   secondary: 'tab-secondary',
   accent: 'tab-accent',
@@ -120,15 +122,16 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 
     const current = isControlled
       ? (isSelectableTab(tabs, activeTab) ? activeTab : firstSelectableTab(tabs))
-      : internalTab;
+      : (isSelectableTab(tabs, internalTab) ? internalTab : firstSelectableTab(tabs));
 
     const isVertical = vertical || verticalRight;
 
     const handleSelect = (name: string) => {
+      const validName = isSelectableTab(tabs, name) ? name : firstSelectableTab(tabs);
       if (!isControlled) {
-        setInternalTab(name);
+        setInternalTab(validName);
       }
-      onChange?.(name);
+      onChange?.(validName);
     };
 
     const enabledTabs = tabs.filter((t) => !t.disabled);

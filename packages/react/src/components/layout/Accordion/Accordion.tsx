@@ -87,10 +87,15 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
           const idx = collapseIndex++;
           const isOpen = currentOpen.includes(idx);
 
+          const originalOnOpenChange = child.props.onOpenChange;
+
           return cloneElement(child, {
             key: child.key ?? idx,
             open: isOpen,
-            onOpenChange: (open: boolean) => handleToggle(idx, open),
+            onOpenChange: (open: boolean) => {
+              originalOnOpenChange?.(open);
+              handleToggle(idx, open);
+            },
             className: cn(
               join && 'join-item',
               child.props.className,

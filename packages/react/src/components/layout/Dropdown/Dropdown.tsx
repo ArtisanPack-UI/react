@@ -6,9 +6,7 @@ import {
   useCallback,
   useId,
   cloneElement,
-  isValidElement,
   type HTMLAttributes,
-  type ReactNode,
   type ReactElement,
   type KeyboardEvent,
   type MouseEventHandler,
@@ -17,7 +15,7 @@ import { cn } from '@artisanpack-ui/tokens';
 
 export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
   /** Trigger element (defaults to a button with label) */
-  trigger?: ReactNode;
+  trigger?: ReactElement | null;
   /** Label text for default trigger button */
   label?: string;
   /** Open from the right side */
@@ -134,7 +132,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     };
 
     const handleMenuKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeFocusTrigger();
+        return;
+      }
+
       const items = getMenuItemButtons();
+      if (items.length === 0) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -145,9 +150,6 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         const next =
           (focusedIndex.current - 1 + items.length) % items.length;
         focusItem(next);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        closeFocusTrigger();
       } else if (e.key === 'Home') {
         e.preventDefault();
         focusItem(0);
@@ -164,23 +166,24 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const menuId = `dropdown-menu-${autoId}`;
 
     const renderTrigger = () => {
-      if (trigger && isValidElement(trigger)) {
+      if (trigger) {
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
         const originalOnClick = triggerEl.props.onClick as ((...args: unknown[]) => void) | undefined;
         const originalOnKeyDown = triggerEl.props.onKeyDown as ((...args: unknown[]) => void) | undefined;
 
         return cloneElement(triggerEl, {
-          ref: (node: HTMLElement | null) => { triggerRef.current = node; },
           'aria-haspopup': 'true' as const,
           'aria-expanded': isOpen,
           'aria-controls': menuId,
-          onClick: (...args: unknown[]) => {
-            originalOnClick?.(...args);
-            if (!(args[0] as Event)?.defaultPrevented) {
+          onClick: (e: React.MouseEvent) => {
+            triggerRef.current = e.currentTarget as HTMLElement;
+            (originalOnClick as ((e: React.MouseEvent) => void) | undefined)?.(e);
+            if (!e.defaultPrevented) {
               handleTriggerClick();
             }
           },
           onKeyDown: (e: KeyboardEvent) => {
+            triggerRef.current = e.currentTarget as HTMLElement;
             originalOnKeyDown?.(e);
             if (!e.defaultPrevented) {
               handleTriggerKeyDown(e);
@@ -224,7 +227,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           id={menuId}
           role="menu"
           tabIndex={-1}
-          className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow"
+          className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
           onKeyDown={handleMenuKeyDown}
         >
           {children}

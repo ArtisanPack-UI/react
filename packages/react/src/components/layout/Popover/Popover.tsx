@@ -255,7 +255,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       >
         {renderTrigger()}
         <div
-          className="dropdown-content z-1 rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
+          className="dropdown-content z-[1] rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
           aria-hidden={!isOpen}
         >
           {children}

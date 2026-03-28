@@ -113,7 +113,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
               last.focus();
             }
           } else {
-            if (!activeInPanel || activeIndex >= focusable.length - 1) {
+            if (!activeInPanel || activeIndex === -1 || activeIndex >= focusable.length - 1) {
               e.preventDefault();
               first.focus();
             }
