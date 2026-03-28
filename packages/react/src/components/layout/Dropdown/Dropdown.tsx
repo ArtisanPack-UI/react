@@ -9,6 +9,7 @@ import {
   type HTMLAttributes,
   type ReactElement,
   type KeyboardEvent,
+  type MutableRefObject,
   type MouseEventHandler,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
@@ -66,7 +67,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         if (typeof ref === 'function') {
           ref(node);
         } else if (ref) {
-          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          (ref as MutableRefObject<HTMLDivElement | null>).current = node;
         }
       },
       [ref],
@@ -89,7 +90,9 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const closeFocusTrigger = useCallback(() => {
       setOpen(false);
-      triggerRef.current?.focus();
+      const el = triggerRef.current
+        ?? containerRef.current?.querySelector<HTMLElement>('[aria-haspopup]');
+      el?.focus();
     }, [setOpen]);
 
     useEffect(() => {
@@ -131,24 +134,36 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         setOpen(true);
         requestAnimationFrame(() => focusItem(0));
       } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
         closeFocusTrigger();
+      }
+    };
+
+    const syncFocusedIndex = (items: HTMLElement[]) => {
+      if (focusedIndex.current === -1 && document.activeElement) {
+        const idx = items.indexOf(document.activeElement as HTMLElement);
+        if (idx >= 0) focusedIndex.current = idx;
       }
     };
 
     const handleMenuKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         closeFocusTrigger();
         return;
       }
 
       if (e.key === 'Tab') {
-        closeFocusTrigger();
+        setOpen(false);
         return;
       }
 
       const items = getMenuItemButtons();
       if (items.length === 0) return;
+
+      syncFocusedIndex(items);
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();

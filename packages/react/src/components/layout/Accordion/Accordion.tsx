@@ -57,6 +57,17 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     const isControlled = openIndices !== undefined;
     const currentOpen = isControlled ? openIndices : internalOpen;
 
+    const allChildren = Children.toArray(children);
+
+    // Normalize: dedupe, bounds-check, and enforce single-open invariant
+    const collapseCount = allChildren.filter(
+      (c) => isValidElement(c) && isCollapseElement(c),
+    ).length;
+    const deduped = Array.from(new Set(currentOpen)).filter(
+      (i) => i >= 0 && i < collapseCount,
+    );
+    const cleanOpen = multiple ? deduped : deduped.slice(0, 1);
+
     const handleToggle = (idx: number, nextOpen: boolean) => {
       let next: number[];
       if (multiple) {
@@ -71,17 +82,6 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
       }
       onOpenChange?.(next);
     };
-
-    const allChildren = Children.toArray(children);
-
-    // Count Collapse children for bounds checking
-    const collapseCount = allChildren.filter(
-      (c) => isValidElement(c) && isCollapseElement(c),
-    ).length;
-    const deduped = Array.from(new Set(currentOpen)).filter(
-      (i) => i >= 0 && i < collapseCount,
-    );
-    const cleanOpen = multiple ? deduped : deduped.slice(0, 1);
 
     let collapseIndex = 0;
 

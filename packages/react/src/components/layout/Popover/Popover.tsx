@@ -11,6 +11,7 @@ import {
   type ReactElement,
   type KeyboardEvent,
   type FocusEvent,
+  type MutableRefObject,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
@@ -91,7 +92,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         if (typeof ref === 'function') {
           ref(node);
         } else if (ref) {
-          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          (ref as MutableRefObject<HTMLDivElement | null>).current = node;
         }
       },
       [ref],

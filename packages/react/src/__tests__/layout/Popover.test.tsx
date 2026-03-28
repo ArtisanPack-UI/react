@@ -59,6 +59,26 @@ describe('Popover', () => {
     expect(container.firstChild).toHaveClass('dropdown-open');
   });
 
+  it('opens on Enter key in click mode', () => {
+    const { container } = render(
+      <Popover trigger={<button>Press me</button>} triggerMode="click">
+        Content
+      </Popover>,
+    );
+    fireEvent.keyDown(screen.getByText('Press me'), { key: 'Enter' });
+    expect(container.firstChild).toHaveClass('dropdown-open');
+  });
+
+  it('opens on Space key in click mode', () => {
+    const { container } = render(
+      <Popover trigger={<button>Press me</button>} triggerMode="click">
+        Content
+      </Popover>,
+    );
+    fireEvent.keyDown(screen.getByText('Press me'), { key: ' ' });
+    expect(container.firstChild).toHaveClass('dropdown-open');
+  });
+
   it('calls onOpenChange', () => {
     const onOpenChange = vi.fn();
     const { container } = render(
