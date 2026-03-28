@@ -6,7 +6,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Button text label */
   label?: string;
   /** DaisyUI color variant */
-  color?: DaisyColor | 'ghost' | 'outline' | 'neutral';
+  color?: DaisyColor | 'ghost' | 'outline';
   /** Button size */
   size?: Size;
   /** Icon element to display before the label */

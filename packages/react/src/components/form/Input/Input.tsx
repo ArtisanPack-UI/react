@@ -72,7 +72,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           htmlFor={id}
         >
           {icon && <span className="opacity-50" aria-hidden="true">{icon}</span>}
-          {prefix && <span className="opacity-50">{prefix}</span>}
+          {prefix && <span className="opacity-50" aria-hidden="true">{prefix}</span>}
           <input
             ref={ref}
             id={id}
@@ -86,7 +86,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {inline && label && (
             <span className="label">{label}</span>
           )}
-          {suffix && <span className="opacity-50">{suffix}</span>}
+          {suffix && <span className="opacity-50" aria-hidden="true">{suffix}</span>}
           {clearable && (
             <button
               type="button"

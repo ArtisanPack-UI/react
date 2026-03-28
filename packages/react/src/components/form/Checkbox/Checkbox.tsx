@@ -27,6 +27,7 @@ const colorMap: Record<string, string> = {
   warning: 'checkbox-warning',
   error: 'checkbox-error',
   info: 'checkbox-info',
+  neutral: 'checkbox-neutral',
 };
 
 /**
@@ -52,7 +53,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const autoId = useId();
     const id = providedId ?? autoId;
     const errorId = error ? `${id}-error` : undefined;
-    const hintId = hint ? `${id}-hint` : undefined;
+    const hintId = hint && !error ? `${id}-hint` : undefined;
 
     const checkbox = (
       <input

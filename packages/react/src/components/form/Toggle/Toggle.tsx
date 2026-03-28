@@ -45,7 +45,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
   ) => {
     const autoId = useId();
     const id = providedId ?? autoId;
-    const hintId = hint ? `${id}-hint` : undefined;
+    const hintId = hint && !error ? `${id}-hint` : undefined;
     const errorId = error ? `${id}-error` : undefined;
 
     return (

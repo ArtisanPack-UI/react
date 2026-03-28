@@ -65,6 +65,7 @@ describe('Pin', () => {
     fireEvent.input(inputs[3], { target: { value: '4' } });
 
     expect(onComplete).toHaveBeenCalledWith('1234');
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
   it('forwards ref to first input', () => {

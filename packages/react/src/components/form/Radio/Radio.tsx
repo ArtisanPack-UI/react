@@ -40,6 +40,7 @@ const colorMap: Record<string, string> = {
   warning: 'radio-warning',
   error: 'radio-error',
   info: 'radio-info',
+  neutral: 'radio-neutral',
 };
 
 /**
@@ -74,7 +75,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const hintId = hint && !error ? `${id}-hint` : undefined;
 
     return (
-      <fieldset className="fieldset" role="radiogroup" aria-labelledby={`${id}-legend`} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}>
+      <fieldset className="fieldset" role="radiogroup" aria-labelledby={label ? `${id}-legend` : undefined} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}>
         {label && (
           <legend id={`${id}-legend`} className="fieldset-legend">
             {label}

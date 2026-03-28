@@ -39,6 +39,7 @@ const colorMap: Record<string, string> = {
   warning: 'input-warning',
   error: 'input-error',
   info: 'input-info',
+  neutral: 'input-neutral',
 };
 
 /**

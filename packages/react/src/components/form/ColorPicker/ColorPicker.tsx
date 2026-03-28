@@ -81,8 +81,9 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
     const handleRandomClick = useCallback(() => {
       const color = generateRandomHex();
       setInternalValue(color);
+      onChange?.({ target: { value: color } } as React.ChangeEvent<HTMLInputElement>);
       onRandomColor?.(color);
-    }, [onRandomColor]);
+    }, [onChange, onRandomColor]);
 
     return (
       <fieldset className="fieldset">
@@ -146,7 +147,10 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
             <button
               type="button"
               className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={onClear}
+              onClick={() => {
+                setInternalValue((defaultValue as string) ?? '#000000');
+                onClear?.();
+              }}
               aria-label="Clear color"
               tabIndex={-1}
             >
