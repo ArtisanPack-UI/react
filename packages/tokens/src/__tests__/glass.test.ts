@@ -107,6 +107,12 @@ describe('glassClassName', () => {
     expect(result).toContain('glass-tint-opacity-30');
   });
 
+  it('does not emit tint opacity class when tintOpacity is 0', () => {
+    expect(glassClassName({ tint: 'primary', tintOpacity: 0 })).toBe(
+      'glass glass-tint-primary',
+    );
+  });
+
   it('clamps tint opacity between 10 and 100', () => {
     expect(glassClassName({ tint: 'primary', tintOpacity: 0.01 })).toContain(
       'glass-tint-opacity-10',

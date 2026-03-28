@@ -6,7 +6,7 @@
  * the same design tokens.
  *
  * Usage with Tailwind CSS v4:
- *   import { artisanPackPlugin } from '@artisanpack-ui/tokens/tailwind';
+ *   import { createArtisanPackPlugin } from '@artisanpack-ui/tokens/tailwind';
  *
  * Usage in CSS (Tailwind v4):
  *   @plugin "@artisanpack-ui/tokens/tailwind";

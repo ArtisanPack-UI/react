@@ -207,7 +207,7 @@ export function glassClassName(options: GlassClassOptions = {}): string {
     classes.push(`glass-tint-${tint}`);
   }
 
-  if (tintOpacity !== undefined) {
+  if (typeof tintOpacity === 'number' && tintOpacity > 0) {
     const rounded = Math.round((tintOpacity * 100) / 10) * 10;
     const clamped = Math.max(10, Math.min(100, rounded));
     classes.push(`glass-tint-opacity-${clamped}`);
