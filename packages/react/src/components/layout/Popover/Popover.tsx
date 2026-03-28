@@ -7,6 +7,7 @@ import {
   useId,
   isValidElement,
   cloneElement,
+  Fragment,
   type HTMLAttributes,
   type ReactNode,
   type ReactElement,
@@ -147,6 +148,11 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         if (e.key === 'Escape') {
           setOpen(false);
           e.stopPropagation();
+          // Restore focus to trigger
+          const triggerEl = containerRef.current?.querySelector<HTMLElement>(
+            '[aria-controls], [aria-expanded]',
+          );
+          triggerEl?.focus();
         }
       };
 
@@ -205,22 +211,44 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
-    const NON_FOCUSABLE_INTRINSICS = new Set([
-      'div', 'span', 'p', 'section', 'article', 'header', 'footer', 'main', 'nav', 'aside',
+    const FOCUSABLE_INTRINSICS = new Set([
+      'button', 'input', 'select', 'textarea', 'a', 'area', 'iframe', 'object',
     ]);
 
     const isFocusableElement = (el: ReactElement): boolean => {
-      if (typeof el.type === 'string') {
-        if (NON_FOCUSABLE_INTRINSICS.has(el.type)) {
-          return (el.props as Record<string, unknown>).tabIndex !== undefined;
-        }
-        return true; // button, a, input, etc.
+      if (typeof el.type !== 'string') return true; // components assumed focusable
+      if (FOCUSABLE_INTRINSICS.has(el.type)) return true;
+      return (el.props as Record<string, unknown>).tabIndex !== undefined;
+    };
+
+    const wrapInFocusable = (content: ReactNode): ReactElement => {
+      if (triggerMode === 'click') {
+        return (
+          <button
+            type="button"
+            aria-expanded={isOpen}
+            aria-controls={contentId}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+          >
+            {content}
+          </button>
+        );
       }
-      return true; // components are assumed focusable
+      return (
+        <span tabIndex={0} aria-expanded={isOpen} aria-controls={contentId}>
+          {content}
+        </span>
+      );
     };
 
     const renderTrigger = () => {
       if (isValidElement(trigger)) {
+        // Fragments can't receive DOM props — wrap their children
+        if (trigger.type === Fragment) {
+          return wrapInFocusable((trigger.props as { children?: ReactNode }).children);
+        }
+
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
         const props: Record<string, unknown> = {
           'aria-expanded': isOpen,
