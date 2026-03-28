@@ -115,6 +115,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                     name={groupName}
                     value={value}
                     disabled={isDisabled}
+                    required={required && index === 0}
                     className={cn('radio', color && colorMap[color], className)}
                     {...rest}
                   />
@@ -144,6 +145,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                   name={groupName}
                   value={value}
                   disabled={isDisabled}
+                  required={required && index === 0}
                   className={cn('radio', color && colorMap[color], className)}
                   {...rest}
                 />

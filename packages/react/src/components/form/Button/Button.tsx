@@ -111,25 +111,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       </>
     );
 
-    if (link) {
-      return (
-        <a
-          href={link}
-          className={buttonClasses}
-          target={external ? '_blank' : undefined}
-          rel={external ? 'noopener noreferrer' : undefined}
-          role="button"
-        >
-          {content}
-        </a>
-      );
-    }
-
-    const wrapperClasses = tooltip
-      ? cn('tooltip', tooltipPositionMap[tooltipPosition])
-      : undefined;
-
-    const button = (
+    const element = link ? (
+      <a
+        href={link}
+        className={buttonClasses}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        role="button"
+      >
+        {content}
+      </a>
+    ) : (
       <button
         ref={ref}
         type={type}
@@ -144,13 +136,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (tooltip) {
       return (
-        <div className={wrapperClasses} data-tip={tooltip}>
-          {button}
+        <div
+          className={cn('tooltip', tooltipPositionMap[tooltipPosition])}
+          data-tip={tooltip}
+        >
+          {element}
         </div>
       );
     }
 
-    return button;
+    return element;
   },
 );
 

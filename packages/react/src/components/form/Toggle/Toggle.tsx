@@ -23,6 +23,7 @@ const colorMap: Record<string, string> = {
   warning: 'toggle-warning',
   error: 'toggle-error',
   info: 'toggle-info',
+  neutral: 'toggle-neutral',
 };
 
 /**

@@ -134,7 +134,6 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               className="opacity-50 hover:opacity-100 cursor-pointer"
               onClick={handleRandomClick}
               aria-label="Generate random color"
-              tabIndex={-1}
             >
               {randomIcon ?? (
                 <svg className="w-4 h-4" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
@@ -148,11 +147,12 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               type="button"
               className="opacity-50 hover:opacity-100 cursor-pointer"
               onClick={() => {
-                setInternalValue((defaultValue as string) ?? '#000000');
+                const resetValue = (defaultValue as string) ?? '#000000';
+                setInternalValue(resetValue);
+                onChange?.({ target: { value: resetValue } } as React.ChangeEvent<HTMLInputElement>);
                 onClear?.();
               }}
               aria-label="Clear color"
-              tabIndex={-1}
             >
               ✕
             </button>

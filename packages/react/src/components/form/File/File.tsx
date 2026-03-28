@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface FileProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
+export interface FileProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'value' | 'defaultValue'> {
   /** File input label */
   label?: string;
   /** Helper text below the file input */

@@ -65,9 +65,10 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           color && colorMap[color],
           className,
         )}
+        required={required}
+        {...rest}
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
-        {...rest}
       />
     );
 
