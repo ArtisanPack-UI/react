@@ -4,6 +4,7 @@ import {
   useRef,
   useEffect,
   useCallback,
+  useId,
   isValidElement,
   cloneElement,
   type HTMLAttributes,
@@ -79,6 +80,8 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     },
     ref,
   ) => {
+    const autoId = useId();
+    const contentId = `popover-content-${autoId}`;
     const [internalOpen, setInternalOpen] = useState(false);
     const isControlled = open !== undefined;
     const isOpen = isControlled ? open : internalOpen;
@@ -202,12 +205,32 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
+    const NON_FOCUSABLE_INTRINSICS = new Set([
+      'div', 'span', 'p', 'section', 'article', 'header', 'footer', 'main', 'nav', 'aside',
+    ]);
+
+    const isFocusableElement = (el: ReactElement): boolean => {
+      if (typeof el.type === 'string') {
+        if (NON_FOCUSABLE_INTRINSICS.has(el.type)) {
+          return (el.props as Record<string, unknown>).tabIndex !== undefined;
+        }
+        return true; // button, a, input, etc.
+      }
+      return true; // components are assumed focusable
+    };
+
     const renderTrigger = () => {
       if (isValidElement(trigger)) {
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
         const props: Record<string, unknown> = {
           'aria-expanded': isOpen,
+          'aria-controls': contentId,
         };
+
+        // Ensure non-focusable intrinsic elements get tabIndex
+        if (!isFocusableElement(triggerEl)) {
+          props.tabIndex = 0;
+        }
 
         if (triggerMode === 'click') {
           const origClick = triggerEl.props.onClick as ((...a: unknown[]) => void) | undefined;
@@ -231,6 +254,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
           <button
             type="button"
             aria-expanded={isOpen}
+            aria-controls={contentId}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
           >
@@ -240,7 +264,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
 
       return (
-        <span tabIndex={0} aria-expanded={isOpen}>
+        <span tabIndex={0} aria-expanded={isOpen} aria-controls={contentId}>
           {trigger}
         </span>
       );
@@ -263,6 +287,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       >
         {renderTrigger()}
         <div
+          id={contentId}
           className="dropdown-content z-[1] rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
           aria-hidden={!isOpen}
           style={!isOpen ? { visibility: 'hidden', opacity: 0 } : undefined}

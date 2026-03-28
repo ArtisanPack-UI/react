@@ -88,6 +88,7 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     return (
       <div
         ref={ref}
+        role="group"
         className={cn(join && 'join join-vertical w-full', className)}
         {...rest}
       >
