@@ -87,7 +87,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const firstEnabledIndex = options.findIndex(opt => !opt.disabled);
 
     return (
-      <fieldset className="fieldset" role="radiogroup" aria-labelledby={label ? `${id}-legend` : undefined} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}>
+      <fieldset className="fieldset" role="radiogroup" aria-labelledby={label ? `${id}-legend` : undefined} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined} aria-invalid={error ? true : undefined}>
         {label && (
           <legend id={`${id}-legend`} className="fieldset-legend">
             {label}
@@ -121,7 +121,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                   )}
                 >
                   <input
-                    ref={index === 0 ? ref : undefined}
+                    ref={index === firstEnabledIndex ? ref : undefined}
                     id={optionId}
                     type="radio"
                     name={groupName}
@@ -151,7 +151,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 )}
               >
                 <input
-                  ref={index === 0 ? ref : undefined}
+                  ref={index === firstEnabledIndex ? ref : undefined}
                   id={optionId}
                   type="radio"
                   name={groupName}
