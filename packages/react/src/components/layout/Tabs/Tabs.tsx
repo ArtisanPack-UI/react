@@ -1,0 +1,236 @@
+import {
+  forwardRef,
+  useState,
+  useId,
+  type HTMLAttributes,
+  type ReactNode,
+  type KeyboardEvent,
+  useRef,
+} from 'react';
+import { cn } from '@artisanpack-ui/tokens';
+import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
+
+export interface TabItem {
+  /** Unique tab name/key */
+  name: string;
+  /** Tab label */
+  label: ReactNode;
+  /** Tab panel content */
+  content: ReactNode;
+  /** Disable this tab */
+  disabled?: boolean;
+  /** Icon to show in the tab */
+  icon?: ReactNode;
+}
+
+export interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+  /** Tab items to render */
+  tabs: TabItem[];
+  /** Currently active tab name (controlled) */
+  activeTab?: string;
+  /** Default active tab name (uncontrolled) */
+  defaultTab?: string;
+  /** Callback when active tab changes */
+  onChange?: (tabName: string) => void;
+  /** Tab visual variant */
+  variant?: 'bordered' | 'lifted' | 'boxed';
+  /** Tab size */
+  size?: Size;
+  /** Vertical tab orientation (tabs on left, content on right) */
+  vertical?: boolean;
+  /** Vertical tabs on the right side (content on left, tabs on right) */
+  verticalRight?: boolean;
+  /** DaisyUI color for active tab */
+  color?: DaisyColor;
+  /** Custom CSS class for the tab list container */
+  tabListClassName?: string;
+  /** Custom CSS class for each tab panel */
+  panelClassName?: string;
+  /** Custom CSS class for the active tab */
+  activeTabClassName?: string;
+}
+
+const sizeMap: Record<Size, string> = {
+  xs: 'tabs-xs',
+  sm: 'tabs-sm',
+  md: 'tabs-md',
+  lg: 'tabs-lg',
+};
+
+const variantMap: Record<string, string> = {
+  bordered: 'tabs-bordered',
+  lifted: 'tabs-lifted',
+  boxed: 'tabs-boxed',
+};
+
+const colorMap: Record<string, string> = {
+  primary: 'tab-primary',
+  secondary: 'tab-secondary',
+  accent: 'tab-accent',
+  success: 'tab-success',
+  warning: 'tab-warning',
+  error: 'tab-error',
+  info: 'tab-info',
+  neutral: 'tab-neutral',
+};
+
+/**
+ * Tabbed interface with accessible keyboard navigation, vertical layout, and styling options.
+ */
+export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
+  (
+    {
+      tabs,
+      activeTab,
+      defaultTab,
+      onChange,
+      variant = 'bordered',
+      size,
+      vertical = false,
+      verticalRight = false,
+      color,
+      tabListClassName,
+      panelClassName,
+      activeTabClassName,
+      className,
+      ...rest
+    },
+    ref,
+  ) => {
+    const autoId = useId();
+    const tabListRef = useRef<HTMLDivElement>(null);
+    const defaultActive = defaultTab ?? tabs.find((t) => !t.disabled)?.name ?? '';
+    const [internalTab, setInternalTab] = useState(defaultActive);
+    const isControlled = activeTab !== undefined;
+    const current = isControlled ? activeTab : internalTab;
+
+    const isVertical = vertical || verticalRight;
+
+    const handleSelect = (name: string) => {
+      if (!isControlled) {
+        setInternalTab(name);
+      }
+      onChange?.(name);
+    };
+
+    const enabledTabs = tabs.filter((t) => !t.disabled);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (enabledTabs.length === 0) return;
+
+      const currentIndex = enabledTabs.findIndex((t) => t.name === current);
+      let nextIndex: number | null = null;
+
+      const nextKey = isVertical ? 'ArrowDown' : 'ArrowRight';
+      const prevKey = isVertical ? 'ArrowUp' : 'ArrowLeft';
+
+      if (e.key === nextKey) {
+        e.preventDefault();
+        nextIndex = (currentIndex + 1) % enabledTabs.length;
+      } else if (e.key === prevKey) {
+        e.preventDefault();
+        nextIndex =
+          (currentIndex - 1 + enabledTabs.length) % enabledTabs.length;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextIndex = enabledTabs.length - 1;
+      }
+
+      if (nextIndex !== null) {
+        handleSelect(enabledTabs[nextIndex].name);
+        const btn = tabListRef.current?.querySelector<HTMLButtonElement>(
+          `[data-tab="${enabledTabs[nextIndex].name}"]`,
+        );
+        btn?.focus();
+      }
+    };
+
+    const activeTabItem = tabs.find((t) => t.name === current);
+
+    const tabList = (
+      <div
+        ref={tabListRef}
+        role="tablist"
+        aria-orientation={isVertical ? 'vertical' : 'horizontal'}
+        className={cn(
+          'tabs',
+          variant && variantMap[variant],
+          size && sizeMap[size],
+          isVertical && 'tabs-vertical min-w-48',
+          tabListClassName,
+        )}
+        onKeyDown={handleKeyDown}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.name}
+            role="tab"
+            type="button"
+            data-tab={tab.name}
+            id={`tab-${autoId}-${tab.name}`}
+            aria-selected={current === tab.name}
+            aria-controls={`tabpanel-${autoId}-${tab.name}`}
+            tabIndex={current === tab.name ? 0 : -1}
+            disabled={tab.disabled}
+            className={cn(
+              'tab',
+              isVertical && 'w-full justify-start',
+              current === tab.name && 'tab-active',
+              current === tab.name && color && colorMap[color],
+              current === tab.name && activeTabClassName,
+              tab.disabled && 'tab-disabled',
+            )}
+            onClick={() => !tab.disabled && handleSelect(tab.name)}
+          >
+            {tab.icon && (
+              <span className="mr-1" aria-hidden="true">
+                {tab.icon}
+              </span>
+            )}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    );
+
+    const panel = activeTabItem ? (
+      <div
+        role="tabpanel"
+        id={`tabpanel-${autoId}-${activeTabItem.name}`}
+        aria-labelledby={`tab-${autoId}-${activeTabItem.name}`}
+        tabIndex={0}
+        className={cn(
+          isVertical ? 'flex-1 pl-4' : 'p-4',
+          panelClassName,
+        )}
+      >
+        {activeTabItem.content}
+      </div>
+    ) : null;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(isVertical && 'flex', className)}
+        {...rest}
+      >
+        {verticalRight ? (
+          <>
+            {panel}
+            {tabList}
+          </>
+        ) : (
+          <>
+            {tabList}
+            {panel}
+          </>
+        )}
+      </div>
+    );
+  },
+);
+
+Tabs.displayName = 'Tabs';
