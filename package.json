@@ -1,6 +1,7 @@
 {
   "name": "@artisanpack-ui/monorepo",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/tokens",
     "packages/react",
@@ -8,18 +9,22 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "lint": "eslint packages/*/src --ext .ts,.tsx",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint packages/*/src",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\"",
+    "type-check": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
+    "@eslint/js": "^9.39.4",
     "eslint": "^9.0.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.4.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.57.2"
   }
 }
