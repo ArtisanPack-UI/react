@@ -1,11 +1,11 @@
 import {
   forwardRef,
   useEffect,
+  useRef,
   useCallback,
   useId,
   type HTMLAttributes,
   type ReactNode,
-  type KeyboardEvent,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
@@ -22,8 +22,16 @@ export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
   persistent?: boolean;
 }
 
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  );
+}
+
 /**
- * Side panel overlay with open/close state and keyboard dismiss.
+ * Side panel overlay with focus trapping, keyboard dismiss, and accessible labeling.
  */
 export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
   (
@@ -35,19 +43,71 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       persistent = false,
       className,
       children,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       ...rest
     },
     ref,
   ) => {
     const drawerId = useId();
     const toggleId = `drawer-toggle-${drawerId}`;
+    const panelRef = useRef<HTMLDivElement>(null);
+    const previousActiveElement = useRef<Element | null>(null);
 
     useEffect(() => {
-      if (!open || persistent) return;
+      if (!open) return;
+
+      previousActiveElement.current = document.activeElement;
+
+      // Focus first focusable element in panel
+      requestAnimationFrame(() => {
+        if (panelRef.current) {
+          const focusable = getFocusableElements(panelRef.current);
+          if (focusable.length > 0) {
+            focusable[0].focus();
+          } else {
+            panelRef.current.focus();
+          }
+        }
+      });
+
+      return () => {
+        if (previousActiveElement.current instanceof HTMLElement) {
+          previousActiveElement.current.focus();
+        }
+      };
+    }, [open]);
+
+    useEffect(() => {
+      if (!open) return;
 
       const handleKeyDown = (e: globalThis.KeyboardEvent) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' && !persistent) {
           onClose();
+          return;
+        }
+
+        if (e.key === 'Tab' && panelRef.current) {
+          const focusable = getFocusableElements(panelRef.current);
+          if (focusable.length === 0) {
+            e.preventDefault();
+            return;
+          }
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
         }
       };
 
@@ -73,14 +133,24 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
           tabIndex={-1}
         />
         <div className="drawer-content">{children}</div>
-        <div className="drawer-side" role="dialog" aria-modal={open || undefined}>
+        <div
+          className="drawer-side"
+          role="dialog"
+          aria-modal={open || undefined}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
+        >
           <label
             htmlFor={toggleId}
             className="drawer-overlay"
             aria-label="Close drawer"
             onClick={handleOverlayClick}
           />
-          <div className="bg-base-100 text-base-content min-h-full w-80 p-4">
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            className="bg-base-100 text-base-content min-h-full w-80 p-4"
+          >
             {side}
           </div>
         </div>

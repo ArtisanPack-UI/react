@@ -2,6 +2,8 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+type LabelPosition = 'start' | 'center' | 'end';
+
 export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
   /** Render as vertical divider */
   vertical?: boolean;
@@ -10,10 +12,10 @@ export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
   /** Text or content to display in the divider */
   label?: string;
   /** Position of the label */
-  labelPosition?: 'start' | 'center' | 'end';
+  labelPosition?: LabelPosition;
 }
 
-const colorMap: Record<string, string> = {
+const colorMap: Record<DaisyColor, string> = {
   primary: 'divider-primary',
   secondary: 'divider-secondary',
   accent: 'divider-accent',
@@ -24,7 +26,7 @@ const colorMap: Record<string, string> = {
   neutral: 'divider-neutral',
 };
 
-const positionMap: Record<string, string> = {
+const positionMap: Record<LabelPosition, string> = {
   start: 'divider-start',
   center: '',
   end: 'divider-end',
@@ -46,6 +48,8 @@ export const Divider = forwardRef<HTMLDivElement, DividerProps>(
     },
     ref,
   ) => {
+    const hasContent = label !== undefined || children !== undefined;
+
     return (
       <div
         ref={ref}
@@ -55,7 +59,7 @@ export const Divider = forwardRef<HTMLDivElement, DividerProps>(
           'divider',
           vertical && 'divider-vertical',
           color && colorMap[color],
-          labelPosition && positionMap[labelPosition],
+          hasContent && positionMap[labelPosition],
           className,
         )}
         {...rest}

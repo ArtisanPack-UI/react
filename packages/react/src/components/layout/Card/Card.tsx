@@ -1,7 +1,12 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  type AnchorHTMLAttributes,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardBaseProps {
   /** Card title */
   title?: string;
   /** Card subtitle */
@@ -24,14 +29,24 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   compact?: boolean;
   /** Glass morphism effect */
   glass?: boolean;
-  /** Make the entire card a clickable link */
-  link?: string;
 }
+
+interface CardDivProps extends CardBaseProps, HTMLAttributes<HTMLDivElement> {
+  /** When omitted, card renders as a div */
+  link?: undefined;
+}
+
+interface CardLinkProps extends CardBaseProps, AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** When provided, card renders as an anchor */
+  link: string;
+}
+
+export type CardProps = CardDivProps | CardLinkProps;
 
 /**
  * Content container with header, body, footer slots and figure support.
  */
-export const Card = forwardRef<HTMLDivElement, CardProps>(
+export const Card = forwardRef<HTMLDivElement | HTMLAnchorElement, CardProps>(
   (
     {
       title,
@@ -110,15 +125,25 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     );
 
     if (link) {
+      const { link: _link, ...anchorRest } = rest as CardLinkProps;
       return (
-        <a ref={ref as React.Ref<HTMLAnchorElement>} href={link} className={cardClasses} {...(rest as HTMLAttributes<HTMLAnchorElement>)}>
+        <a
+          ref={ref as React.Ref<HTMLAnchorElement>}
+          href={link}
+          className={cardClasses}
+          {...anchorRest}
+        >
           {cardContent}
         </a>
       );
     }
 
     return (
-      <div ref={ref} className={cardClasses} {...rest}>
+      <div
+        ref={ref as React.Ref<HTMLDivElement>}
+        className={cardClasses}
+        {...(rest as CardDivProps)}
+      >
         {cardContent}
       </div>
     );

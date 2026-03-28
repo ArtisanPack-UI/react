@@ -7,6 +7,7 @@ import {
   type HTMLAttributes,
   type ReactNode,
   type KeyboardEvent,
+  type FocusEvent,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
@@ -27,7 +28,9 @@ export interface PopoverProps extends HTMLAttributes<HTMLDivElement> {
   onOpenChange?: (open: boolean) => void;
 }
 
-const positionMap: Record<string, string> = {
+type Position = NonNullable<PopoverProps['position']>;
+
+const positionMap: Record<Position, string> = {
   top: 'dropdown-top',
   bottom: 'dropdown-bottom',
   left: 'dropdown-left',
@@ -91,6 +94,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       return clearTimers;
     }, []);
 
+    // Click-outside for click mode
     useEffect(() => {
       if (triggerMode !== 'click' || !isOpen) return;
 
@@ -106,6 +110,20 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [triggerMode, isOpen, setOpen]);
+
+    // Global Escape key to close when open
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleEscape = (e: globalThis.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setOpen(false);
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, setOpen]);
 
     const handleMouseEnter = () => {
       if (triggerMode !== 'hover') return;
@@ -123,6 +141,20 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
     };
 
+    const handleFocus = () => {
+      if (triggerMode !== 'hover') return;
+      clearTimers();
+      setOpen(true);
+    };
+
+    const handleBlur = (e: FocusEvent) => {
+      if (triggerMode !== 'hover') return;
+      // Don't close if focus moves within the container
+      if (containerRef.current?.contains(e.relatedTarget as Node)) return;
+      clearTimers();
+      hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
+    };
+
     const handleClick = () => {
       if (triggerMode !== 'click') return;
       setOpen(!isOpen);
@@ -133,9 +165,6 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         setOpen(!isOpen);
-      } else if (e.key === 'Escape' && isOpen) {
-        e.preventDefault();
-        setOpen(false);
       }
     };
 
@@ -151,6 +180,8 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         {...rest}
       >
         <div

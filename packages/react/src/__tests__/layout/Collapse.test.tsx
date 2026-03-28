@@ -33,9 +33,10 @@ describe('Collapse', () => {
     expect(container.firstChild).toHaveClass('collapse-open');
   });
 
-  it('sets aria-expanded on title', () => {
+  it('sets aria-expanded on the input', () => {
     const { container } = render(<Collapse title="Title" defaultOpen>Content</Collapse>);
-    expect(screen.getByText('Title')).toHaveAttribute('aria-expanded', 'true');
+    const checkbox = container.querySelector('input[type="checkbox"]');
+    expect(checkbox).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('calls onOpenChange callback', () => {

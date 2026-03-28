@@ -87,6 +87,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
             name={name}
             checked={isOpen}
             onChange={handleToggle}
+            aria-expanded={isOpen}
             aria-controls={`collapse-content-${autoId}`}
             disabled={disabled}
           />
@@ -95,11 +96,12 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
             type="checkbox"
             checked={isOpen}
             onChange={handleToggle}
+            aria-expanded={isOpen}
             aria-controls={`collapse-content-${autoId}`}
             disabled={disabled}
           />
         )}
-        <div className="collapse-title font-semibold" aria-expanded={isOpen}>{title}</div>
+        <div className="collapse-title font-semibold">{title}</div>
         <div className="collapse-content" id={`collapse-content-${autoId}`}>
           {children}
         </div>

@@ -183,7 +183,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
               current === tab.name && activeTabClassName,
               tab.disabled && 'tab-disabled',
             )}
-            onClick={() => !tab.disabled && handleSelect(tab.name)}
+            onClick={() => handleSelect(tab.name)}
           >
             {tab.icon && (
               <span className="mr-1" aria-hidden="true">

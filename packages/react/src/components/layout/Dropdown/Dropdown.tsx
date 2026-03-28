@@ -5,9 +5,13 @@ import {
   useEffect,
   useCallback,
   useId,
+  cloneElement,
+  isValidElement,
   type HTMLAttributes,
   type ReactNode,
+  type ReactElement,
   type KeyboardEvent,
+  type MouseEventHandler,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
@@ -151,6 +155,26 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const menuId = `dropdown-menu-${autoId}`;
 
+    const triggerProps = {
+      'aria-haspopup': 'true' as const,
+      'aria-expanded': isOpen,
+      'aria-controls': menuId,
+      onClick: handleTriggerClick,
+      onKeyDown: handleTriggerKeyDown,
+    };
+
+    const renderTrigger = () => {
+      if (trigger && isValidElement(trigger)) {
+        return cloneElement(trigger as ReactElement, triggerProps);
+      }
+
+      return (
+        <div tabIndex={0} role="button" {...triggerProps}>
+          <span className="btn btn-ghost btn-sm">{label}</span>
+        </div>
+      );
+    };
+
     return (
       <div
         ref={setRefs}
@@ -164,19 +188,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         )}
         {...rest}
       >
-        <div
-          tabIndex={0}
-          role="button"
-          aria-haspopup="true"
-          aria-expanded={isOpen}
-          aria-controls={menuId}
-          onClick={handleTriggerClick}
-          onKeyDown={handleTriggerKeyDown}
-        >
-          {trigger ?? (
-            <span className="btn btn-ghost btn-sm">{label}</span>
-          )}
-        </div>
+        {renderTrigger()}
         <ul
           ref={menuRef}
           id={menuId}
@@ -194,9 +206,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
 Dropdown.displayName = 'Dropdown';
 
-export interface DropdownItemProps extends HTMLAttributes<HTMLLIElement> {
+export interface DropdownItemProps extends Omit<HTMLAttributes<HTMLLIElement>, 'onClick'> {
   /** Disable this menu item */
   disabled?: boolean;
+  /** Click handler */
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 /**
@@ -215,7 +229,7 @@ export const DropdownItem = forwardRef<HTMLLIElement, DropdownItemProps>(
         <button
           type="button"
           disabled={disabled}
-          onClick={onClick as unknown as React.MouseEventHandler<HTMLButtonElement>}
+          onClick={onClick}
           tabIndex={disabled ? -1 : 0}
         >
           {children}

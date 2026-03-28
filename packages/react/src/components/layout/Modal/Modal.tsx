@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useCallback,
+  useId,
   type HTMLAttributes,
   type ReactNode,
   type MouseEvent,
@@ -50,6 +51,7 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   ) => {
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const previousActiveElement = useRef<Element | null>(null);
+    const titleId = useId();
 
     const setRefs = useCallback(
       (node: HTMLDialogElement | null) => {
@@ -87,9 +89,8 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
       if (!dialog) return;
 
       const handleCancel = (e: Event) => {
-        if (persistent) {
-          e.preventDefault();
-        } else {
+        e.preventDefault();
+        if (!persistent) {
           onClose();
         }
       };
@@ -115,6 +116,7 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
         )}
         onClick={handleBackdropClick}
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
         {...rest}
       >
         <div className={cn('modal-box', glass && 'glass')}>
@@ -122,9 +124,9 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
             <div className="mb-4">
               {title && (
                 typeof title === 'string' ? (
-                  <h3 className="text-lg font-bold">{title}</h3>
+                  <h3 id={titleId} className="text-lg font-bold">{title}</h3>
                 ) : (
-                  title
+                  <div id={titleId}>{title}</div>
                 )
               )}
               {subtitle && (

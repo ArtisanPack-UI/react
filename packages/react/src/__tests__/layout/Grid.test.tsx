@@ -53,6 +53,22 @@ describe('Grid', () => {
     expect(container.firstChild).toHaveClass('gap-y-4');
   });
 
+  it('applies gapX only with default gapY fallback', () => {
+    const { container } = render(<Grid gapX={2}>Content</Grid>);
+    const el = container.firstChild;
+    expect(el).toHaveClass('gap-x-2');
+    expect(el).toHaveClass('gap-y-4');
+    expect(el).not.toHaveClass('gap-4');
+  });
+
+  it('applies gapY only with default gapX fallback', () => {
+    const { container } = render(<Grid gapY={4}>Content</Grid>);
+    const el = container.firstChild;
+    expect(el).toHaveClass('gap-y-4');
+    expect(el).toHaveClass('gap-x-4');
+    expect(el).not.toHaveClass('gap-4');
+  });
+
   it('applies custom className', () => {
     const { container } = render(<Grid className="my-grid">Content</Grid>);
     expect(container.firstChild).toHaveClass('my-grid');
