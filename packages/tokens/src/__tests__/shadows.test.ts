@@ -8,6 +8,7 @@ describe('shadows', () => {
 
   it('defines elevation levels from sm to 2xl', () => {
     expect(shadows.sm).toContain('rgb(0 0 0');
+    expect(shadows.base).toContain('rgb(0 0 0');
     expect(shadows.md).toContain('rgb(0 0 0');
     expect(shadows.lg).toContain('rgb(0 0 0');
     expect(shadows.xl).toContain('rgb(0 0 0');

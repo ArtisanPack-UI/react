@@ -83,13 +83,18 @@ export interface GlassStyleOptions {
   dark?: boolean;
 }
 
+/** Options for generating inline glass styles (tint requires CSS classes) */
+export type GlassInlineStyleOptions = Omit<GlassStyleOptions, 'tint' | 'tintOpacity'>;
+
 /**
  * Generate inline CSS properties for a glass effect.
  *
  * @param options - Configuration for the glass effect
  * @returns A CSSProperties object that can be spread onto a React element's style prop
+ * @remarks Tint colors require a CSS pseudo-element overlay and cannot be applied via inline
+ * styles. Use {@link glassClassName} for tint support.
  */
-export function glassStyles(options: GlassStyleOptions = {}): CSSProperties {
+export function glassStyles(options: GlassInlineStyleOptions = {}): CSSProperties {
   const { preset = 'base', dark = false } = options;
 
   const styles: CSSProperties = {};

@@ -61,6 +61,7 @@ export {
   type GlassPreset,
   type GlassTint,
   type GlassStyleOptions,
+  type GlassInlineStyleOptions,
 } from './glass';
 
 // Shared types
