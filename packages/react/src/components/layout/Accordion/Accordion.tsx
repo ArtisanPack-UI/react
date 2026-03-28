@@ -57,14 +57,14 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     const isControlled = openIndices !== undefined;
     const currentOpen = isControlled ? openIndices : internalOpen;
 
-    const handleToggle = (collapseIndex: number, nextOpen: boolean) => {
+    const handleToggle = (idx: number, nextOpen: boolean) => {
       let next: number[];
       if (multiple) {
         next = nextOpen
-          ? [...currentOpen, collapseIndex]
-          : currentOpen.filter((i) => i !== collapseIndex);
+          ? [...cleanOpen, idx]
+          : cleanOpen.filter((i) => i !== idx);
       } else {
-        next = nextOpen ? [collapseIndex] : [];
+        next = nextOpen ? [idx] : [];
       }
       if (!isControlled) {
         setInternalOpen(next);
@@ -73,6 +73,15 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     };
 
     const allChildren = Children.toArray(children);
+
+    // Count Collapse children for bounds checking
+    const collapseCount = allChildren.filter(
+      (c) => isValidElement(c) && isCollapseElement(c),
+    ).length;
+    const cleanOpen = Array.from(new Set(currentOpen)).filter(
+      (i) => i >= 0 && i < collapseCount,
+    );
+
     let collapseIndex = 0;
 
     return (
@@ -85,7 +94,7 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
           if (!isValidElement(child) || !isCollapseElement(child)) return child;
 
           const idx = collapseIndex++;
-          const isOpen = currentOpen.includes(idx);
+          const isOpen = cleanOpen.includes(idx);
 
           const originalOnOpenChange = child.props.onOpenChange;
 

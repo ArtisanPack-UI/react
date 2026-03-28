@@ -72,6 +72,8 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const setOpen = useCallback(
       (next: boolean) => {
+        const current = isControlled ? open : internalOpen;
+        if (next === current) return;
         if (!isControlled) {
           setInternalOpen(next);
         }
@@ -80,7 +82,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           focusedIndex.current = -1;
         }
       },
-      [isControlled, onOpenChange],
+      [isControlled, open, internalOpen, onOpenChange],
     );
 
     const closeFocusTrigger = useCallback(() => {
@@ -138,6 +140,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         return;
       }
 
+      if (e.key === 'Tab') {
+        closeFocusTrigger();
+        return;
+      }
+
       const items = getMenuItemButtons();
       if (items.length === 0) return;
 
@@ -161,6 +168,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const handleTriggerClick = () => {
       setOpen(!isOpen);
+    };
+
+    const handleMouseEnter = () => {
+      if (hover) setOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+      if (hover) setOpen(false);
     };
 
     const menuId = `dropdown-menu-${autoId}`;
@@ -219,6 +234,8 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           isOpen && 'dropdown-open',
           className,
         )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         {...rest}
       >
         {renderTrigger()}

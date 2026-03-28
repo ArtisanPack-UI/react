@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useState,
+  useEffect,
   useId,
   type HTMLAttributes,
   type ReactNode,
@@ -123,6 +124,14 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     const current = isControlled
       ? (isSelectableTab(tabs, activeTab) ? activeTab : firstSelectableTab(tabs))
       : (isSelectableTab(tabs, internalTab) ? internalTab : firstSelectableTab(tabs));
+
+    // Sync internalTab when tabs change and current selection becomes invalid
+    useEffect(() => {
+      if (isControlled) return;
+      if (!isSelectableTab(tabs, internalTab)) {
+        setInternalTab(firstSelectableTab(tabs));
+      }
+    }, [tabs, isControlled, internalTab]);
 
     const isVertical = vertical || verticalRight;
 

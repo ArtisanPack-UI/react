@@ -99,12 +99,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const setOpen = useCallback(
       (next: boolean) => {
+        const current = isControlled ? open : internalOpen;
+        if (next === current) return;
         if (!isControlled) {
           setInternalOpen(next);
         }
         onOpenChange?.(next);
       },
-      [isControlled, onOpenChange],
+      [isControlled, open, internalOpen, onOpenChange],
     );
 
     const clearTimers = () => {
@@ -235,7 +237,11 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         );
       }
 
-      return <span aria-expanded={isOpen}>{trigger}</span>;
+      return (
+        <span tabIndex={0} role="button" aria-expanded={isOpen}>
+          {trigger}
+        </span>
+      );
     };
 
     return (
@@ -257,6 +263,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         <div
           className="dropdown-content z-[1] rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
           aria-hidden={!isOpen}
+          style={!isOpen ? { visibility: 'hidden', opacity: 0 } : undefined}
         >
           {children}
         </div>
