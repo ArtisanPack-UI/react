@@ -74,6 +74,18 @@ const colorMap: Record<string, string> = {
   neutral: 'tab-neutral',
 };
 
+/** Returns the name of the first non-disabled tab, or empty string */
+function firstSelectableTab(tabs: TabItem[]): string {
+  return tabs.find((t) => !t.disabled)?.name ?? '';
+}
+
+/** Checks if a tab name exists and is not disabled */
+function isSelectableTab(tabs: TabItem[], name: string | undefined): boolean {
+  if (!name) return false;
+  const tab = tabs.find((t) => t.name === name);
+  return !!tab && !tab.disabled;
+}
+
 /**
  * Tabbed interface with accessible keyboard navigation, vertical layout, and styling options.
  */
@@ -99,10 +111,16 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   ) => {
     const autoId = useId();
     const tabListRef = useRef<HTMLDivElement>(null);
-    const defaultActive = defaultTab ?? tabs.find((t) => !t.disabled)?.name ?? '';
+
+    const defaultActive = isSelectableTab(tabs, defaultTab)
+      ? defaultTab!
+      : firstSelectableTab(tabs);
     const [internalTab, setInternalTab] = useState(defaultActive);
     const isControlled = activeTab !== undefined;
-    const current = isControlled ? activeTab : internalTab;
+
+    const current = isControlled
+      ? (isSelectableTab(tabs, activeTab) ? activeTab : firstSelectableTab(tabs))
+      : internalTab;
 
     const isVertical = vertical || verticalRight;
 
@@ -142,13 +160,14 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       if (nextIndex !== null) {
         handleSelect(enabledTabs[nextIndex].name);
         const btn = tabListRef.current?.querySelector<HTMLButtonElement>(
-          `[data-tab="${enabledTabs[nextIndex].name}"]`,
+          `[data-tab-index="${nextIndex}"]`,
         );
         btn?.focus();
       }
     };
 
-    const activeTabItem = tabs.find((t) => t.name === current);
+    const activeIndex = tabs.findIndex((t) => t.name === current);
+    const activeTabItem = activeIndex >= 0 ? tabs[activeIndex] : undefined;
 
     const tabList = (
       <div
@@ -164,15 +183,15 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
         )}
         onKeyDown={handleKeyDown}
       >
-        {tabs.map((tab) => (
+        {tabs.map((tab, index) => (
           <button
             key={tab.name}
             role="tab"
             type="button"
-            data-tab={tab.name}
-            id={`tab-${autoId}-${tab.name}`}
+            data-tab-index={index}
+            id={`tab-${autoId}-${index}`}
             aria-selected={current === tab.name}
-            aria-controls={`tabpanel-${autoId}-${tab.name}`}
+            aria-controls={`tabpanel-${autoId}-${index}`}
             tabIndex={current === tab.name ? 0 : -1}
             disabled={tab.disabled}
             className={cn(
@@ -196,11 +215,11 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       </div>
     );
 
-    const panel = activeTabItem ? (
+    const panel = activeTabItem && activeIndex >= 0 ? (
       <div
         role="tabpanel"
-        id={`tabpanel-${autoId}-${activeTabItem.name}`}
-        aria-labelledby={`tab-${autoId}-${activeTabItem.name}`}
+        id={`tabpanel-${autoId}-${activeIndex}`}
+        aria-labelledby={`tab-${autoId}-${activeIndex}`}
         tabIndex={0}
         className={cn(
           isVertical ? 'flex-1 pl-4' : 'p-4',

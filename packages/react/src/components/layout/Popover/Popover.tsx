@@ -135,8 +135,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (e: React.MouseEvent) => {
       if (triggerMode !== 'hover') return;
+      if (containerRef.current?.contains(e.relatedTarget as Node)) return;
       clearTimers();
       hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
     };
@@ -144,7 +145,11 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     const handleFocus = () => {
       if (triggerMode !== 'hover') return;
       clearTimers();
-      setOpen(true);
+      if (showDelay > 0) {
+        showTimer.current = setTimeout(() => setOpen(true), showDelay);
+      } else {
+        setOpen(true);
+      }
     };
 
     const handleBlur = (e: FocusEvent) => {
@@ -196,8 +201,6 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         <div
           className="dropdown-content z-1 rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
           aria-hidden={!isOpen}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
         >
           {children}
         </div>

@@ -23,11 +23,17 @@ export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(
+  const candidates = Array.from(
     container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
     ),
   );
+  return candidates.filter((el) => {
+    if (el.tabIndex < 0) return false;
+    if (el.getAttribute('aria-hidden') === 'true') return false;
+    if ((el as HTMLElement).offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+    return true;
+  });
 }
 
 /**
@@ -45,6 +51,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       children,
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledBy,
+      'aria-describedby': ariaDescribedBy,
       ...rest
     },
     ref,
@@ -139,6 +146,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
           aria-modal={open || undefined}
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
+          aria-describedby={ariaDescribedBy}
         >
           <label
             htmlFor={toggleId}

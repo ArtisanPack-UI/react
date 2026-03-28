@@ -1,7 +1,6 @@
 import {
   forwardRef,
   useState,
-  useId,
   Children,
   isValidElement,
   cloneElement,
@@ -50,7 +49,6 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     },
     ref,
   ) => {
-    const groupName = useId();
     const [internalOpen, setInternalOpen] = useState<number[]>(defaultOpenIndices);
     const isControlled = openIndices !== undefined;
     const currentOpen = isControlled ? openIndices : internalOpen;
@@ -88,7 +86,6 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
             key: collapseChild.key ?? index,
             open: isOpen,
             onOpenChange: (open: boolean) => handleToggle(index, open),
-            name: multiple ? undefined : groupName,
             className: cn(
               join && 'join-item',
               collapseChild.props.className,

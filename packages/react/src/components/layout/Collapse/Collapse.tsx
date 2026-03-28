@@ -89,6 +89,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
             onChange={handleToggle}
             aria-expanded={isOpen}
             aria-controls={`collapse-content-${autoId}`}
+            aria-labelledby={`collapse-title-${autoId}`}
             disabled={disabled}
           />
         ) : (
@@ -98,10 +99,11 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
             onChange={handleToggle}
             aria-expanded={isOpen}
             aria-controls={`collapse-content-${autoId}`}
+            aria-labelledby={`collapse-title-${autoId}`}
             disabled={disabled}
           />
         )}
-        <div className="collapse-title font-semibold">{title}</div>
+        <div id={`collapse-title-${autoId}`} className="collapse-title font-semibold">{title}</div>
         <div className="collapse-content" id={`collapse-content-${autoId}`}>
           {children}
         </div>

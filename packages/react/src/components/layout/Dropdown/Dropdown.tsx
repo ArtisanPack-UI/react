@@ -100,15 +100,17 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen, setOpen]);
 
-    const getMenuItems = (): HTMLElement[] => {
+    const getMenuItemButtons = (): HTMLElement[] => {
       if (!menuRef.current) return [];
       return Array.from(
-        menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled])'),
+        menuRef.current.querySelectorAll<HTMLElement>(
+          '[role="menuitem"]:not([aria-disabled]) > button:not([disabled])',
+        ),
       );
     };
 
     const focusItem = (index: number) => {
-      const items = getMenuItems();
+      const items = getMenuItemButtons();
       if (items[index]) {
         items[index].focus();
         focusedIndex.current = index;
@@ -126,7 +128,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     };
 
     const handleMenuKeyDown = (e: KeyboardEvent) => {
-      const items = getMenuItems();
+      const items = getMenuItemButtons();
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -155,21 +157,37 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const menuId = `dropdown-menu-${autoId}`;
 
-    const triggerProps = {
-      'aria-haspopup': 'true' as const,
-      'aria-expanded': isOpen,
-      'aria-controls': menuId,
-      onClick: handleTriggerClick,
-      onKeyDown: handleTriggerKeyDown,
-    };
-
     const renderTrigger = () => {
       if (trigger && isValidElement(trigger)) {
-        return cloneElement(trigger as ReactElement, triggerProps);
+        const triggerEl = trigger as ReactElement<Record<string, unknown>>;
+        const originalOnClick = triggerEl.props.onClick as ((...args: unknown[]) => void) | undefined;
+        const originalOnKeyDown = triggerEl.props.onKeyDown as ((...args: unknown[]) => void) | undefined;
+
+        return cloneElement(triggerEl, {
+          'aria-haspopup': 'true' as const,
+          'aria-expanded': isOpen,
+          'aria-controls': menuId,
+          onClick: (...args: unknown[]) => {
+            originalOnClick?.(...args);
+            handleTriggerClick();
+          },
+          onKeyDown: (e: KeyboardEvent) => {
+            originalOnKeyDown?.(e);
+            handleTriggerKeyDown(e);
+          },
+        });
       }
 
       return (
-        <div tabIndex={0} role="button" {...triggerProps}>
+        <div
+          tabIndex={0}
+          role="button"
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          aria-controls={menuId}
+          onClick={handleTriggerClick}
+          onKeyDown={handleTriggerKeyDown}
+        >
           <span className="btn btn-ghost btn-sm">{label}</span>
         </div>
       );
