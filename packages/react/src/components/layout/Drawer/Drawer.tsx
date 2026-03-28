@@ -67,7 +67,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       previousActiveElement.current = document.activeElement;
 
       // Focus first focusable element in panel
-      requestAnimationFrame(() => {
+      const rafId = requestAnimationFrame(() => {
         if (panelRef.current) {
           const focusable = getFocusableElements(panelRef.current);
           if (focusable.length > 0) {
@@ -79,6 +79,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       });
 
       return () => {
+        cancelAnimationFrame(rafId);
         if (previousActiveElement.current instanceof HTMLElement) {
           previousActiveElement.current.focus();
         }
@@ -103,14 +104,16 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
 
           const first = focusable[0];
           const last = focusable[focusable.length - 1];
+          const activeInPanel = panelRef.current.contains(document.activeElement);
+          const activeIndex = focusable.indexOf(document.activeElement as HTMLElement);
 
           if (e.shiftKey) {
-            if (document.activeElement === first) {
+            if (!activeInPanel || activeIndex <= 0) {
               e.preventDefault();
               last.focus();
             }
           } else {
-            if (document.activeElement === last) {
+            if (!activeInPanel || activeIndex >= focusable.length - 1) {
               e.preventDefault();
               first.focus();
             }

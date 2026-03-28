@@ -11,8 +11,10 @@ import { cn } from '@artisanpack-ui/tokens';
 import { Collapse } from '../Collapse/Collapse';
 import type { CollapseProps } from '../Collapse/Collapse';
 
-/** Type guard that matches Collapse or wrapped variants by displayName */
-function isCollapseElement(child: ReactElement): boolean {
+/** Type predicate that matches Collapse or wrapped variants by displayName */
+function isCollapseElement(
+  child: ReactElement,
+): child is ReactElement<CollapseProps, typeof Collapse> {
   return (
     child.type === Collapse ||
     (child.type as { displayName?: string })?.displayName === Collapse.displayName
@@ -22,11 +24,11 @@ function isCollapseElement(child: ReactElement): boolean {
 export interface AccordionProps extends HTMLAttributes<HTMLDivElement> {
   /** Allow multiple panels open at once (default: false = single open) */
   multiple?: boolean;
-  /** Controlled: indices of open panels */
+  /** Controlled: indices of open Collapse panels (relative to Collapse children only) */
   openIndices?: number[];
-  /** Default open panel indices (uncontrolled) */
+  /** Default open Collapse panel indices (relative to Collapse children only) */
   defaultOpenIndices?: number[];
-  /** Callback when open panels change */
+  /** Callback when open panels change (indices relative to Collapse children only) */
   onOpenChange?: (indices: number[]) => void;
   /** Join items visually (DaisyUI join) */
   join?: boolean;
@@ -34,6 +36,8 @@ export interface AccordionProps extends HTMLAttributes<HTMLDivElement> {
 
 /**
  * Container for Collapse items. Controls single or multiple open panels.
+ * Indices in openIndices/defaultOpenIndices/onOpenChange refer to the
+ * position among Collapse children only (non-Collapse children are skipped).
  */
 export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
   (
@@ -53,14 +57,14 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     const isControlled = openIndices !== undefined;
     const currentOpen = isControlled ? openIndices : internalOpen;
 
-    const handleToggle = (index: number, nextOpen: boolean) => {
+    const handleToggle = (collapseIndex: number, nextOpen: boolean) => {
       let next: number[];
       if (multiple) {
         next = nextOpen
-          ? [...currentOpen, index]
-          : currentOpen.filter((i) => i !== index);
+          ? [...currentOpen, collapseIndex]
+          : currentOpen.filter((i) => i !== collapseIndex);
       } else {
-        next = nextOpen ? [index] : [];
+        next = nextOpen ? [collapseIndex] : [];
       }
       if (!isControlled) {
         setInternalOpen(next);
@@ -68,7 +72,8 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
       onOpenChange?.(next);
     };
 
-    const items = Children.toArray(children);
+    const allChildren = Children.toArray(children);
+    let collapseIndex = 0;
 
     return (
       <div
@@ -76,19 +81,19 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
         className={cn(join && 'join join-vertical w-full', className)}
         {...rest}
       >
-        {items.map((child, index) => {
+        {allChildren.map((child) => {
           if (!isValidElement(child) || !isCollapseElement(child)) return child;
 
-          const collapseChild = child as ReactElement<CollapseProps>;
-          const isOpen = currentOpen.includes(index);
+          const idx = collapseIndex++;
+          const isOpen = currentOpen.includes(idx);
 
-          return cloneElement(collapseChild, {
-            key: collapseChild.key ?? index,
+          return cloneElement(child, {
+            key: child.key ?? idx,
             open: isOpen,
-            onOpenChange: (open: boolean) => handleToggle(index, open),
+            onOpenChange: (open: boolean) => handleToggle(idx, open),
             className: cn(
               join && 'join-item',
-              collapseChild.props.className,
+              child.props.className,
             ),
           });
         })}

@@ -158,9 +158,11 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       }
 
       if (nextIndex !== null) {
-        handleSelect(enabledTabs[nextIndex].name);
+        const targetTab = enabledTabs[nextIndex];
+        handleSelect(targetTab.name);
+        const originalIndex = tabs.indexOf(targetTab);
         const btn = tabListRef.current?.querySelector<HTMLButtonElement>(
-          `[data-tab-index="${nextIndex}"]`,
+          `[data-tab-index="${originalIndex}"]`,
         );
         btn?.focus();
       }

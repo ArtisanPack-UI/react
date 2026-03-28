@@ -4,14 +4,21 @@ import {
   useRef,
   useEffect,
   useCallback,
+  isValidElement,
+  cloneElement,
   type HTMLAttributes,
   type ReactNode,
+  type ReactElement,
   type KeyboardEvent,
   type FocusEvent,
+  type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface PopoverProps extends HTMLAttributes<HTMLDivElement> {
+export interface PopoverProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onMouseEnter' | 'onMouseLeave' | 'onFocus' | 'onBlur'
+> {
   /** Trigger element */
   trigger: ReactNode;
   /** Trigger mode */
@@ -26,6 +33,16 @@ export interface PopoverProps extends HTMLAttributes<HTMLDivElement> {
   open?: boolean;
   /** Callback when open state changes */
   onOpenChange?: (open: boolean) => void;
+  /** Prevent closing via outside click or escape */
+  persistent?: boolean;
+  /** External mouse enter handler */
+  onMouseEnter?: (e: ReactMouseEvent<HTMLDivElement>) => void;
+  /** External mouse leave handler */
+  onMouseLeave?: (e: ReactMouseEvent<HTMLDivElement>) => void;
+  /** External focus handler */
+  onFocus?: (e: FocusEvent<HTMLDivElement>) => void;
+  /** External blur handler */
+  onBlur?: (e: FocusEvent<HTMLDivElement>) => void;
 }
 
 type Position = NonNullable<PopoverProps['position']>;
@@ -50,8 +67,13 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       hideDelay = 300,
       open,
       onOpenChange,
+      persistent = false,
       className,
       children,
+      onMouseEnter: externalOnMouseEnter,
+      onMouseLeave: externalOnMouseLeave,
+      onFocus: externalOnFocus,
+      onBlur: externalOnBlur,
       ...rest
     },
     ref,
@@ -96,7 +118,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     // Click-outside for click mode
     useEffect(() => {
-      if (triggerMode !== 'click' || !isOpen) return;
+      if (triggerMode !== 'click' || !isOpen || persistent) return;
 
       const handleClickOutside = (e: MouseEvent) => {
         if (
@@ -109,11 +131,11 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [triggerMode, isOpen, setOpen]);
+    }, [triggerMode, isOpen, persistent, setOpen]);
 
     // Global Escape key to close when open
     useEffect(() => {
-      if (!isOpen) return;
+      if (!isOpen || persistent) return;
 
       const handleEscape = (e: globalThis.KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -123,9 +145,10 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, setOpen]);
+    }, [isOpen, persistent, setOpen]);
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = (e: ReactMouseEvent<HTMLDivElement>) => {
+      externalOnMouseEnter?.(e);
       if (triggerMode !== 'hover') return;
       clearTimers();
       if (showDelay > 0) {
@@ -135,14 +158,16 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
-    const handleMouseLeave = (e: React.MouseEvent) => {
+    const handleMouseLeave = (e: ReactMouseEvent<HTMLDivElement>) => {
+      externalOnMouseLeave?.(e);
       if (triggerMode !== 'hover') return;
       if (containerRef.current?.contains(e.relatedTarget as Node)) return;
       clearTimers();
       hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
     };
 
-    const handleFocus = () => {
+    const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
+      externalOnFocus?.(e);
       if (triggerMode !== 'hover') return;
       clearTimers();
       if (showDelay > 0) {
@@ -152,9 +177,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
-    const handleBlur = (e: FocusEvent) => {
+    const handleBlur = (e: FocusEvent<HTMLDivElement>) => {
+      externalOnBlur?.(e);
       if (triggerMode !== 'hover') return;
-      // Don't close if focus moves within the container
       if (containerRef.current?.contains(e.relatedTarget as Node)) return;
       clearTimers();
       hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
@@ -173,13 +198,52 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
     };
 
+    const renderTrigger = () => {
+      if (isValidElement(trigger)) {
+        const triggerEl = trigger as ReactElement<Record<string, unknown>>;
+        const props: Record<string, unknown> = {
+          'aria-expanded': isOpen,
+        };
+
+        if (triggerMode === 'click') {
+          const origClick = triggerEl.props.onClick as ((...a: unknown[]) => void) | undefined;
+          const origKeyDown = triggerEl.props.onKeyDown as ((...a: unknown[]) => void) | undefined;
+          props.onClick = (...args: unknown[]) => {
+            origClick?.(...args);
+            if (!(args[0] as Event)?.defaultPrevented) handleClick();
+          };
+          props.onKeyDown = (e: KeyboardEvent) => {
+            origKeyDown?.(e);
+            if (!e.defaultPrevented) handleKeyDown(e);
+          };
+        }
+
+        return cloneElement(triggerEl, props);
+      }
+
+      // Fallback: non-element trigger (string, etc.)
+      if (triggerMode === 'click') {
+        return (
+          <button
+            type="button"
+            aria-expanded={isOpen}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+          >
+            {trigger}
+          </button>
+        );
+      }
+
+      return <span aria-expanded={isOpen}>{trigger}</span>;
+    };
+
     return (
       <div
         ref={setRefs}
         className={cn(
           'dropdown',
           positionMap[position],
-          triggerMode === 'hover' && 'dropdown-hover',
           isOpen && 'dropdown-open',
           className,
         )}
@@ -189,15 +253,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         onBlur={handleBlur}
         {...rest}
       >
-        <div
-          tabIndex={0}
-          role="button"
-          aria-expanded={isOpen}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-        >
-          {trigger}
-        </div>
+        {renderTrigger()}
         <div
           className="dropdown-content z-1 rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
           aria-hidden={!isOpen}

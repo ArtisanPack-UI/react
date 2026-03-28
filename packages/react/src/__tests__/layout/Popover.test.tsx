@@ -31,16 +31,16 @@ describe('Popover', () => {
     expect(container.firstChild).toHaveClass('dropdown-open');
   });
 
-  it('adds dropdown-hover class in hover mode', () => {
+  it('does not add dropdown-open by default without interaction', () => {
     const { container } = render(
       <Popover trigger={<span>Trigger</span>}>
         Content
       </Popover>,
     );
-    expect(container.firstChild).toHaveClass('dropdown-hover');
+    expect(container.firstChild).not.toHaveClass('dropdown-open');
   });
 
-  it('does not add dropdown-hover class in click mode', () => {
+  it('does not add dropdown-hover class (visibility driven by state)', () => {
     const { container } = render(
       <Popover trigger={<span>Click me</span>} triggerMode="click">
         Content
@@ -51,7 +51,7 @@ describe('Popover', () => {
 
   it('adds dropdown-open class on click in click mode', () => {
     const { container } = render(
-      <Popover trigger={<span>Click me</span>} triggerMode="click">
+      <Popover trigger={<button>Click me</button>} triggerMode="click">
         Content
       </Popover>,
     );
@@ -79,13 +79,24 @@ describe('Popover', () => {
     expect(container.firstChild).toHaveClass('dropdown-top');
   });
 
-  it('sets aria-expanded on trigger wrapper', () => {
+  it('sets aria-expanded on trigger element', () => {
     render(
-      <Popover trigger={<span>Trigger</span>} open>
+      <Popover trigger={<span data-testid="trigger">Trigger</span>} open>
         Content
       </Popover>,
     );
-    expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByTestId('trigger')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('does not close when persistent', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover trigger={<button>Click</button>} triggerMode="click" open persistent onOpenChange={onOpenChange}>
+        Content
+      </Popover>,
+    );
+    fireEvent.mouseDown(document.body);
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('forwards ref', () => {
