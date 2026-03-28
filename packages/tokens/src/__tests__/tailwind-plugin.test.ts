@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { TailwindPluginAPI } from '../tailwind-plugin';
 import { themeTokens, createArtisanPackPlugin } from '../tailwind-plugin';
 
 describe('themeTokens', () => {
@@ -44,18 +45,27 @@ describe('themeTokens', () => {
 });
 
 describe('createArtisanPackPlugin', () => {
-  it('calls the plugin factory with handler and config', () => {
+  it('calls plugin(handler, config) matching Tailwind API shape', () => {
+    let capturedHandler: ((api: TailwindPluginAPI) => void) | null = null;
     let capturedConfig: Record<string, unknown> | null = null;
 
-    const mockPlugin = (opts: { handler: () => void; config: () => Record<string, unknown> }) => {
-      opts.handler();
-      capturedConfig = opts.config();
+    const mockPlugin = (
+      handler: (api: TailwindPluginAPI) => void,
+      config?: Record<string, unknown>,
+    ) => {
+      capturedHandler = handler;
+      capturedConfig = config ?? null;
       return 'mock-plugin';
     };
 
     const result = createArtisanPackPlugin(mockPlugin);
+
     expect(result).toBe('mock-plugin');
+    expect(capturedHandler).toBeTypeOf('function');
     expect(capturedConfig).toBeDefined();
-    expect(capturedConfig!).toHaveProperty('theme.extend');
+    expect(capturedConfig).toHaveProperty('theme.extend');
+
+    // Handler should be callable without errors
+    capturedHandler!({});
   });
 });

@@ -23,11 +23,16 @@ describe('fontSizes', () => {
     expect(fontSizes['6xl']).toBe('3.75rem');
   });
 
-  it('increases monotonically', () => {
-    const values = Object.values(fontSizes).map((v) => parseFloat(v));
-    for (let i = 1; i < values.length; i++) {
-      expect(values[i]).toBeGreaterThan(values[i - 1]);
-    }
+  it('increases monotonically through the scale', () => {
+    expect(parseFloat(fontSizes.xs)).toBeLessThan(parseFloat(fontSizes.sm));
+    expect(parseFloat(fontSizes.sm)).toBeLessThan(parseFloat(fontSizes.base));
+    expect(parseFloat(fontSizes.base)).toBeLessThan(parseFloat(fontSizes.lg));
+    expect(parseFloat(fontSizes.lg)).toBeLessThan(parseFloat(fontSizes.xl));
+    expect(parseFloat(fontSizes.xl)).toBeLessThan(parseFloat(fontSizes['2xl']));
+    expect(parseFloat(fontSizes['2xl'])).toBeLessThan(parseFloat(fontSizes['3xl']));
+    expect(parseFloat(fontSizes['3xl'])).toBeLessThan(parseFloat(fontSizes['4xl']));
+    expect(parseFloat(fontSizes['4xl'])).toBeLessThan(parseFloat(fontSizes['5xl']));
+    expect(parseFloat(fontSizes['5xl'])).toBeLessThan(parseFloat(fontSizes['6xl']));
   });
 });
 

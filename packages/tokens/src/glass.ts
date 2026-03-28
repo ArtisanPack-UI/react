@@ -75,16 +75,29 @@ export type GlassTint =
   | 'error'
   | 'info';
 
-/** Options for generating glass styles */
-export interface GlassStyleOptions {
+/** Options for generating CSS class names for a glass effect */
+export interface GlassClassOptions {
   preset?: GlassPreset;
   tint?: GlassTint;
   tintOpacity?: number;
+}
+
+/**
+ * Options for generating inline glass styles.
+ * Includes `dark` for explicit dark mode since inline styles can't respond to
+ * `[data-theme="dark"]`. Tint requires CSS pseudo-elements and is only
+ * available via {@link glassClassName}.
+ */
+export interface GlassInlineStyleOptions {
+  preset?: GlassPreset;
   dark?: boolean;
 }
 
-/** Options for generating inline glass styles (tint requires CSS classes) */
-export type GlassInlineStyleOptions = Omit<GlassStyleOptions, 'tint' | 'tintOpacity'>;
+/**
+ * Union of all glass options (used by component props that support both approaches).
+ * @deprecated Prefer {@link GlassClassOptions} or {@link GlassInlineStyleOptions} directly.
+ */
+export type GlassStyleOptions = GlassClassOptions & { dark?: boolean };
 
 /**
  * Generate inline CSS properties for a glass effect.
@@ -92,7 +105,8 @@ export type GlassInlineStyleOptions = Omit<GlassStyleOptions, 'tint' | 'tintOpac
  * @param options - Configuration for the glass effect
  * @returns A CSSProperties object that can be spread onto a React element's style prop
  * @remarks Tint colors require a CSS pseudo-element overlay and cannot be applied via inline
- * styles. Use {@link glassClassName} for tint support.
+ * styles. Use {@link glassClassName} for tint support. Dark mode must be passed explicitly
+ * since inline styles cannot respond to CSS selectors.
  */
 export function glassStyles(options: GlassInlineStyleOptions = {}): CSSProperties {
   const { preset = 'base', dark = false } = options;
@@ -164,11 +178,12 @@ export function glassStyles(options: GlassInlineStyleOptions = {}): CSSPropertie
 
 /**
  * Get the CSS class names for a glass effect (for use with the CSS stylesheet).
+ * Dark mode is handled automatically by `[data-theme="dark"]` selectors in the CSS.
  *
  * @param options - Configuration for the glass effect
  * @returns Space-separated class name string
  */
-export function glassClassName(options: GlassStyleOptions = {}): string {
+export function glassClassName(options: GlassClassOptions = {}): string {
   const { preset = 'base', tint, tintOpacity } = options;
 
   const classes: string[] = [];

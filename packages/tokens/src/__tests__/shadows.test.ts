@@ -21,10 +21,33 @@ describe('shadows', () => {
 });
 
 describe('shadowsDark', () => {
-  it('has higher opacity than light mode equivalents', () => {
-    // Dark sm has 0.2, light sm has 0.05
+  it('has key parity with shadows', () => {
+    const lightKeys = Object.keys(shadows).sort();
+    const darkKeys = Object.keys(shadowsDark).sort();
+    expect(darkKeys).toEqual(lightKeys);
+  });
+
+  it('has higher opacity than light mode for all elevation levels', () => {
     expect(shadowsDark.sm).toContain('0.2');
     expect(shadows.sm).toContain('0.05');
+
+    expect(shadowsDark.base).toContain('0.3');
+    expect(shadows.base).toContain('0.1');
+
+    expect(shadowsDark.md).toContain('0.3');
+    expect(shadows.md).toContain('0.1');
+
+    expect(shadowsDark.lg).toContain('0.3');
+    expect(shadows.lg).toContain('0.1');
+
+    expect(shadowsDark.xl).toContain('0.3');
+    expect(shadows.xl).toContain('0.1');
+
+    expect(shadowsDark['2xl']).toContain('0.5');
+    expect(shadows['2xl']).toContain('0.25');
+
+    expect(shadowsDark.inner).toContain('0.2');
+    expect(shadows.inner).toContain('0.05');
   });
 });
 

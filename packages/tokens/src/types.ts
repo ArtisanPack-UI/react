@@ -8,7 +8,13 @@ import type { DaisyColor } from './colors';
 import type { GlassPreset } from './glass';
 
 export type { DaisyColor } from './colors';
-export type { GlassPreset, GlassTint, GlassStyleOptions } from './glass';
+export type {
+  GlassPreset,
+  GlassTint,
+  GlassClassOptions,
+  GlassInlineStyleOptions,
+  GlassStyleOptions,
+} from './glass';
 
 /** Component size scale */
 export type Size = 'xs' | 'sm' | 'md' | 'lg';

@@ -73,10 +73,26 @@ export const themeTokens = {
 } as const;
 
 /**
+ * Minimal representation of Tailwind's plugin handler API.
+ * Avoids a hard dependency on tailwindcss while providing a typed contract.
+ */
+export interface TailwindPluginAPI {
+  addUtilities?: (...args: unknown[]) => void;
+  addComponents?: (...args: unknown[]) => void;
+  [key: string]: unknown;
+}
+
+/** Shape of the Tailwind `plugin(handler, config?)` function */
+export type TailwindPluginFn = (
+  handler: (api: TailwindPluginAPI) => void,
+  config?: Record<string, unknown>,
+) => unknown;
+
+/**
  * Tailwind CSS plugin factory.
  *
- * Accepts a `plugin` function from `tailwindcss/plugin` and returns a configured plugin.
- * This avoids a hard dependency on tailwindcss while still providing a typed API.
+ * Accepts the `plugin` function from `tailwindcss/plugin` and returns a
+ * configured plugin. Matches Tailwind's `plugin(handler, config?)` signature.
  *
  * @example
  * ```ts
@@ -88,17 +104,15 @@ export const themeTokens = {
  * };
  * ```
  */
-export function createArtisanPackPlugin(
-  plugin: (options: { handler: () => void; config: () => Record<string, unknown> }) => unknown,
-): unknown {
-  return plugin({
-    handler: () => {
+export function createArtisanPackPlugin(plugin: TailwindPluginFn): unknown {
+  return plugin(
+    () => {
       // No custom utilities needed — all values are theme extensions
     },
-    config: () => ({
+    {
       theme: {
         extend: themeTokens,
       },
-    }),
-  });
+    },
+  );
 }

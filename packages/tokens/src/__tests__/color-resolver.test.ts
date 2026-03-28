@@ -1,11 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { resolveColor, resolveContentColor, resolveAllColors } from '../color-resolver';
 import { colors } from '../colors';
 
 describe('resolveColor', () => {
   it('returns default hex value when window is undefined (SSR)', () => {
-    // In vitest node environment, window/document are not available by default
-    // unless configured with jsdom. Since tokens uses node env, this tests SSR fallback.
     expect(resolveColor('primary')).toBe(colors.primary);
     expect(resolveColor('success')).toBe(colors.success);
     expect(resolveColor('error')).toBe(colors.error);
@@ -21,12 +19,62 @@ describe('resolveColor', () => {
     expect(resolveColor('warning')).toBe('#f97316');
     expect(resolveColor('error')).toBe('#ef4444');
   });
+
+  it('reads CSS custom property value when running in a browser', () => {
+    const mockElement = {
+      style: {},
+    } as HTMLElement;
+    const mockGetComputedStyle = vi.fn().mockReturnValue({
+      getPropertyValue: vi.fn((prop: string) => {
+        if (prop === '--color-primary') return '#custom-primary';
+        if (prop === '--color-success') return '#custom-success';
+        return '';
+      }),
+    });
+
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('document', { documentElement: mockElement });
+    vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+
+    try {
+      expect(resolveColor('primary')).toBe('#custom-primary');
+      expect(resolveColor('success')).toBe('#custom-success');
+      // Falls back to default when CSS var is empty
+      expect(resolveColor('error')).toBe(colors.error);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 describe('resolveContentColor', () => {
   it('returns default content color when window is undefined', () => {
     expect(resolveContentColor('primary')).toBe(colors.primaryContent);
     expect(resolveContentColor('error')).toBe(colors.errorContent);
+  });
+
+  it('reads content CSS custom property in browser', () => {
+    const mockElement = {
+      style: {},
+    } as HTMLElement;
+    const mockGetComputedStyle = vi.fn().mockReturnValue({
+      getPropertyValue: vi.fn((prop: string) => {
+        if (prop === '--color-primary-content') return '#custom-content';
+        return '';
+      }),
+    });
+
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('document', { documentElement: mockElement });
+    vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+
+    try {
+      expect(resolveContentColor('primary')).toBe('#custom-content');
+      // Falls back to default when CSS var is empty
+      expect(resolveContentColor('error')).toBe(colors.errorContent);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
@@ -42,5 +90,30 @@ describe('resolveAllColors', () => {
     expect(all.warning).toBe(colors.warning);
     expect(all.error).toBe(colors.error);
     expect(Object.keys(all)).toHaveLength(8);
+  });
+
+  it('resolves all colors from CSS custom properties in browser', () => {
+    const mockElement = {
+      style: {},
+    } as HTMLElement;
+    const mockGetComputedStyle = vi.fn().mockReturnValue({
+      getPropertyValue: vi.fn((prop: string) => {
+        if (prop === '--color-primary') return '#browser-primary';
+        return '';
+      }),
+    });
+
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('document', { documentElement: mockElement });
+    vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+
+    try {
+      const all = resolveAllColors();
+      expect(all.primary).toBe('#browser-primary');
+      // Others fall back to defaults
+      expect(all.secondary).toBe(colors.secondary);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

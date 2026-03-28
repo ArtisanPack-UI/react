@@ -11,16 +11,18 @@ export default defineConfig({
   sourcemap: true,
   outExtension: () => ({ js: '.mjs' }),
   onSuccess: async () => {
-    // Copy CSS file to dist
+    // Copy CSS file to dist, using import.meta.url for reliable path resolution
     const { copyFileSync, mkdirSync, existsSync } = await import('fs');
-    const { resolve } = await import('path');
+    const { dirname, resolve } = await import('path');
+    const { fileURLToPath } = await import('url');
 
-    const distDir = resolve('dist');
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const distDir = resolve(__dirname, 'dist');
     if (!existsSync(distDir)) {
       mkdirSync(distDir, { recursive: true });
     }
 
-    copyFileSync(resolve('src/css/tokens.css'), resolve('dist/tokens.css'));
+    copyFileSync(resolve(__dirname, 'src/css/tokens.css'), resolve(distDir, 'tokens.css'));
     console.log('Copied tokens.css to dist/');
   },
 });
