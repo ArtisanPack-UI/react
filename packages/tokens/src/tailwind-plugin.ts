@@ -5,11 +5,16 @@
  * as theme extensions. Use this when you want Tailwind utilities to reference
  * the same design tokens.
  *
- * Usage with Tailwind CSS v4:
- *   import { createArtisanPackPlugin } from '@artisanpack-ui/tokens/tailwind';
+ * @example
+ * ```ts
+ * // tailwind.config.ts
+ * import plugin from 'tailwindcss/plugin';
+ * import { createArtisanPackPlugin } from '@artisanpack-ui/tokens/tailwind';
  *
- * Usage in CSS (Tailwind v4):
- *   @plugin "@artisanpack-ui/tokens/tailwind";
+ * export default {
+ *   plugins: [createArtisanPackPlugin(plugin)],
+ * };
+ * ```
  */
 
 import { colors } from './colors';
