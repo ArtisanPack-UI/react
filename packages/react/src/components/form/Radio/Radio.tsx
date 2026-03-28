@@ -43,6 +43,17 @@ const colorMap: Record<string, string> = {
   neutral: 'radio-neutral',
 };
 
+const cardColorMap: Record<string, string> = {
+  primary: 'has-[:checked]:border-primary has-[:checked]:bg-primary/5',
+  secondary: 'has-[:checked]:border-secondary has-[:checked]:bg-secondary/5',
+  accent: 'has-[:checked]:border-accent has-[:checked]:bg-accent/5',
+  success: 'has-[:checked]:border-success has-[:checked]:bg-success/5',
+  warning: 'has-[:checked]:border-warning has-[:checked]:bg-warning/5',
+  error: 'has-[:checked]:border-error has-[:checked]:bg-error/5',
+  info: 'has-[:checked]:border-info has-[:checked]:bg-info/5',
+  neutral: 'has-[:checked]:border-neutral has-[:checked]:bg-neutral/5',
+};
+
 /**
  * Radio button group with options, card variant, and color support.
  */
@@ -73,6 +84,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const groupName = providedName ?? id;
     const errorId = error ? `${id}-error` : undefined;
     const hintId = hint && !error ? `${id}-hint` : undefined;
+    const firstEnabledIndex = options.findIndex(opt => !opt.disabled);
 
     return (
       <fieldset className="fieldset" role="radiogroup" aria-labelledby={label ? `${id}-legend` : undefined} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}>
@@ -103,7 +115,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                   className={cn(
                     'flex items-center gap-3 p-4 border rounded-lg cursor-pointer',
                     'hover:bg-base-200 transition-colors',
-                    'has-[:checked]:border-primary has-[:checked]:bg-primary/5',
+                    color && cardColorMap[color] ? cardColorMap[color] : cardColorMap.primary,
                     isDisabled && 'opacity-50 cursor-not-allowed',
                     cardClass,
                   )}
@@ -115,7 +127,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                     name={groupName}
                     value={value}
                     disabled={isDisabled}
-                    required={required && index === 0}
+                    required={required && index === firstEnabledIndex}
                     className={cn('radio', color && colorMap[color], className)}
                     {...rest}
                   />
@@ -145,7 +157,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                   name={groupName}
                   value={value}
                   disabled={isDisabled}
-                  required={required && index === 0}
+                  required={required && index === firstEnabledIndex}
                   className={cn('radio', color && colorMap[color], className)}
                   {...rest}
                 />
