@@ -88,10 +88,10 @@ export interface TailwindPluginAPI {
 }
 
 /** Shape of the Tailwind `plugin(handler, config?)` function */
-export type TailwindPluginFn = (
+export type TailwindPluginFn<R = unknown> = (
   handler: (api: TailwindPluginAPI) => void,
   config?: Record<string, unknown>,
-) => unknown;
+) => R;
 
 /**
  * Tailwind CSS plugin factory.
@@ -109,7 +109,7 @@ export type TailwindPluginFn = (
  * };
  * ```
  */
-export function createArtisanPackPlugin(plugin: TailwindPluginFn): unknown {
+export function createArtisanPackPlugin<R>(plugin: TailwindPluginFn<R>): R {
   return plugin(
     () => {
       // No custom utilities needed — all values are theme extensions
