@@ -142,6 +142,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       const handleEscape = (e: globalThis.KeyboardEvent) => {
         if (e.key === 'Escape') {
           setOpen(false);
+          e.stopPropagation();
         }
       };
 
@@ -238,7 +239,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       }
 
       return (
-        <span tabIndex={0} role="button" aria-expanded={isOpen}>
+        <span tabIndex={0} aria-expanded={isOpen}>
           {trigger}
         </span>
       );

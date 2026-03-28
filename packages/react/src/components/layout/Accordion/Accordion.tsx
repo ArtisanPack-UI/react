@@ -78,9 +78,10 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     const collapseCount = allChildren.filter(
       (c) => isValidElement(c) && isCollapseElement(c),
     ).length;
-    const cleanOpen = Array.from(new Set(currentOpen)).filter(
+    const deduped = Array.from(new Set(currentOpen)).filter(
       (i) => i >= 0 && i < collapseCount,
     );
+    const cleanOpen = multiple ? deduped : deduped.slice(0, 1);
 
     let collapseIndex = 0;
 

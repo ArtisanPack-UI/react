@@ -25,7 +25,7 @@ export interface TabItem {
 }
 
 export interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  /** Tab items to render */
+  /** Tab items to render. Should be memoized (e.g. useMemo) to avoid unnecessary re-syncs of internal state. */
   tabs: TabItem[];
   /** Currently active tab name (controlled) */
   activeTab?: string;

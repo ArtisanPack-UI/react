@@ -45,6 +45,8 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       onOpenChange,
       className,
       children,
+      onMouseEnter: externalOnMouseEnter,
+      onMouseLeave: externalOnMouseLeave,
       ...rest
     },
     ref,
@@ -170,12 +172,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       setOpen(!isOpen);
     };
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
       if (hover) setOpen(true);
+      (externalOnMouseEnter as React.MouseEventHandler<HTMLDivElement> | undefined)?.(e);
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
       if (hover) setOpen(false);
+      (externalOnMouseLeave as React.MouseEventHandler<HTMLDivElement> | undefined)?.(e);
     };
 
     const menuId = `dropdown-menu-${autoId}`;
@@ -230,7 +234,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           'dropdown',
           end && 'dropdown-end',
           top && 'dropdown-top',
-          hover && 'dropdown-hover',
+          hover && !isControlled && 'dropdown-hover',
           isOpen && 'dropdown-open',
           className,
         )}

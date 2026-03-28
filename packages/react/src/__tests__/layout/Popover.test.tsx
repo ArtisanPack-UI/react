@@ -110,7 +110,7 @@ describe('Popover', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('does not close when persistent', () => {
+  it('does not close on outside click when persistent', () => {
     const onOpenChange = vi.fn();
     render(
       <Popover trigger={<button>Click</button>} triggerMode="click" open persistent onOpenChange={onOpenChange}>
@@ -118,6 +118,17 @@ describe('Popover', () => {
       </Popover>,
     );
     fireEvent.mouseDown(document.body);
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('does not close on Escape when persistent', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover trigger={<button>Click</button>} triggerMode="click" open persistent onOpenChange={onOpenChange}>
+        Content
+      </Popover>,
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
