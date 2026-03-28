@@ -31,7 +31,7 @@ jobs:
         run: npm run lint
 
       - name: Check formatting
-        run: npx prettier --check "packages/*/src/**/*.{ts,tsx}"
+        run: npm run format:check
 
   type-check:
     name: Type Check
