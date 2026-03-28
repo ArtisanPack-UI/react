@@ -30,6 +30,10 @@
       "import": "./dist/data.mjs",
       "types": "./dist/data.d.ts"
     },
+    "./feedback": {
+      "import": "./dist/feedback.mjs",
+      "types": "./dist/feedback.d.ts"
+    },
     "./utility": {
       "import": "./dist/utility.mjs",
       "types": "./dist/utility.d.ts"
