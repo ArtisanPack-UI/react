@@ -33,7 +33,7 @@ export interface CalendarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   renderDay?: (date: Date, events: CalendarEvent[]) => ReactNode;
 }
 
-const colorMap: Record<string, string> = {
+const colorMap: Record<DaisyColor, string> = {
   primary: 'bg-primary text-primary-content',
   secondary: 'bg-secondary text-secondary-content',
   accent: 'bg-accent text-accent-content',
@@ -44,7 +44,7 @@ const colorMap: Record<string, string> = {
   neutral: 'bg-neutral text-neutral-content',
 };
 
-const eventDotMap: Record<string, string> = {
+const eventDotMap: Record<DaisyColor, string> = {
   primary: 'bg-primary',
   secondary: 'bg-secondary',
   accent: 'bg-accent',
@@ -293,16 +293,23 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
             }
 
             return (
-              <div key={dateKey} role="gridcell">
+              <div
+                key={dateKey}
+                role="gridcell"
+                className={cn(
+                  'flex flex-col items-center p-2 rounded-lg transition-colors min-h-12',
+                  weekend && !isSelected && 'bg-base-200/50',
+                  disabled && 'opacity-30',
+                )}
+              >
                 <button
                   type="button"
                   className={cn(
-                    'flex flex-col items-center p-2 rounded-lg transition-colors min-h-12 w-full',
+                    'w-full rounded-md px-1 py-0.5 text-sm transition-colors',
                     'hover:bg-base-200',
                     isToday && !isSelected && 'ring-2 ring-current',
                     isSelected && color && colorMap[color],
-                    weekend && !isSelected && 'bg-base-200/50',
-                    disabled && 'opacity-30 cursor-not-allowed',
+                    disabled && 'cursor-not-allowed',
                   )}
                   onClick={() => handleDayClick(date)}
                   disabled={disabled}
@@ -315,33 +322,33 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                   aria-selected={isSelected ?? undefined}
                   aria-current={isToday ? 'date' : undefined}
                 >
-                  <span className="text-sm">{date.getDate()}</span>
-                  {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {dayEvents.slice(0, 3).map((event, ei) => (
-                        <button
-                          key={ei}
-                          type="button"
-                          className={cn(
-                            'w-1.5 h-1.5 rounded-full cursor-pointer',
-                            event.color ? eventDotMap[event.color] : eventDotMap.primary,
-                          )}
-                          aria-label={event.title}
-                          onClick={(e) => handleEventDotInteraction(event, e)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              handleEventDotInteraction(event, e);
-                            }
-                          }}
-                        />
-                      ))}
-                      {dayEvents.length > 3 && (
-                        <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
-                      )}
-                    </div>
-                  )}
+                  {date.getDate()}
                 </button>
+                {dayEvents.length > 0 && (
+                  <div className="flex gap-0.5 mt-0.5">
+                    {dayEvents.slice(0, 3).map((event, ei) => (
+                      <button
+                        key={ei}
+                        type="button"
+                        className={cn(
+                          'w-1.5 h-1.5 rounded-full cursor-pointer',
+                          event.color ? eventDotMap[event.color] : eventDotMap.primary,
+                        )}
+                        aria-label={event.title}
+                        onClick={(e) => handleEventDotInteraction(event, e)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleEventDotInteraction(event, e);
+                          }
+                        }}
+                      />
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

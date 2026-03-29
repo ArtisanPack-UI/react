@@ -1,5 +1,6 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Badge } from '../../components/data/Badge/Badge';
 
 describe('Badge', () => {
@@ -44,9 +45,16 @@ describe('Badge', () => {
     expect(screen.getByText('Test')).toHaveClass('custom-class');
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
+  it('renders falsy value over children', () => {
+    render(<Badge value={0}>Fallback</Badge>);
+    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.queryByText('Fallback')).not.toBeInTheDocument();
+  });
+
+  it('forwards ref to span element', () => {
+    const ref = React.createRef<HTMLSpanElement>();
     render(<Badge ref={ref} value="Test" />);
-    expect(ref).toHaveBeenCalled();
+    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
+    expect(ref.current?.textContent).toBe('Test');
   });
 });

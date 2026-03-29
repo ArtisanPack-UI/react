@@ -97,6 +97,55 @@ describe('Calendar', () => {
     expect(container.querySelector('.bg-primary')).toBeInTheDocument();
   });
 
+  it('disables days outside minDate/maxDate range', () => {
+    const onChange = vi.fn();
+    render(
+      <Calendar
+        value={new Date(2025, 0, 15)}
+        onChange={onChange}
+        minDate={new Date(2025, 0, 10)}
+        maxDate={new Date(2025, 0, 20)}
+      />,
+    );
+    // Day 5 should be disabled
+    const day5 = screen.getByText('5').closest('button');
+    expect(day5).toBeDisabled();
+    fireEvent.click(day5!);
+    expect(onChange).not.toHaveBeenCalled();
+
+    // Day 25 should be disabled
+    const day25 = screen.getByText('25').closest('button');
+    expect(day25).toBeDisabled();
+  });
+
+  it('renders overflow indicator for more than 3 events', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, title: 'E1', date: '2025-01-15' },
+      { id: 2, title: 'E2', date: '2025-01-15' },
+      { id: 3, title: 'E3', date: '2025-01-15' },
+      { id: 4, title: 'E4', date: '2025-01-15' },
+    ];
+    render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
+    expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+
+  it('fires onEventClick via keyboard on event dot', () => {
+    const onEventClick = vi.fn();
+    const events: CalendarEvent[] = [
+      { id: 1, title: 'Meeting', date: '2025-01-15' },
+    ];
+    render(
+      <Calendar
+        value={new Date(2025, 0, 15)}
+        events={events}
+        onEventClick={onEventClick}
+      />,
+    );
+    const dot = screen.getByLabelText('Meeting');
+    fireEvent.keyDown(dot, { key: 'Enter' });
+    expect(onEventClick).toHaveBeenCalledWith(events[0]);
+  });
+
   it('forwards ref', () => {
     const ref = vi.fn();
     render(<Calendar ref={ref} />);

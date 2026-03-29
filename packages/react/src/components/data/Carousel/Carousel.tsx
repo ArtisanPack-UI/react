@@ -52,7 +52,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     const goTo = useCallback(
       (index: number) => {
-        setCurrent(((index % total) + total) % total);
+        if (total === 0) return;
+        const safe = ((index % total) + total) % total;
+        setCurrent(safe);
       },
       [total],
     );
@@ -72,7 +74,22 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       };
     }, [autoplay, interval, next, total]);
 
+    const isInteractiveTarget = (target: EventTarget): boolean => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        tag === 'BUTTON' ||
+        target.isContentEditable
+      );
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDownProp?.(e);
+      if (e.defaultPrevented || isInteractiveTarget(e.target)) return;
+
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         prev();
@@ -86,29 +103,29 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         e.preventDefault();
         goTo(total - 1);
       }
-      onKeyDownProp?.(e);
     };
 
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-      touchStartRef.current = e.touches[0].clientX;
       onTouchStartProp?.(e);
+      if (e.defaultPrevented) return;
+      touchStartRef.current = e.touches[0].clientX;
     };
 
     const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-      if (touchStartRef.current !== null) {
-        const diff = touchStartRef.current - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 50) {
-          if (diff > 0) next();
-          else prev();
-        }
-        touchStartRef.current = null;
-      }
       onTouchEndProp?.(e);
+      if (e.defaultPrevented || touchStartRef.current === null) return;
+      const diff = touchStartRef.current - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) next();
+        else prev();
+      }
+      touchStartRef.current = null;
     };
 
     if (total === 0) return null;
 
-    const slide = slides[current];
+    const safeIndex = Math.max(0, Math.min(current, total - 1));
+    const slide = slides[safeIndex];
 
     return (
       <div
@@ -127,7 +144,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           className="w-full"
           role="group"
           aria-roledescription="slide"
-          aria-label={`Slide ${current + 1} of ${total}`}
+          aria-label={`Slide ${safeIndex + 1} of ${total}`}
         >
           {renderSlide ? (
             renderSlide(slide, current)
@@ -205,11 +222,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 type="button"
                 className={cn(
                   'w-3 h-3 rounded-full transition-opacity',
-                  i === current ? 'bg-base-100 opacity-100' : 'bg-base-100 opacity-50',
+                  i === safeIndex ? 'bg-base-100 opacity-100' : 'bg-base-100 opacity-50',
                 )}
                 onClick={() => goTo(i)}
                 aria-label={`Go to slide ${i + 1}`}
-                aria-current={i === current ? 'true' : undefined}
+                aria-current={i === safeIndex ? 'true' : undefined}
               />
             ))}
           </div>
