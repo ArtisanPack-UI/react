@@ -66,6 +66,25 @@ describe('Calendar', () => {
     expect(dot).toBeInTheDocument();
   });
 
+  it('expands multi-day events across date range', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, title: 'Conference', date: '2025-01-13', endDate: '2025-01-15' },
+    ];
+    render(<Calendar value={new Date(2025, 0, 13)} events={events} />);
+    const dots = screen.getAllByTitle('Conference');
+    expect(dots).toHaveLength(3);
+  });
+
+  it('renders non-interactive dots when onEventClick is absent', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, title: 'Meeting', date: '2025-01-15' },
+    ];
+    render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
+    const dot = screen.getByTitle('Meeting');
+    expect(dot.tagName).toBe('SPAN');
+    expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument();
+  });
+
   it('syncs visible month when controlled value changes', () => {
     const { rerender } = render(<Calendar value={new Date(2025, 0, 15)} />);
     expect(screen.getByText('January 2025')).toBeInTheDocument();

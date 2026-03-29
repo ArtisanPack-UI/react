@@ -366,6 +366,8 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                             event.color ? eventDotMap[event.color] : eventDotMap.primary,
                           )}
                           title={event.title}
+                          role="img"
+                          aria-label={event.title}
                         />
                       ),
                     )}

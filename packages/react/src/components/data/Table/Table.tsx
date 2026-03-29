@@ -171,6 +171,7 @@ function TableInner<T extends Record<string, unknown>>(
                       className="checkbox checkbox-sm"
                       checked={allSelected}
                       onChange={toggleSelectAll}
+                      disabled={!onSelectionChange}
                       aria-label="Select all rows"
                     />
                   </label>
@@ -242,6 +243,7 @@ function TableInner<T extends Record<string, unknown>>(
                             className="checkbox checkbox-sm"
                             checked={isSelected ?? false}
                             onChange={() => toggleSelect(selectKey)}
+                            disabled={!onSelectionChange}
                             aria-label={`Select row ${rowIndex + 1}`}
                           />
                         </label>
