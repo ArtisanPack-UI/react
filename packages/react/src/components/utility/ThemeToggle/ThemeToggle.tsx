@@ -65,12 +65,12 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
 
     return (
       <button
+        {...rest}
         ref={ref}
         type="button"
         className={cn('btn btn-ghost btn-square', sizeMap[size], className)}
         onClick={handleToggle}
         aria-label={ariaLabel}
-        {...rest}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
