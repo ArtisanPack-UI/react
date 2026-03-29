@@ -102,6 +102,12 @@ describe('Markdown', () => {
     expect(screen.getByText('click')).toBeInTheDocument();
   });
 
+  it('rejects javascript: URLs with HTML entities', () => {
+    const { container } = render(<Markdown source='[click](java&#115;cript:alert)' />);
+    expect(container.querySelector('a')).not.toBeInTheDocument();
+    expect(screen.getByText('click')).toBeInTheDocument();
+  });
+
   it('allows relative URLs in links', () => {
     const { container } = render(<Markdown source='[page](/about)' />);
     const link = container.querySelector('a');

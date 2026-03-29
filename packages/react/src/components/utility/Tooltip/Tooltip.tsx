@@ -95,7 +95,7 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
           'tooltip',
           positionMap[position],
           color && colorMap[color],
-          open && 'tooltip-open',
+          isOpen && 'tooltip-open',
           className,
         )}
         data-tip={tip}

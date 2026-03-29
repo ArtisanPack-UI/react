@@ -43,10 +43,11 @@ const labelMap: Record<ColorScheme, string> = {
  * Must be used within a ThemeProvider.
  */
 export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
-  ({ size = 'md', modes = ['light', 'dark', 'system'], className, ...rest }, ref) => {
+  ({ size = 'md', modes = ['light', 'dark', 'system'], onClick: onClickProp, className, ...rest }, ref) => {
     const { colorScheme, setColorScheme } = useTheme();
 
-    const handleToggle = () => {
+    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClickProp?.(e);
       if (modes.length === 0) {
         return;
       }

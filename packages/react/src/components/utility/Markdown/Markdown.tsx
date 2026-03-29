@@ -24,6 +24,16 @@ function defaultRenderMarkdown(source: string): string {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
+  const decodeEntities = (str: string): string =>
+    str
+      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)))
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+
   const isSafeUrl = (url: string): boolean => {
     const trimmed = url.trim().toLowerCase();
     if (/^(https?:|mailto:|\/|#)/.test(trimmed)) {
@@ -43,7 +53,7 @@ function defaultRenderMarkdown(source: string): string {
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, url) => {
-        const decoded = url.replace(/&amp;/g, '&');
+        const decoded = decodeEntities(url);
         return isSafeUrl(decoded) ? `<a href="${url}">${text}</a>` : text;
       });
 

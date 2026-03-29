@@ -62,6 +62,42 @@ describe('Tooltip', () => {
     expect(screen.getByRole('tooltip')).toHaveClass('tooltip-open');
   });
 
+  it('toggles tooltip-open class on hover', () => {
+    render(
+      <Tooltip tip="Help text">
+        <button>Hover me</button>
+      </Tooltip>,
+    );
+    const tooltip = screen.getByRole('tooltip');
+    const trigger = screen.getByText('Hover me');
+
+    expect(tooltip).not.toHaveClass('tooltip-open');
+
+    fireEvent.mouseEnter(trigger);
+    expect(tooltip).toHaveClass('tooltip-open');
+
+    fireEvent.mouseLeave(trigger);
+    expect(tooltip).not.toHaveClass('tooltip-open');
+  });
+
+  it('toggles tooltip-open class on focus', () => {
+    render(
+      <Tooltip tip="Help text">
+        <button>Focus me</button>
+      </Tooltip>,
+    );
+    const tooltip = screen.getByRole('tooltip');
+    const trigger = screen.getByText('Focus me');
+
+    expect(tooltip).not.toHaveClass('tooltip-open');
+
+    fireEvent.focus(trigger);
+    expect(tooltip).toHaveClass('tooltip-open');
+
+    fireEvent.blur(trigger);
+    expect(tooltip).not.toHaveClass('tooltip-open');
+  });
+
   it('sets aria-describedby on child when hovered', () => {
     render(
       <Tooltip tip="Help text">

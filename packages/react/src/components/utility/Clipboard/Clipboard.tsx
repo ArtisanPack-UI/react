@@ -58,6 +58,7 @@ export const Clipboard = forwardRef<HTMLButtonElement, ClipboardProps>(
       color = 'ghost',
       size = 'sm',
       onCopy,
+      onClick: userOnClick,
       className,
       ...rest
     },
@@ -66,7 +67,8 @@ export const Clipboard = forwardRef<HTMLButtonElement, ClipboardProps>(
     const [copied, setCopied] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const handleCopy = async () => {
+    const handleCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      userOnClick?.(e);
       try {
         await navigator.clipboard.writeText(text);
         setCopied(true);
