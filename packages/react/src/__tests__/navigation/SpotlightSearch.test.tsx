@@ -30,7 +30,7 @@ describe('SpotlightSearch', () => {
         items={sampleItems}
       />,
     );
-    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('renders all items when query is empty', () => {
@@ -78,7 +78,7 @@ describe('SpotlightSearch', () => {
         items={sampleItems}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'settings' } });
     expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.queryByText('Home')).not.toBeInTheDocument();
@@ -93,7 +93,7 @@ describe('SpotlightSearch', () => {
         emptyMessage="Nothing found"
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'zzzznotfound' } });
     expect(screen.getByText('Nothing found')).toBeInTheDocument();
   });
@@ -160,7 +160,7 @@ describe('SpotlightSearch', () => {
         items={sampleItems}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     const options = screen.getAllByRole('option');
     expect(options[0]).toHaveAttribute('aria-selected', 'true');
@@ -174,7 +174,7 @@ describe('SpotlightSearch', () => {
         items={sampleItems}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     // ArrowUp from -1 should wrap to last
     fireEvent.keyDown(input, { key: 'ArrowUp' });
     const options = screen.getAllByRole('option');
@@ -191,7 +191,7 @@ describe('SpotlightSearch', () => {
         onSelect={onSelect}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSelect).toHaveBeenCalledWith(sampleItems[0]);
@@ -219,7 +219,7 @@ describe('SpotlightSearch', () => {
         filterFn={filterFn}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'test' } });
     expect(filterFn).toHaveBeenCalled();
   });
@@ -275,7 +275,7 @@ describe('SpotlightSearch', () => {
         items={items}
       />,
     );
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'lookup' } });
     expect(screen.getByText('Search')).toBeInTheDocument();
     expect(screen.queryByText('Other')).not.toBeInTheDocument();

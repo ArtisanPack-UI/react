@@ -21,7 +21,7 @@ export interface MenuItemType {
   /** Nested sub-items */
   children?: MenuItemType[];
   /** Custom link element rendered instead of button (for React Router / Inertia) */
-  renderLink?: (props: { className: string; children: ReactNode }) => ReactElement;
+  renderLink?: (props: { className: string; children: ReactNode; onClick: () => void }) => ReactElement;
 }
 
 export interface MenuProps extends Omit<HTMLAttributes<HTMLUListElement>, 'onChange'> {
@@ -106,7 +106,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
       if (!menuRef.current) return [];
       return Array.from(
         menuRef.current.querySelectorAll<HTMLElement>(
-          ':scope > li > a:not([aria-disabled="true"]), :scope > li > button:not([disabled])',
+          ':scope > li > a:not([aria-disabled="true"]), :scope > li > button:not([disabled]), :scope > li > details[open] li > a:not([aria-disabled="true"]), :scope > li > details[open] li > button:not([disabled])',
         ),
       );
     };
@@ -172,6 +172,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
                   {item.label}
                 </>
               ),
+              onClick: () => onChange?.(item.key),
             })}
           </li>
         );

@@ -108,8 +108,8 @@ describe('Menu', () => {
       {
         key: 'link',
         label: 'Link',
-        renderLink: ({ className, children }) => (
-          <a href="/test" className={className} data-testid="custom-link">
+        renderLink: ({ className, children, onClick }) => (
+          <a href="/test" className={className} data-testid="custom-link" onClick={onClick}>
             {children}
           </a>
         ),
@@ -118,6 +118,24 @@ describe('Menu', () => {
     render(<Menu items={items} />);
     expect(screen.getByTestId('custom-link')).toBeInTheDocument();
     expect(screen.getByTestId('custom-link')).toHaveAttribute('href', '/test');
+  });
+
+  it('calls onChange when renderLink item is clicked', () => {
+    const onChange = vi.fn();
+    const items: MenuItemType[] = [
+      {
+        key: 'link',
+        label: 'Link',
+        renderLink: ({ className, children, onClick }) => (
+          <a href="/test" className={className} data-testid="custom-link" onClick={onClick}>
+            {children}
+          </a>
+        ),
+      },
+    ];
+    render(<Menu items={items} onChange={onChange} />);
+    fireEvent.click(screen.getByTestId('custom-link'));
+    expect(onChange).toHaveBeenCalledWith('link');
   });
 
   it('navigates with arrow keys (vertical)', () => {

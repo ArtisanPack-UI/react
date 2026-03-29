@@ -50,13 +50,9 @@ function getPageRange(
   const rangeEnd = Math.min(total - 1, current + siblings);
 
   // Always show first page
-  if (showEdges || current - siblings <= 2) {
-    pages.push(1);
-  } else {
-    pages.push(1);
-    if (rangeStart > 2) {
-      pages.push('ellipsis');
-    }
+  pages.push(1);
+  if (!showEdges && current - siblings > 2 && rangeStart > 2) {
+    pages.push('ellipsis');
   }
 
   for (let i = rangeStart; i <= rangeEnd; i++) {

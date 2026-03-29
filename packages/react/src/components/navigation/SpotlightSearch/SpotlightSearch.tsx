@@ -230,10 +230,6 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
         {/* Dialog */}
         <div
           ref={dialogRef}
-          role="combobox"
-          aria-expanded="true"
-          aria-haspopup="listbox"
-          aria-owns={listboxId}
           className="relative w-full max-w-lg rounded-box bg-base-100 shadow-2xl overflow-hidden"
         >
           {/* Search input */}
@@ -263,14 +259,17 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
                 setActiveIndex(-1);
               }}
               onKeyDown={handleInputKeyDown}
+              role="combobox"
+              aria-expanded="true"
+              aria-haspopup="listbox"
               aria-autocomplete="list"
               aria-controls={listboxId}
+              aria-owns={listboxId}
               aria-activedescendant={
                 activeIndex >= 0
                   ? `spotlight-item-${autoId}-${activeIndex}`
                   : undefined
               }
-              role="searchbox"
               aria-label="Search"
             />
             <kbd className="kbd kbd-sm shrink-0">Esc</kbd>

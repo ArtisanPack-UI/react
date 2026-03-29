@@ -1,7 +1,9 @@
 import {
   forwardRef,
   useId,
+  useRef,
   useEffect,
+  useCallback,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -42,13 +44,34 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
   ) => {
     const drawerId = useId();
     const inputId = `sidebar-toggle-${drawerId}`;
+    const drawerRef = useRef<HTMLDivElement | null>(null);
+
+    const setRefs = useCallback(
+      (node: HTMLDivElement | null) => {
+        drawerRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }
+      },
+      [ref],
+    );
 
     useEffect(() => {
       if (!open) return;
 
       const handleEscape = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-          onOpenChange(false);
+          // Only close if no nested overlay (e.g. SpotlightSearch) consumed the event
+          if (e.defaultPrevented) return;
+          // Only close if focus is within the sidebar or not in any other overlay
+          const active = document.activeElement;
+          const inSidebar = drawerRef.current?.contains(active);
+          const inBody = document.body === active || active === null;
+          if (inSidebar || inBody) {
+            onOpenChange(false);
+          }
         }
       };
 
@@ -58,7 +81,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
 
     return (
       <div
-        ref={ref}
+        ref={setRefs}
         className={cn(
           'drawer',
           side === 'right' && 'drawer-end',
