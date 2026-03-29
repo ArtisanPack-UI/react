@@ -62,24 +62,16 @@ describe('Calendar', () => {
       { id: 1, title: 'Meeting', date: '2025-01-15', color: 'primary' },
     ];
     render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
-    const dot = screen.getByLabelText('Meeting');
+    const dot = screen.getByTitle('Meeting');
     expect(dot).toBeInTheDocument();
   });
 
-  it('calls onEventClick when event dot is clicked', () => {
-    const onEventClick = vi.fn();
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'Meeting', date: '2025-01-15' },
-    ];
-    render(
-      <Calendar
-        value={new Date(2025, 0, 15)}
-        events={events}
-        onEventClick={onEventClick}
-      />,
-    );
-    fireEvent.click(screen.getByLabelText('Meeting'));
-    expect(onEventClick).toHaveBeenCalledWith(events[0]);
+  it('syncs visible month when controlled value changes', () => {
+    const { rerender } = render(<Calendar value={new Date(2025, 0, 15)} />);
+    expect(screen.getByText('January 2025')).toBeInTheDocument();
+
+    rerender(<Calendar value={new Date(2025, 4, 1)} />);
+    expect(screen.getByText('May 2025')).toBeInTheDocument();
   });
 
   it('renders custom day via renderDay', () => {

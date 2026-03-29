@@ -281,9 +281,11 @@ function TableInner<T extends Record<string, unknown>>(
                         <td key={header.key} className={header.className}>
                           {header.render
                             ? header.render(value, row, rowIndex)
-                            : value !== null && typeof value === 'object'
-                              ? safeStringify(value)
-                              : (value as ReactNode) ?? ''}
+                            : typeof value === 'boolean'
+                              ? String(value)
+                              : value !== null && typeof value === 'object'
+                                ? safeStringify(value)
+                                : (value as ReactNode) ?? ''}
                         </td>
                       );
                     })}

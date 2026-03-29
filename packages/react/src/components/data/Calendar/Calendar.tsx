@@ -133,10 +133,21 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     const eventsByDate = useMemo(() => {
       const map = new Map<string, CalendarEvent[]>();
       for (const event of events) {
-        const key = event.date;
-        const existing = map.get(key) ?? [];
-        existing.push(event);
-        map.set(key, existing);
+        const startKey = event.date;
+        if (event.endDate && event.endDate > startKey) {
+          const start = new Date(startKey + 'T00:00:00');
+          const end = new Date(event.endDate + 'T00:00:00');
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const key = formatDateKey(d);
+            const existing = map.get(key) ?? [];
+            existing.push(event);
+            map.set(key, existing);
+          }
+        } else {
+          const existing = map.get(startKey) ?? [];
+          existing.push(event);
+          map.set(startKey, existing);
+        }
       }
       return map;
     }, [events]);
@@ -330,23 +341,34 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                 </button>
                 {dayEvents.length > 0 && (
                   <div className="flex gap-0.5 mt-0.5">
-                    {dayEvents.slice(0, 3).map((event) => (
-                      <button
-                        key={event.id}
-                        type="button"
-                        className="relative flex items-center justify-center w-4 h-4 cursor-pointer"
-                        aria-label={event.title}
-                        onClick={(e) => handleEventDotInteraction(event, e)}
-                      >
+                    {dayEvents.slice(0, 3).map((event) =>
+                      onEventClick ? (
+                        <button
+                          key={event.id}
+                          type="button"
+                          className="relative flex items-center justify-center w-4 h-4 cursor-pointer"
+                          aria-label={event.title}
+                          onClick={(e) => handleEventDotInteraction(event, e)}
+                        >
+                          <span
+                            className={cn(
+                              'w-1.5 h-1.5 rounded-full',
+                              event.color ? eventDotMap[event.color] : eventDotMap.primary,
+                            )}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      ) : (
                         <span
+                          key={event.id}
                           className={cn(
                             'w-1.5 h-1.5 rounded-full',
                             event.color ? eventDotMap[event.color] : eventDotMap.primary,
                           )}
-                          aria-hidden="true"
+                          title={event.title}
                         />
-                      </button>
-                    ))}
+                      ),
+                    )}
                     {dayEvents.length > 3 && (
                       <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
                     )}

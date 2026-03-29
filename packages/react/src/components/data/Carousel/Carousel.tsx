@@ -40,6 +40,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       onKeyDown: onKeyDownProp,
       onTouchStart: onTouchStartProp,
       onTouchEnd: onTouchEndProp,
+      onTouchCancel: onTouchCancelProp,
       ...rest
     },
     ref,
@@ -137,8 +138,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       }
     };
 
-    const handleTouchCancel = () => {
+    const handleTouchCancel = (e: React.TouchEvent<HTMLDivElement>) => {
       touchStartRef.current = null;
+      onTouchCancelProp?.(e);
     };
 
     if (total === 0) return null;
