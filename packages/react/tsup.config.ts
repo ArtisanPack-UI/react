@@ -8,6 +8,7 @@ export default defineConfig({
     navigation: 'src/components/navigation/index.ts',
     display: 'src/components/display/index.ts',
     data: 'src/components/data/index.ts',
+    chart: 'src/components/data/Chart/Chart.tsx',
     feedback: 'src/components/feedback/index.ts',
     utility: 'src/components/utility/index.ts',
   },
@@ -15,6 +16,6 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ['react', 'react-dom'],
+  external: ['react', 'react-dom', 'apexcharts', 'react-apexcharts'],
   outExtension: () => ({ js: '.mjs' }),
 });
