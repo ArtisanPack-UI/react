@@ -32,37 +32,43 @@ describe('ThemeToggle', () => {
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  it('has an accessible label', () => {
+  it('has an action-oriented accessible label', () => {
     renderWithTheme(<ThemeToggle />);
-    expect(screen.getByLabelText('Light mode')).toBeInTheDocument();
+    // On light mode, next is dark
+    expect(screen.getByLabelText('Switch to dark mode')).toBeInTheDocument();
   });
 
   it('cycles through modes on click', () => {
     renderWithTheme(<ThemeToggle />);
     const button = screen.getByRole('button');
 
-    // light → dark
+    // light → dark: next will be system
     fireEvent.click(button);
-    expect(button).toHaveAttribute('aria-label', 'Dark mode');
+    expect(button).toHaveAttribute('aria-label', 'Switch to system theme');
 
-    // dark → system
+    // dark → system: next will be light
     fireEvent.click(button);
-    expect(button).toHaveAttribute('aria-label', 'System theme');
+    expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
 
-    // system → light
+    // system → light: next will be dark
     fireEvent.click(button);
-    expect(button).toHaveAttribute('aria-label', 'Light mode');
+    expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
   });
 
   it('supports custom mode list', () => {
     renderWithTheme(<ThemeToggle modes={['light', 'dark']} />);
     const button = screen.getByRole('button');
 
-    fireEvent.click(button);
-    expect(button).toHaveAttribute('aria-label', 'Dark mode');
+    // On light, next is dark
+    expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
 
     fireEvent.click(button);
-    expect(button).toHaveAttribute('aria-label', 'Light mode');
+    // On dark, next is light
+    expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+
+    fireEvent.click(button);
+    // Back on light, next is dark
+    expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
   });
 
   it('applies size class', () => {
@@ -87,8 +93,9 @@ describe('ThemeToggle', () => {
     expect(button.querySelector('svg')).toBeInTheDocument();
   });
 
-  it('starts with dark mode label when defaultColorScheme is dark', () => {
+  it('shows next mode label when starting on dark', () => {
     renderWithTheme(<ThemeToggle />, 'dark');
-    expect(screen.getByLabelText('Dark mode')).toBeInTheDocument();
+    // On dark, next is system
+    expect(screen.getByLabelText('Switch to system theme')).toBeInTheDocument();
   });
 });

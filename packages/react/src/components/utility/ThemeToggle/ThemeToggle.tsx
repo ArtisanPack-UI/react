@@ -32,10 +32,10 @@ const iconMap: Record<ColorScheme, { path: string; fill: string }> = {
   system: { path: systemPath, fill: 'none' },
 };
 
-const labelMap: Record<ColorScheme, string> = {
-  light: 'Light mode',
-  dark: 'Dark mode',
-  system: 'System theme',
+const modeNameMap: Record<ColorScheme, string> = {
+  light: 'light mode',
+  dark: 'dark mode',
+  system: 'system theme',
 };
 
 /**
@@ -46,17 +46,20 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
   ({ size = 'md', modes = ['light', 'dark', 'system'], onClick: onClickProp, className, ...rest }, ref) => {
     const { colorScheme, setColorScheme } = useTheme();
 
+    const currentIndex = modes.indexOf(colorScheme);
+    const nextIndex = modes.length === 0 ? -1 : currentIndex === -1 ? 0 : (currentIndex + 1) % modes.length;
+    const nextMode = nextIndex >= 0 ? modes[nextIndex] : undefined;
+
     const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
       onClickProp?.(e);
-      if (e.defaultPrevented || modes.length === 0) {
+      if (e.defaultPrevented || !nextMode) {
         return;
       }
-      const currentIndex = modes.indexOf(colorScheme);
-      const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % modes.length;
-      setColorScheme(modes[nextIndex]);
+      setColorScheme(nextMode);
     };
 
     const icon = iconMap[colorScheme];
+    const ariaLabel = nextMode ? `Switch to ${modeNameMap[nextMode]}` : modeNameMap[colorScheme];
 
     return (
       <button
@@ -64,7 +67,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
         type="button"
         className={cn('btn btn-ghost btn-square', sizeMap[size], className)}
         onClick={handleToggle}
-        aria-label={labelMap[colorScheme]}
+        aria-label={ariaLabel}
         {...rest}
       >
         <svg

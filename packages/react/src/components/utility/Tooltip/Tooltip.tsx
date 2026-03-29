@@ -1,11 +1,14 @@
 import {
   cloneElement,
+  createElement,
   forwardRef,
+  Fragment,
   isValidElement,
   useId,
   useState,
   type HTMLAttributes,
   type ReactElement,
+  type ReactNode,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
@@ -21,8 +24,8 @@ export interface TooltipProps extends HTMLAttributes<HTMLDivElement> {
   color?: DaisyColor;
   /** Whether the tooltip is always open */
   open?: boolean;
-  /** The trigger element (single child) */
-  children: ReactElement;
+  /** The trigger element (single child or fragment) */
+  children: ReactNode;
 }
 
 const colorMap: Record<DaisyColor, string> = {
@@ -55,9 +58,14 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
 
     const isOpen = open ?? visible;
 
-    const childProps = isValidElement(children)
-      ? (children as ReactElement<Record<string, unknown>>).props
-      : null;
+    // Wrap Fragments in a focusable span so we can attach event handlers and ARIA
+    const trigger: ReactElement = isValidElement(children) && children.type === Fragment
+      ? createElement('span', { tabIndex: 0 }, children.props.children as ReactNode)
+      : isValidElement(children)
+        ? (children as ReactElement<Record<string, unknown>>)
+        : createElement('span', { tabIndex: 0 }, children);
+
+    const triggerProps = trigger.props as Record<string, unknown>;
 
     const mergeDescribedBy = (existing: unknown): string | undefined => {
       if (!isOpen) {
@@ -69,21 +77,19 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     const wrapHandler = <E,>(show: boolean, originalKey: string) => {
       return (e: E) => {
         setVisible(show);
-        if (childProps && typeof childProps[originalKey] === 'function') {
-          (childProps[originalKey] as (e: E) => void)(e);
+        if (typeof triggerProps[originalKey] === 'function') {
+          (triggerProps[originalKey] as (e: E) => void)(e);
         }
       };
     };
 
-    const child = isValidElement(children)
-      ? cloneElement(children as ReactElement<Record<string, unknown>>, {
-          'aria-describedby': mergeDescribedBy(childProps?.['aria-describedby']),
-          onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
-          onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
-          onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
-          onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
-        })
-      : children;
+    const child = cloneElement(trigger, {
+      'aria-describedby': mergeDescribedBy(triggerProps['aria-describedby']),
+      onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
+      onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
+      onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
+      onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
+    });
 
     return (
       <div

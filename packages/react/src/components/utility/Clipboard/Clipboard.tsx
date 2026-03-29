@@ -34,7 +34,7 @@ const colorMap: Record<string, string> = {
 const sizeMap: Record<Size, string> = {
   xs: 'btn-xs',
   sm: 'btn-sm',
-  md: '',
+  md: 'btn-md',
   lg: 'btn-lg',
 };
 

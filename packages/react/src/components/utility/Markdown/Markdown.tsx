@@ -1,7 +1,7 @@
 import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
+export interface MarkdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'dangerouslySetInnerHTML'> {
   /** Raw markdown source text */
   source: string;
   /** Custom render function — receives the raw source and should return an HTML string.
@@ -38,7 +38,8 @@ function defaultRenderMarkdown(source: string): string {
       .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)));
 
   const isSafeUrl = (url: string): boolean => {
-    const trimmed = url.trim().toLowerCase();
+    // Strip ASCII C0 control characters that can bypass scheme detection
+    const trimmed = url.replace(/[\x00-\x1f\x7f]/g, '').trim().toLowerCase();
     if (/^(https?:|mailto:|\/|#)/.test(trimmed)) {
       return true;
     }
@@ -143,9 +144,9 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
     return (
       <div
         ref={ref}
+        {...rest}
         className={cn('prose', className)}
         dangerouslySetInnerHTML={{ __html: html }}
-        {...rest}
       />
     );
   },
