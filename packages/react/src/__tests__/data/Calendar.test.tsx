@@ -129,7 +129,7 @@ describe('Calendar', () => {
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
-  it('fires onEventClick via keyboard on event dot', () => {
+  it('fires onEventClick via click on event dot button', () => {
     const onEventClick = vi.fn();
     const events: CalendarEvent[] = [
       { id: 1, title: 'Meeting', date: '2025-01-15' },
@@ -142,11 +142,8 @@ describe('Calendar', () => {
       />,
     );
     const dot = screen.getByLabelText('Meeting');
-    fireEvent.keyDown(dot, { key: 'Enter' });
-    expect(onEventClick).toHaveBeenCalledWith(events[0]);
-
-    onEventClick.mockClear();
-    fireEvent.keyDown(dot, { key: ' ' });
+    expect(dot.tagName).toBe('BUTTON');
+    fireEvent.click(dot);
     expect(onEventClick).toHaveBeenCalledWith(events[0]);
   });
 

@@ -1,10 +1,10 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type HTMLAttributes,
-  type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
@@ -122,6 +122,10 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     const today = new Date();
     const [viewDate, setViewDate] = useState(() => value ?? today);
 
+    useEffect(() => {
+      if (value) setViewDate(value);
+    }, [value]);
+
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
     const weekdays = weekStartsOnSunday ? WEEKDAYS_SUN : WEEKDAYS_MON;
@@ -192,7 +196,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
 
     const handleEventDotInteraction = (
       event: CalendarEvent,
-      e: React.MouseEvent | KeyboardEvent,
+      e: React.MouseEvent,
     ) => {
       if (onEventClick) {
         e.stopPropagation();
@@ -333,12 +337,6 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                         className="relative flex items-center justify-center w-4 h-4 cursor-pointer"
                         aria-label={event.title}
                         onClick={(e) => handleEventDotInteraction(event, e)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleEventDotInteraction(event, e);
-                          }
-                        }}
                       >
                         <span
                           className={cn(

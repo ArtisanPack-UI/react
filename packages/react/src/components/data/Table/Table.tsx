@@ -56,6 +56,14 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   }, obj);
 }
 
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '[Object]';
+  }
+}
+
 function TableInner<T extends Record<string, unknown>>(
   {
     headers,
@@ -137,8 +145,9 @@ function TableInner<T extends Record<string, unknown>>(
   };
 
   const hasActions = !!renderActions;
+  const canExpand = expandable && !!renderExpansion;
   const totalCols =
-    headers.length + (selectable ? 1 : 0) + (expandable ? 1 : 0) + (hasActions ? 1 : 0);
+    headers.length + (selectable ? 1 : 0) + (canExpand ? 1 : 0) + (hasActions ? 1 : 0);
 
   return (
     <div ref={ref} className={cn('overflow-x-auto', containerClassName)} {...rest}>
@@ -167,7 +176,7 @@ function TableInner<T extends Record<string, unknown>>(
                   </label>
                 </th>
               )}
-              {expandable && <th className="w-12" />}
+              {canExpand && <th className="w-12" />}
               {headers.map((header) => (
                 <th
                   key={header.key}
@@ -180,7 +189,7 @@ function TableInner<T extends Record<string, unknown>>(
                       : undefined
                   }
                 >
-                  {header.sortable ? (
+                  {header.sortable && onSort ? (
                     <button
                       type="button"
                       className="flex items-center gap-1 w-full cursor-pointer select-none hover:bg-base-200 px-1 -mx-1 rounded"
@@ -238,7 +247,7 @@ function TableInner<T extends Record<string, unknown>>(
                         </label>
                       </td>
                     )}
-                    {expandable && (
+                    {canExpand && (
                       <td>
                         <button
                           type="button"
@@ -273,7 +282,7 @@ function TableInner<T extends Record<string, unknown>>(
                           {header.render
                             ? header.render(value, row, rowIndex)
                             : value !== null && typeof value === 'object'
-                              ? JSON.stringify(value)
+                              ? safeStringify(value)
                               : (value as ReactNode) ?? ''}
                         </td>
                       );
@@ -282,7 +291,7 @@ function TableInner<T extends Record<string, unknown>>(
                       <td className="text-right">{renderActions!(row, rowIndex)}</td>
                     )}
                   </tr>
-                  {expandable && isExpanded && renderExpansion && (
+                  {canExpand && isExpanded && (
                     <tr key={`expand-${rowKey}`}>
                       <td colSpan={totalCols} className="bg-base-200 p-4">
                         {renderExpansion(row, rowIndex)}
