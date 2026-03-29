@@ -118,6 +118,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
         role="button"
+        aria-busy={loading || undefined}
+        aria-disabled={disabled || loading || undefined}
       >
         {content}
       </a>

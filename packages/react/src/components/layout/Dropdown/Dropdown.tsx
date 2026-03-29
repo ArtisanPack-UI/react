@@ -298,7 +298,6 @@ export const DropdownItem = forwardRef<HTMLLIElement, DropdownItemProps>(
           type="button"
           role="menuitem"
           disabled={disabled}
-          aria-disabled={disabled || undefined}
           onClick={onClick}
           tabIndex={disabled ? -1 : 0}
         >

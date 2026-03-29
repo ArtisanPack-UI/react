@@ -137,11 +137,13 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         if (event.endDate && event.endDate > startKey) {
           const start = new Date(startKey + 'T00:00:00');
           const end = new Date(event.endDate + 'T00:00:00');
-          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const key = formatDateKey(d);
+          const cursor = new Date(start);
+          while (cursor <= end) {
+            const key = formatDateKey(cursor);
             const existing = map.get(key) ?? [];
             existing.push(event);
             map.set(key, existing);
+            cursor.setDate(cursor.getDate() + 1);
           }
         } else {
           const existing = map.get(startKey) ?? [];
@@ -272,7 +274,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         </div>
 
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 mb-1" role="row">
+        <div className="grid grid-cols-7 mb-1" role="row" aria-label="Days of the week">
           {weekdays.map((day) => (
             <div
               key={day}

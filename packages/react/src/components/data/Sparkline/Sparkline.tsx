@@ -57,8 +57,8 @@ export const Sparkline = forwardRef<HTMLDivElement, SparklineProps>(
     const chartWidth = svgWidth - padding * 2;
     const chartHeight = svgHeight - padding * 2;
 
-    const minVal = useMemo(() => Math.min(...data), [data]);
-    const maxVal = useMemo(() => Math.max(...data), [data]);
+    const minVal = useMemo(() => (data.length > 0 ? Math.min(...data) : 0), [data]);
+    const maxVal = useMemo(() => (data.length > 0 ? Math.max(...data) : 0), [data]);
     const range = maxVal - minVal || 1;
 
     const points = useMemo(() => {

@@ -80,11 +80,13 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReduced) return;
 
-      autoplayRef.current = setInterval(next, interval);
+      autoplayRef.current = setInterval(() => {
+        setCurrent((c) => ((c + 1) % total));
+      }, interval);
       return () => {
         if (autoplayRef.current) clearInterval(autoplayRef.current);
       };
-    }, [autoplay, interval, next, total]);
+    }, [autoplay, interval, total]);
 
     const isInteractiveTarget = (target: EventTarget): boolean => {
       if (!(target instanceof HTMLElement)) return false;
@@ -247,7 +249,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 )}
                 onClick={() => goTo(i)}
                 aria-label={`Go to slide ${i + 1}`}
-                aria-current={i === safeIndex ? 'true' : undefined}
+                aria-current={i === safeIndex ? 'step' : undefined}
               />
             ))}
           </div>

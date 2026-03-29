@@ -1,14 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Code } from '../../components/data/Code/Code';
 
 describe('Code', () => {
   beforeEach(() => {
-    Object.assign(navigator, {
+    vi.stubGlobal('navigator', {
+      ...navigator,
       clipboard: {
         writeText: vi.fn().mockResolvedValue(undefined),
       },
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders code content', () => {

@@ -7,6 +7,14 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
+
+/** Stable callback ref — always calls the latest version without re-triggering effects. */
+function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useCallback((...args: A) => fnRef.current(...args), []);
+}
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
@@ -42,6 +50,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
     },
     ref,
   ) => {
+    const stableOnOpenChange = useStableCallback(onOpenChange);
     const drawerId = useId();
     const inputId = `sidebar-toggle-${drawerId}`;
     const drawerRef = useRef<HTMLDivElement | null>(null);
@@ -70,14 +79,14 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
           const inDrawerSide = drawerSide?.contains(active);
           const inBody = document.body === active || active === null;
           if (inDrawerSide || inBody) {
-            onOpenChange(false);
+            stableOnOpenChange(false);
           }
         }
       };
 
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
-    }, [open, onOpenChange]);
+    }, [open, stableOnOpenChange]);
 
     return (
       <div

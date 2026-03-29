@@ -183,7 +183,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
                 {item.icon && <span aria-hidden="true">{item.icon}</span>}
                 {item.label}
               </summary>
-              <ul>
+              <ul role="menu">
                 {item.children.map((child) => renderItem(child))}
               </ul>
             </details>
@@ -232,7 +232,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
         className={cn(
           'menu',
           horizontal && 'menu-horizontal',
-          compact && 'menu-compact',
+          compact && 'menu-sm',
           size && sizeMap[size],
           className,
         )}

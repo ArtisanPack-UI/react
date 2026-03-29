@@ -165,6 +165,6 @@ describe('DropdownItem', () => {
         <DropdownItem disabled>Disabled Item</DropdownItem>
       </Dropdown>,
     );
-    expect(screen.getByRole('menuitem')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('menuitem')).toBeDisabled();
   });
 });

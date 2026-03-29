@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
-type LabelPosition = 'start' | 'center' | 'end';
+export type LabelPosition = 'start' | 'center' | 'end';
 
 export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
   /** Render as vertical divider */
@@ -48,7 +48,7 @@ export const Divider = forwardRef<HTMLDivElement, DividerProps>(
     },
     ref,
   ) => {
-    const hasContent = label !== undefined || children !== undefined;
+    const hasContent = (label !== undefined && label !== '') || (children != null && children !== false && children !== '');
 
     return (
       <div

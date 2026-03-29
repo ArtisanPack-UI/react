@@ -82,9 +82,8 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
           aria-hidden="true"
         >
           <path
-            fillRule="evenodd"
+            {...(icon.fill !== 'none' ? { fillRule: 'evenodd' as const, clipRule: 'evenodd' as const } : {})}
             d={icon.path}
-            clipRule="evenodd"
           />
         </svg>
       </button>

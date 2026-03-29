@@ -88,11 +88,12 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
     },
     ref,
   ) => {
-    const pages = getPageRange(currentPage, totalPages, siblings);
+    const safePage = Math.max(1, Math.min(currentPage, Math.max(1, totalPages)));
+    const pages = getPageRange(safePage, totalPages, siblings);
     const btnSize = size ? sizeMap[size] : '';
 
     const handlePageClick = (page: number) => {
-      if (page !== currentPage && page >= 1 && page <= totalPages && !disabled) {
+      if (page !== safePage && page >= 1 && page <= totalPages && !disabled) {
         onChange?.(page);
       }
     };
@@ -108,9 +109,9 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
           <button
             type="button"
             className={cn('join-item btn', btnSize)}
-            disabled={disabled || currentPage <= 1}
+            disabled={disabled || safePage <= 1}
             aria-label="Previous page"
-            onClick={() => handlePageClick(currentPage - 1)}
+            onClick={() => handlePageClick(safePage - 1)}
           >
             {previousLabel}
           </button>
@@ -133,9 +134,9 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
                 className={cn(
                   'join-item btn',
                   btnSize,
-                  page === currentPage && 'btn-active',
+                  page === safePage && 'btn-active',
                 )}
-                aria-current={page === currentPage ? 'page' : undefined}
+                aria-current={page === safePage ? 'page' : undefined}
                 aria-label={`Page ${page}`}
                 disabled={disabled}
                 onClick={() => handlePageClick(page)}
@@ -148,9 +149,9 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
           <button
             type="button"
             className={cn('join-item btn', btnSize)}
-            disabled={disabled || currentPage >= totalPages}
+            disabled={disabled || safePage >= totalPages}
             aria-label="Next page"
-            onClick={() => handlePageClick(currentPage + 1)}
+            onClick={() => handlePageClick(safePage + 1)}
           >
             {nextLabel}
           </button>

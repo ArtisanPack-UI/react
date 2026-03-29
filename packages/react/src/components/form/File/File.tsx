@@ -90,10 +90,10 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
         if (e.dataTransfer.files.length > 0 && inputRef.current) {
           inputRef.current.files = e.dataTransfer.files;
           onFilesSelected?.(e.dataTransfer.files);
-          onChange?.({ target: inputRef.current } as React.ChangeEvent<HTMLInputElement>);
+          inputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
         }
       },
-      [onChange, onFilesSelected],
+      [onFilesSelected],
     );
 
     const handleChange = useCallback(

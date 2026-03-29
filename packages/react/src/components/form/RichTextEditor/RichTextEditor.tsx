@@ -1,4 +1,4 @@
-import { forwardRef, useId, type HTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useCallback, useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface RichTextEditorProps extends HTMLAttributes<HTMLDivElement> {
@@ -56,6 +56,32 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
     const errorId = error ? `${id}-error` : undefined;
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
+    const editorRef = useRef<HTMLDivElement | null>(null);
+    const isInternalUpdate = useRef(false);
+
+    const setRefs = useCallback(
+      (el: HTMLDivElement | null) => {
+        editorRef.current = el;
+        if (typeof ref === 'function') {
+          ref(el);
+        } else if (ref) {
+          ref.current = el;
+        }
+      },
+      [ref],
+    );
+
+    // Sync external value changes without resetting cursor
+    useEffect(() => {
+      if (isInternalUpdate.current) {
+        isInternalUpdate.current = false;
+        return;
+      }
+      if (editorRef.current && value !== undefined && editorRef.current.innerHTML !== value) {
+        editorRef.current.innerHTML = value;
+      }
+    }, [value]);
+
     return (
       <fieldset className="fieldset">
         {label && (
@@ -77,7 +103,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
             </div>
           )}
           <div
-            ref={ref}
+            ref={setRefs}
             id={id}
             contentEditable
             role="textbox"
@@ -87,8 +113,10 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
             aria-describedby={describedBy}
             className="p-4 outline-none prose max-w-none"
             style={{ minHeight }}
-            dangerouslySetInnerHTML={value ? { __html: value } : undefined}
-            onInput={(e) => onValueChange?.((e.target as HTMLDivElement).innerHTML)}
+            onInput={(e) => {
+              isInternalUpdate.current = true;
+              onValueChange?.((e.target as HTMLDivElement).innerHTML);
+            }}
             suppressContentEditableWarning
             {...rest}
           />

@@ -122,17 +122,18 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
       return map;
     }, [flatItems]);
 
-    // Register Cmd+K / Ctrl+K shortcut.
-    // Only handles closing — opening is delegated to the parent component.
+    // Handle global keyboard shortcuts (Escape to close, Cmd+K to toggle)
     useEffect(() => {
-      if (!shortcut) return;
+      if (!open) return;
 
       const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-          if (open) {
-            e.preventDefault();
-            onClose();
-          }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        } else if (shortcut && (e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          onClose();
         }
       };
 
@@ -148,22 +149,6 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
         requestAnimationFrame(() => inputRef.current?.focus());
       }
     }, [open]);
-
-    // Close on Escape
-    useEffect(() => {
-      if (!open) return;
-
-      const handleEscape = (e: globalThis.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          e.stopPropagation();
-          onClose();
-        }
-      };
-
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [open, onClose]);
 
     const getListItems = useCallback((): HTMLElement[] => {
       if (!listRef.current) return [];
@@ -187,16 +172,15 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
     );
 
     const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-      const listElements = getListItems();
-      if (listElements.length === 0) return;
+      if (flatItems.length === 0) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const next = activeIndex < listElements.length - 1 ? activeIndex + 1 : 0;
+        const next = activeIndex < flatItems.length - 1 ? activeIndex + 1 : 0;
         focusItem(next);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const next = activeIndex > 0 ? activeIndex - 1 : listElements.length - 1;
+        const next = activeIndex > 0 ? activeIndex - 1 : flatItems.length - 1;
         focusItem(next);
       } else if (e.key === 'Home') {
         e.preventDefault();

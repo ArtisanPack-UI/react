@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 
 /** Supported color scheme modes */
 export type ColorScheme = 'light' | 'dark' | 'system';
@@ -34,23 +34,19 @@ interface ThemeProviderProps {
  */
 export function ThemeProvider({ defaultColorScheme = 'system', children }: ThemeProviderProps) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>(defaultColorScheme);
-  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>(getSystemPreference);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    if (typeof window === 'undefined') return () => {};
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemPreference(mql.matches ? 'dark' : 'light');
-
-    const handler = (e: MediaQueryListEvent) => {
-      setSystemPreference(e.matches ? 'dark' : 'light');
-    };
-
+    const handler = () => onStoreChange();
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
   }, []);
+
+  const getSnapshot = useCallback(() => getSystemPreference(), []);
+  const getServerSnapshot = useCallback((): 'light' | 'dark' => 'light', []);
+
+  const systemPreference = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const resolvedColorScheme = colorScheme === 'system' ? systemPreference : colorScheme;
 

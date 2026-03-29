@@ -97,7 +97,7 @@ describe('Markdown', () => {
   });
 
   it('rejects javascript: URLs in links', () => {
-    const { container } = render(<Markdown source='[click](javascript:void0)' />);
+    const { container } = render(<Markdown source='[click](javascript:alert)' />);
     expect(container.querySelector('a')).not.toBeInTheDocument();
     expect(screen.getByText('click')).toBeInTheDocument();
   });

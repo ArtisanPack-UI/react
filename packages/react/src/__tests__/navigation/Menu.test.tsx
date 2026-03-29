@@ -60,7 +60,7 @@ describe('Menu', () => {
 
   it('applies compact class', () => {
     render(<Menu items={sampleItems} compact />);
-    expect(screen.getByRole('menu')).toHaveClass('menu-compact');
+    expect(screen.getByRole('menu')).toHaveClass('menu-sm');
   });
 
   it('renders menu title', () => {

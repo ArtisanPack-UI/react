@@ -14,7 +14,7 @@ export interface BreadcrumbItem {
   /** Icon element */
   icon?: ReactNode;
   /** Custom link element (for React Router / Inertia) */
-  renderLink?: (props: { className?: string; children: ReactNode }) => ReactElement;
+  renderLink?: (props: { className?: string; children: ReactNode; 'aria-current'?: 'page' }) => ReactElement;
 }
 
 export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
@@ -52,7 +52,11 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
         return (
           <li key={key}>
             {item.renderLink ? (
-              item.renderLink({ children: content })
+              item.renderLink({
+                className: undefined,
+                children: content,
+                ...(isLast ? { 'aria-current': 'page' as const } : {}),
+              })
             ) : item.href && !isLast ? (
               <a href={item.href}>{content}</a>
             ) : (

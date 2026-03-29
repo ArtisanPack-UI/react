@@ -48,8 +48,11 @@ export const Stat = forwardRef<HTMLDivElement, StatProps>(
     },
     ref,
   ) => {
-    const isPositive = change !== undefined && change >= 0;
-    const changeColor = change !== undefined ? (isPositive ? 'text-success' : 'text-error') : '';
+    const isPositive = change !== undefined && change > 0;
+    const isNegative = change !== undefined && change < 0;
+    const changeColor = change !== undefined
+      ? (isPositive ? 'text-success' : isNegative ? 'text-error' : '')
+      : '';
     const formattedChange =
       change !== undefined ? `${isPositive ? '+' : ''}${change.toFixed(1)}%` : null;
 
@@ -79,8 +82,8 @@ export const Stat = forwardRef<HTMLDivElement, StatProps>(
         {(description || formattedChange) && (
           <div className={cn('stat-desc', formattedChange && changeColor)}>
             {formattedChange && (
-              <span aria-label={isPositive ? 'Increased' : 'Decreased'}>
-                {isPositive ? '\u2191' : '\u2193'} {formattedChange}
+              <span aria-label={isPositive ? 'Increased' : isNegative ? 'Decreased' : 'No change'}>
+                {isPositive ? '\u2191' : isNegative ? '\u2193' : ''} {formattedChange}
               </span>
             )}
             {formattedChange && description && ' '}

@@ -50,7 +50,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
     const errorId = error ? `${id}-error` : undefined;
 
     return (
-      <fieldset className="fieldset">
+      <fieldset className="fieldset" role="group" aria-label={label}>
         <label
           htmlFor={id}
           className={cn('flex items-center gap-2 cursor-pointer', right && 'flex-row-reverse')}

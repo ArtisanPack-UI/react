@@ -40,8 +40,10 @@ export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
       <fieldset className="fieldset">
         {label && (
           <legend className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
+            <label htmlFor={id}>
+              {label}
+              {required && <span className="text-error ml-1">*</span>}
+            </label>
           </legend>
         )}
         <textarea

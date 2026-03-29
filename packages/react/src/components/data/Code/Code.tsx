@@ -54,7 +54,7 @@ export const Code = forwardRef<HTMLDivElement, CodeProps>(
       <div ref={ref} className={cn('relative', className)} {...rest}>
         {(label || language || copyable) && (
           <div className="flex items-center justify-between bg-base-300 px-4 py-2 rounded-t-lg text-sm">
-            <span className="font-semibold">{label ?? language}</span>
+            {(label || language) && <span className="font-semibold">{label ?? language}</span>}
             {copyable && (
               <button
                 type="button"

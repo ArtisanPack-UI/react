@@ -49,7 +49,7 @@ export const Progress = forwardRef<HTMLProgressElement, ProgressProps>(
         <progress
           ref={ref}
           className={cn('progress w-full', color && colorMap[color], className)}
-          aria-label={label}
+          aria-label={label ?? 'Progress'}
           aria-valuenow={indeterminate ? undefined : value}
           aria-valuemin={0}
           aria-valuemax={max}

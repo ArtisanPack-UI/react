@@ -1,15 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Clipboard } from '../../components/utility/Clipboard/Clipboard';
 
 describe('Clipboard', () => {
   beforeEach(() => {
-    Object.assign(navigator, {
+    vi.stubGlobal('navigator', {
+      ...navigator,
       clipboard: {
         writeText: vi.fn().mockResolvedValue(undefined),
       },
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders a button with default label', () => {

@@ -2,6 +2,7 @@ import {
   forwardRef,
   useCallback,
   useId,
+  useRef,
   useState,
   type InputHTMLAttributes,
   type ReactNode,
@@ -78,12 +79,33 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
     );
     const currentValue = (value as string) ?? internalValue;
 
+    const inputRefInternal = useRef<HTMLInputElement | null>(null);
+
+    const setRefs = useCallback(
+      (el: HTMLInputElement | null) => {
+        inputRefInternal.current = el;
+        if (typeof ref === 'function') {
+          ref(el);
+        } else if (ref) {
+          ref.current = el;
+        }
+      },
+      [ref],
+    );
+
     const handleRandomClick = useCallback(() => {
       const color = generateRandomHex();
       setInternalValue(color);
-      onChange?.({ target: { value: color } } as React.ChangeEvent<HTMLInputElement>);
+      if (inputRefInternal.current) {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype,
+          'value',
+        )?.set;
+        nativeInputValueSetter?.call(inputRefInternal.current, color);
+        inputRefInternal.current.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       onRandomColor?.(color);
-    }, [onChange, onRandomColor]);
+    }, [onRandomColor]);
 
     return (
       <fieldset className="fieldset">
@@ -99,7 +121,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
           style={{ paddingInlineStart: 0, overflow: 'hidden' }}
         >
           <input
-            ref={ref}
+            ref={setRefs}
             id={id}
             type="color"
             className="cursor-pointer shrink-0"
@@ -149,7 +171,14 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               onClick={() => {
                 const resetValue = (defaultValue as string) ?? '#000000';
                 setInternalValue(resetValue);
-                onChange?.({ target: { value: resetValue } } as React.ChangeEvent<HTMLInputElement>);
+                if (inputRefInternal.current) {
+                  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype,
+                    'value',
+                  )?.set;
+                  nativeInputValueSetter?.call(inputRefInternal.current, resetValue);
+                  inputRefInternal.current.dispatchEvent(new Event('input', { bubbles: true }));
+                }
                 onClear?.();
               }}
               aria-label="Clear color"

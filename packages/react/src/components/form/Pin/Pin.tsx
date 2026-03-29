@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useId,
   useRef,
   type ClipboardEvent,
@@ -67,6 +68,16 @@ export const Pin = forwardRef<HTMLInputElement, PinProps>(
     const id = providedId ?? autoId;
     const errorId = error ? `${id}-error` : undefined;
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Sync controlled value to individual inputs
+    useEffect(() => {
+      if (controlledValue === undefined) return;
+      inputsRef.current.forEach((input, i) => {
+        if (input) {
+          input.value = controlledValue[i] ?? '';
+        }
+      });
+    }, [controlledValue]);
 
     const getValue = useCallback(() => {
       return inputsRef.current.map((input) => input?.value ?? '').join('');

@@ -1,5 +1,5 @@
 import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ThemeProvider, useTheme } from '../hooks/use-theme';
 
 function ThemeConsumer() {
@@ -17,13 +17,15 @@ function ThemeConsumer() {
 
 describe('ThemeProvider', () => {
   let matchMediaListeners: Array<(e: MediaQueryListEvent) => void>;
+  let mockMatches: boolean;
 
   beforeEach(() => {
     matchMediaListeners = [];
+    mockMatches = false;
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
-        matches: false,
+        get matches() { return mockMatches; },
         media: query,
         onchange: null,
         addEventListener: vi.fn((_, handler) => {
@@ -39,6 +41,10 @@ describe('ThemeProvider', () => {
     });
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('defaults to system color scheme', () => {
     render(
       <ThemeProvider>
@@ -51,21 +57,7 @@ describe('ThemeProvider', () => {
   });
 
   it('detects initial dark system preference', () => {
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      value: vi.fn().mockImplementation((query: string) => ({
-        matches: true,
-        media: query,
-        onchange: null,
-        addEventListener: vi.fn((_, handler) => {
-          matchMediaListeners.push(handler);
-        }),
-        removeEventListener: vi.fn(),
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    });
+    mockMatches = true;
 
     render(
       <ThemeProvider>
@@ -115,6 +107,7 @@ describe('ThemeProvider', () => {
 
     // Simulate system dark mode change
     act(() => {
+      mockMatches = true;
       for (const listener of matchMediaListeners) {
         listener({ matches: true } as MediaQueryListEvent);
       }
@@ -136,6 +129,7 @@ describe('ThemeProvider', () => {
 
     // Simulate system dark mode change
     act(() => {
+      mockMatches = true;
       for (const listener of matchMediaListeners) {
         listener({ matches: true } as MediaQueryListEvent);
       }
@@ -160,6 +154,7 @@ describe('ThemeProvider', () => {
 
     // Simulate system going dark
     act(() => {
+      mockMatches = true;
       for (const listener of matchMediaListeners) {
         listener({ matches: true } as MediaQueryListEvent);
       }

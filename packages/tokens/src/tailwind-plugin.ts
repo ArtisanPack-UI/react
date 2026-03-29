@@ -5,7 +5,13 @@
  * as theme extensions. Use this when you want Tailwind utilities to reference
  * the same design tokens.
  *
- * @example
+ * **Tailwind v4 (CSS-first):**
+ * ```css
+ * @import "tailwindcss";
+ * @plugin "@artisanpack-ui/tokens/tailwind";
+ * ```
+ *
+ * **Tailwind v3 (JS config):**
  * ```ts
  * // tailwind.config.ts
  * import plugin from 'tailwindcss/plugin';

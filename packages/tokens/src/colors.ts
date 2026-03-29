@@ -10,7 +10,7 @@ export const colors = {
   primary: '#3b82f6',
   primaryContent: '#000000',
   secondary: '#64748b',
-  secondaryContent: '#FFFFFF',
+  secondaryContent: '#ffffff',
   accent: '#f59e0b',
   accentContent: '#000000',
   neutral: '#737373',

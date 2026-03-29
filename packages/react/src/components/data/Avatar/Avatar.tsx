@@ -111,8 +111,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           className={cn(
             'rounded-full',
             sizeMap[size],
-            color && colorMap[color],
-            !color && 'bg-neutral text-neutral-content',
+            colorMap[color],
           )}
         >
           {icon ? (
