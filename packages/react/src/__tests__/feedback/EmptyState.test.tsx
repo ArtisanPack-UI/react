@@ -44,6 +44,12 @@ describe('EmptyState', () => {
     expect(screen.getByText('Create')).toBeInTheDocument();
   });
 
+  it('renders correct element via headingAs prop', () => {
+    render(<EmptyState heading="Custom Heading" headingAs="h2" />);
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).toHaveTextContent('Custom Heading');
+  });
+
   it('applies custom className', () => {
     const { container } = render(<EmptyState className="custom" />);
     expect(container.firstChild).toHaveClass('custom');
