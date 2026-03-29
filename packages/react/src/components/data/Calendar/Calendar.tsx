@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   type HTMLAttributes,
+  type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
@@ -62,6 +63,18 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+function isBeforeDay(a: Date, b: Date): boolean {
+  const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return aDay < bDay;
+}
+
+function isAfterDay(a: Date, b: Date): boolean {
+  const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return aDay > bDay;
+}
+
 function formatDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -106,7 +119,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     },
     ref,
   ) => {
-    const today = useMemo(() => new Date(), []);
+    const today = new Date();
     const [viewDate, setViewDate] = useState(() => value ?? today);
 
     const year = viewDate.getFullYear();
@@ -141,7 +154,6 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         days.push(new Date(year, month, d));
       }
 
-      // Pad to fill final week
       while (days.length % 7 !== 0) {
         days.push(null);
       }
@@ -162,8 +174,8 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     }, []);
 
     const handleDayClick = (date: Date) => {
-      if (minDate && date < minDate) return;
-      if (maxDate && date > maxDate) return;
+      if (minDate && isBeforeDay(date, minDate)) return;
+      if (maxDate && isAfterDay(date, maxDate)) return;
       onChange?.(date);
     };
 
@@ -173,9 +185,19 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     };
 
     const isDisabled = (date: Date): boolean => {
-      if (minDate && date < minDate) return true;
-      if (maxDate && date > maxDate) return true;
+      if (minDate && isBeforeDay(date, minDate)) return true;
+      if (maxDate && isAfterDay(date, maxDate)) return true;
       return false;
+    };
+
+    const handleEventDotInteraction = (
+      event: CalendarEvent,
+      e: React.MouseEvent | KeyboardEvent,
+    ) => {
+      if (onEventClick) {
+        e.stopPropagation();
+        onEventClick(event);
+      }
     };
 
     return (
@@ -252,7 +274,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         <div className="grid grid-cols-7" role="grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>
           {calendarDays.map((date, i) => {
             if (!date) {
-              return <div key={`empty-${i}`} className="p-2" />;
+              return <div key={`empty-${i}`} className="p-2" role="gridcell" />;
             }
 
             const dateKey = formatDateKey(date);
@@ -264,60 +286,63 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
 
             if (renderDay) {
               return (
-                <div key={dateKey} className="p-1">
+                <div key={dateKey} className="p-1" role="gridcell">
                   {renderDay(date, dayEvents)}
                 </div>
               );
             }
 
             return (
-              <button
-                key={dateKey}
-                type="button"
-                className={cn(
-                  'flex flex-col items-center p-2 rounded-lg transition-colors min-h-12',
-                  'hover:bg-base-200',
-                  isToday && !isSelected && 'ring-2 ring-current',
-                  isSelected && color && colorMap[color],
-                  weekend && !isSelected && 'bg-base-200/50',
-                  disabled && 'opacity-30 cursor-not-allowed',
-                )}
-                onClick={() => handleDayClick(date)}
-                disabled={disabled}
-                aria-label={date.toLocaleDateString(undefined, {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-                aria-selected={isSelected ?? undefined}
-                aria-current={isToday ? 'date' : undefined}
-              >
-                <span className="text-sm">{date.getDate()}</span>
-                {dayEvents.length > 0 && (
-                  <div className="flex gap-0.5 mt-0.5">
-                    {dayEvents.slice(0, 3).map((event, ei) => (
-                      <span
-                        key={ei}
-                        className={cn(
-                          'w-1.5 h-1.5 rounded-full',
-                          event.color ? eventDotMap[event.color] : eventDotMap.primary,
-                        )}
-                        title={event.title}
-                        onClick={(e) => {
-                          if (onEventClick) {
-                            e.stopPropagation();
-                            onEventClick(event);
-                          }
-                        }}
-                      />
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </button>
+              <div key={dateKey} role="gridcell">
+                <button
+                  type="button"
+                  className={cn(
+                    'flex flex-col items-center p-2 rounded-lg transition-colors min-h-12 w-full',
+                    'hover:bg-base-200',
+                    isToday && !isSelected && 'ring-2 ring-current',
+                    isSelected && color && colorMap[color],
+                    weekend && !isSelected && 'bg-base-200/50',
+                    disabled && 'opacity-30 cursor-not-allowed',
+                  )}
+                  onClick={() => handleDayClick(date)}
+                  disabled={disabled}
+                  aria-label={date.toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                  aria-selected={isSelected ?? undefined}
+                  aria-current={isToday ? 'date' : undefined}
+                >
+                  <span className="text-sm">{date.getDate()}</span>
+                  {dayEvents.length > 0 && (
+                    <div className="flex gap-0.5 mt-0.5">
+                      {dayEvents.slice(0, 3).map((event, ei) => (
+                        <button
+                          key={ei}
+                          type="button"
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full cursor-pointer',
+                            event.color ? eventDotMap[event.color] : eventDotMap.primary,
+                          )}
+                          aria-label={event.title}
+                          onClick={(e) => handleEventDotInteraction(event, e)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleEventDotInteraction(event, e);
+                            }
+                          }}
+                        />
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </button>
+              </div>
             );
           })}
         </div>

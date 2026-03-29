@@ -34,6 +34,8 @@ describe('Calendar', () => {
     fireEvent.click(screen.getByText('20'));
     expect(onChange).toHaveBeenCalled();
     const calledDate = onChange.mock.calls[0][0] as Date;
+    expect(calledDate.getFullYear()).toBe(2025);
+    expect(calledDate.getMonth()).toBe(0);
     expect(calledDate.getDate()).toBe(20);
   });
 
@@ -60,8 +62,7 @@ describe('Calendar', () => {
       { id: 1, title: 'Meeting', date: '2025-01-15', color: 'primary' },
     ];
     render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
-    // Event dot should have a title attribute
-    const dot = screen.getByTitle('Meeting');
+    const dot = screen.getByLabelText('Meeting');
     expect(dot).toBeInTheDocument();
   });
 
@@ -77,7 +78,7 @@ describe('Calendar', () => {
         onEventClick={onEventClick}
       />,
     );
-    fireEvent.click(screen.getByTitle('Meeting'));
+    fireEvent.click(screen.getByLabelText('Meeting'));
     expect(onEventClick).toHaveBeenCalledWith(events[0]);
   });
 

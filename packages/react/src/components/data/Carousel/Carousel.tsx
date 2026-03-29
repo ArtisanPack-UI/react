@@ -37,6 +37,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       renderSlide,
       className,
       'aria-label': ariaLabel = 'Carousel',
+      onKeyDown: onKeyDownProp,
+      onTouchStart: onTouchStartProp,
+      onTouchEnd: onTouchEndProp,
       ...rest
     },
     ref,
@@ -69,7 +72,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       };
     }, [autoplay, interval, next, total]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         prev();
@@ -83,20 +86,24 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         e.preventDefault();
         goTo(total - 1);
       }
+      onKeyDownProp?.(e);
     };
 
-    const handleTouchStart = (e: React.TouchEvent) => {
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
       touchStartRef.current = e.touches[0].clientX;
+      onTouchStartProp?.(e);
     };
 
-    const handleTouchEnd = (e: React.TouchEvent) => {
-      if (touchStartRef.current === null) return;
-      const diff = touchStartRef.current - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) next();
-        else prev();
+    const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+      if (touchStartRef.current !== null) {
+        const diff = touchStartRef.current - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) next();
+          else prev();
+        }
+        touchStartRef.current = null;
       }
-      touchStartRef.current = null;
+      onTouchEndProp?.(e);
     };
 
     if (total === 0) return null;
@@ -124,7 +131,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         >
           {renderSlide ? (
             renderSlide(slide, current)
-          ) : slide.content ? (
+          ) : slide.content !== undefined ? (
             slide.content
           ) : (
             <div className="relative">

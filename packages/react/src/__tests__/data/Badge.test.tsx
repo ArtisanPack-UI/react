@@ -16,6 +16,7 @@ describe('Badge', () => {
   it('prefers value over children', () => {
     render(<Badge value="Value">Children</Badge>);
     expect(screen.getByText('Value')).toBeInTheDocument();
+    expect(screen.queryByText('Children')).not.toBeInTheDocument();
   });
 
   it('applies color class', () => {

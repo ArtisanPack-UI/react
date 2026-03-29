@@ -23,14 +23,8 @@ export type ChartType =
   | 'donut'
   | 'pie'
   | 'radialBar'
-  | 'heatmap'
-  | 'scatter'
-  | 'bubble'
-  | 'candlestick'
   | 'radar'
-  | 'polarArea'
-  | 'rangeBar'
-  | 'treemap';
+  | 'polarArea';
 
 export interface ChartProps extends HTMLAttributes<HTMLDivElement> {
   type: ChartType;

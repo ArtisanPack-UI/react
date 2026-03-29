@@ -1,4 +1,4 @@
-import { forwardRef, useState, type HTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, Fragment, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 
@@ -102,8 +102,16 @@ function TableInner<T extends Record<string, unknown>>(
     onSort({ key, direction });
   };
 
-  const allSelected =
-    selectable && rows.length > 0 && selectedKeys?.size === rows.length;
+  const allSelected = useMemo(
+    () =>
+      selectable &&
+      rows.length > 0 &&
+      rows.every((row) => {
+        const key = getNestedValue(row, selectableKey) as string | number;
+        return selectedKeys?.has(key);
+      }),
+    [selectable, rows, selectedKeys, selectableKey],
+  );
 
   const toggleSelectAll = () => {
     if (!onSelectionChange) return;
@@ -203,9 +211,8 @@ function TableInner<T extends Record<string, unknown>>(
               const isSelected = selectedKeys?.has(selectKey);
 
               return (
-                <>
+                <Fragment key={rowKey}>
                   <tr
-                    key={`row-${rowKey}`}
                     className={cn(
                       hoverable && 'hover',
                       isSelected && 'active',
@@ -273,7 +280,7 @@ function TableInner<T extends Record<string, unknown>>(
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })
           )}

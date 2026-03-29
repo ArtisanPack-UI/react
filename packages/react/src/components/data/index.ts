@@ -28,8 +28,5 @@ export type { TableProps, TableHeader, TableSortConfig } from './Table/Table';
 export { Calendar } from './Calendar/Calendar';
 export type { CalendarProps, CalendarEvent } from './Calendar/Calendar';
 
-export { Chart } from './Chart/Chart';
-export type { ChartProps, ChartDataPoint, ChartSeries, ChartType } from './Chart/Chart';
-
 export { Sparkline } from './Sparkline/Sparkline';
 export type { SparklineProps } from './Sparkline/Sparkline';

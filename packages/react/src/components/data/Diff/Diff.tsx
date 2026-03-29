@@ -129,57 +129,56 @@ export const Diff = forwardRef<HTMLDivElement, DiffProps>(
     const diffLines = useMemo(() => computeDiff(oldContent, newContent), [oldContent, newContent]);
 
     if (mode === 'side-by-side') {
-      const oldLines = diffLines.filter((l) => l.type !== 'added');
-      const newLines = diffLines.filter((l) => l.type !== 'removed');
-
       return (
-        <div ref={ref} className={cn('overflow-auto', className)} {...rest}>
-          <div className="grid grid-cols-2 divide-x divide-base-300 font-mono text-sm">
-            <div>
-              <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{oldLabel}</div>
-              {oldLines.map((line, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'flex',
-                    line.type === 'removed' && 'bg-error/20',
-                  )}
-                >
-                  <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-                    {line.oldLineNum ?? ''}
-                  </span>
-                  <span className="select-none w-6 text-center opacity-40 shrink-0">
-                    {linePrefix[line.type]}
-                  </span>
-                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                    <code>{line.content}</code>
-                  </pre>
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{newLabel}</div>
-              {newLines.map((line, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'flex',
-                    line.type === 'added' && 'bg-success/20',
-                  )}
-                >
-                  <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-                    {line.newLineNum ?? ''}
-                  </span>
-                  <span className="select-none w-6 text-center opacity-40 shrink-0">
-                    {linePrefix[line.type]}
-                  </span>
-                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                    <code>{line.content}</code>
-                  </pre>
-                </div>
-              ))}
-            </div>
+        <div ref={ref} className={cn('overflow-auto font-mono text-sm', className)} {...rest}>
+          <div className="grid grid-cols-2 divide-x divide-base-300">
+            <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{oldLabel}</div>
+            <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{newLabel}</div>
           </div>
+          {diffLines.map((line, i) => (
+            <div key={i} className="grid grid-cols-2 divide-x divide-base-300">
+              {/* Left pane */}
+              <div className={cn('flex', line.type === 'removed' && 'bg-error/20')}>
+                {line.type !== 'added' ? (
+                  <>
+                    <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
+                      {line.oldLineNum ?? ''}
+                    </span>
+                    <span className="select-none w-6 text-center opacity-40 shrink-0">
+                      {linePrefix[line.type]}
+                    </span>
+                    <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
+                      <code>{line.content}</code>
+                    </pre>
+                  </>
+                ) : (
+                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
+                    <code>&nbsp;</code>
+                  </pre>
+                )}
+              </div>
+              {/* Right pane */}
+              <div className={cn('flex', line.type === 'added' && 'bg-success/20')}>
+                {line.type !== 'removed' ? (
+                  <>
+                    <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
+                      {line.newLineNum ?? ''}
+                    </span>
+                    <span className="select-none w-6 text-center opacity-40 shrink-0">
+                      {linePrefix[line.type]}
+                    </span>
+                    <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
+                      <code>{line.content}</code>
+                    </pre>
+                  </>
+                ) : (
+                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
+                    <code>&nbsp;</code>
+                  </pre>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       );
     }

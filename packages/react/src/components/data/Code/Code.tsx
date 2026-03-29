@@ -52,7 +52,7 @@ export const Code = forwardRef<HTMLDivElement, CodeProps>(
 
     return (
       <div ref={ref} className={cn('relative', className)} {...rest}>
-        {(label || (copyable && language)) && (
+        {(label || language || copyable) && (
           <div className="flex items-center justify-between bg-base-300 px-4 py-2 rounded-t-lg text-sm">
             <span className="font-semibold">{label ?? language}</span>
             {copyable && (
@@ -95,7 +95,7 @@ export const Code = forwardRef<HTMLDivElement, CodeProps>(
         <div
           className={cn(
             'mockup-code',
-            (label || (copyable && language)) && 'rounded-t-none',
+            (label || language || copyable) && 'rounded-t-none',
           )}
           style={maxHeight ? { maxHeight, overflow: 'auto' } : undefined}
         >

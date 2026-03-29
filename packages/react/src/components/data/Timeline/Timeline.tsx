@@ -3,6 +3,7 @@ import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
 export interface TimelineItemData {
+  id?: string | number;
   title: ReactNode;
   subtitle?: ReactNode;
   description?: ReactNode;
@@ -18,7 +19,7 @@ export interface TimelineProps extends HTMLAttributes<HTMLUListElement> {
   snap?: boolean;
 }
 
-const colorMap: Record<string, string> = {
+const colorMap: Record<DaisyColor, string> = {
   primary: 'bg-primary text-primary-content',
   secondary: 'bg-secondary text-secondary-content',
   accent: 'bg-accent text-accent-content',
@@ -29,7 +30,7 @@ const colorMap: Record<string, string> = {
   neutral: 'bg-neutral text-neutral-content',
 };
 
-const hrColorMap: Record<string, string> = {
+const hrColorMap: Record<DaisyColor, string> = {
   primary: 'bg-primary',
   secondary: 'bg-secondary',
   accent: 'bg-accent',
@@ -59,10 +60,11 @@ export const Timeline = forwardRef<HTMLUListElement, TimelineProps>(
           const isFirst = index === 0;
           const isLast = index === items.length - 1;
           const color = item.pending ? undefined : item.color ?? 'primary';
+          const hrClass = color && !item.pending ? hrColorMap[color] : undefined;
 
           return (
-            <li key={index}>
-              {!isFirst && <hr className={cn(color && hrColorMap[color])} />}
+            <li key={item.id ?? index}>
+              {!isFirst && <hr className={cn(hrClass)} />}
               <div className="timeline-middle">
                 <div
                   className={cn(
@@ -100,7 +102,7 @@ export const Timeline = forwardRef<HTMLUListElement, TimelineProps>(
                 )}
                 {item.description && <div className="mt-1">{item.description}</div>}
               </div>
-              {!isLast && <hr className={cn(color && !item.pending && hrColorMap[color])} />}
+              {!isLast && <hr className={cn(hrClass)} />}
             </li>
           );
         })}
