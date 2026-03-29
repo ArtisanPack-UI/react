@@ -238,6 +238,8 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
         {/* Dialog */}
         <div
           ref={dialogRef}
+          role="dialog"
+          aria-label="Spotlight search"
           className="relative w-full max-w-lg rounded-box bg-base-100 shadow-2xl overflow-hidden"
         >
           {/* Search input */}
