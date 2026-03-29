@@ -15,8 +15,6 @@ export interface PaginationProps extends Omit<HTMLAttributes<HTMLElement>, 'onCh
   onChange?: (page: number) => void;
   /** Number of sibling pages to show on each side of current */
   siblings?: number;
-  /** Show first/last page buttons */
-  showEdges?: boolean;
   /** Button size */
   size?: Size;
   /** Previous button label */
@@ -41,7 +39,6 @@ function getPageRange(
   current: number,
   total: number,
   siblings: number,
-  showEdges: boolean,
 ): (number | 'ellipsis')[] {
   if (total <= 1) return [1];
 
@@ -81,7 +78,6 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
       totalPages,
       onChange,
       siblings = 1,
-      showEdges = true,
       size,
       previousLabel = '«',
       nextLabel = '»',
@@ -91,7 +87,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
     },
     ref,
   ) => {
-    const pages = getPageRange(currentPage, totalPages, siblings, showEdges);
+    const pages = getPageRange(currentPage, totalPages, siblings);
     const btnSize = size ? sizeMap[size] : '';
 
     const handlePageClick = (page: number) => {

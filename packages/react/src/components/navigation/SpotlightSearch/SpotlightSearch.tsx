@@ -155,6 +155,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
       const handleEscape = (e: globalThis.KeyboardEvent) => {
         if (e.key === 'Escape') {
           e.preventDefault();
+          e.stopPropagation();
           onClose();
         }
       };
