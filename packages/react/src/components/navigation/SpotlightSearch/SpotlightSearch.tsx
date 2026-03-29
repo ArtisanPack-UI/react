@@ -264,7 +264,6 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
               aria-haspopup="listbox"
               aria-autocomplete="list"
               aria-controls={listboxId}
-              aria-owns={listboxId}
               aria-activedescendant={
                 activeIndex >= 0
                   ? `spotlight-item-${autoId}-${activeIndex}`

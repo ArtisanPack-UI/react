@@ -63,13 +63,13 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
 
       const handleEscape = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-          // Only close if no nested overlay (e.g. SpotlightSearch) consumed the event
           if (e.defaultPrevented) return;
-          // Only close if focus is within the sidebar or not in any other overlay
+          // Only close if focus is within the drawer-side panel (not main content)
           const active = document.activeElement;
-          const inSidebar = drawerRef.current?.contains(active);
+          const drawerSide = drawerRef.current?.querySelector('.drawer-side');
+          const inDrawerSide = drawerSide?.contains(active);
           const inBody = document.body === active || active === null;
-          if (inSidebar || inBody) {
+          if (inDrawerSide || inBody) {
             onOpenChange(false);
           }
         }

@@ -51,7 +51,7 @@ function getPageRange(
 
   // Always show first page
   pages.push(1);
-  if (!showEdges && current - siblings > 2 && rangeStart > 2) {
+  if (rangeStart > 2) {
     pages.push('ellipsis');
   }
 
@@ -61,13 +61,11 @@ function getPageRange(
     }
   }
 
-  if (total > 1) {
-    if (rangeEnd < total - 1) {
-      pages.push('ellipsis');
-    }
-    if (!pages.includes(total)) {
-      pages.push(total);
-    }
+  if (rangeEnd < total - 1) {
+    pages.push('ellipsis');
+  }
+  if (!pages.includes(total)) {
+    pages.push(total);
   }
 
   return pages;

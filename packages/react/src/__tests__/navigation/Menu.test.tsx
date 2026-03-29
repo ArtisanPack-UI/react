@@ -103,21 +103,53 @@ describe('Menu', () => {
     expect(screen.getByText('Child 2')).toBeInTheDocument();
   });
 
+  it('auto-opens details when a child is active', () => {
+    const items: MenuItemType[] = [
+      {
+        key: 'parent',
+        label: 'Parent',
+        children: [
+          { key: 'child1', label: 'Child 1' },
+          { key: 'child2', label: 'Child 2' },
+        ],
+      },
+    ];
+    const { container } = render(<Menu items={items} activeKey="child1" />);
+    const details = container.querySelector('details');
+    expect(details).toHaveAttribute('open');
+  });
+
+  it('does not auto-open details when no child is active', () => {
+    const items: MenuItemType[] = [
+      {
+        key: 'parent',
+        label: 'Parent',
+        children: [
+          { key: 'child1', label: 'Child 1' },
+        ],
+      },
+    ];
+    const { container } = render(<Menu items={items} activeKey="other" />);
+    const details = container.querySelector('details');
+    expect(details).not.toHaveAttribute('open');
+  });
+
   it('supports renderLink for router integration', () => {
     const items: MenuItemType[] = [
       {
         key: 'link',
         label: 'Link',
-        renderLink: ({ className, children, onClick }) => (
-          <a href="/test" className={className} data-testid="custom-link" onClick={onClick}>
+        renderLink: ({ className, children, onClick, ...ariaProps }) => (
+          <a href="/test" className={className} data-testid="custom-link" onClick={onClick} {...ariaProps}>
             {children}
           </a>
         ),
       },
     ];
-    render(<Menu items={items} />);
+    render(<Menu items={items} activeKey="link" />);
     expect(screen.getByTestId('custom-link')).toBeInTheDocument();
     expect(screen.getByTestId('custom-link')).toHaveAttribute('href', '/test');
+    expect(screen.getByTestId('custom-link')).toHaveAttribute('aria-current', 'page');
   });
 
   it('calls onChange when renderLink item is clicked', () => {

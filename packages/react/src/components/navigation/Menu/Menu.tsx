@@ -21,7 +21,12 @@ export interface MenuItemType {
   /** Nested sub-items */
   children?: MenuItemType[];
   /** Custom link element rendered instead of button (for React Router / Inertia) */
-  renderLink?: (props: { className: string; children: ReactNode; onClick: () => void }) => ReactElement;
+  renderLink?: (props: {
+    className: string;
+    children: ReactNode;
+    onClick: () => void;
+    'aria-current'?: 'page';
+  }) => ReactElement;
 }
 
 export interface MenuProps extends Omit<HTMLAttributes<HTMLUListElement>, 'onChange'> {
@@ -72,6 +77,16 @@ const activeColorMap: Record<DaisyColor, string> = {
   neutral: 'bg-neutral text-neutral-content',
 };
 
+/** Recursively checks if activeKey matches any item in the subtree. */
+function hasActiveDescendant(items: MenuItemType[], activeKey: string | undefined): boolean {
+  if (!activeKey) return false;
+  return items.some(
+    (item) =>
+      item.key === activeKey ||
+      (item.children != null && hasActiveDescendant(item.children, activeKey)),
+  );
+}
+
 /**
  * Menu component with vertical/horizontal layout, active state, and keyboard navigation.
  */
@@ -87,6 +102,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
       compact = false,
       title,
       className,
+      onKeyDown: consumerOnKeyDown,
       ...rest
     },
     ref,
@@ -106,12 +122,21 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
       if (!menuRef.current) return [];
       return Array.from(
         menuRef.current.querySelectorAll<HTMLElement>(
-          ':scope > li > a:not([aria-disabled="true"]), :scope > li > button:not([disabled]), :scope > li > details[open] li > a:not([aria-disabled="true"]), :scope > li > details[open] li > button:not([disabled])',
+          [
+            ':scope > li > a:not([aria-disabled="true"])',
+            ':scope > li > button:not([disabled])',
+            ':scope > li > details > summary',
+            ':scope > li > details[open] li > a:not([aria-disabled="true"])',
+            ':scope > li > details[open] li > button:not([disabled])',
+          ].join(', '),
         ),
       );
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
+      consumerOnKeyDown?.(e);
+      if (e.defaultPrevented) return;
+
       const items = getMenuItems();
       if (items.length === 0) return;
 
@@ -149,10 +174,15 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
       );
 
       if (item.children && item.children.length > 0) {
+        const childActive = hasActiveDescendant(item.children, activeKey);
+
         return (
           <li key={item.key}>
-            <details>
-              <summary>{item.icon && <span aria-hidden="true">{item.icon}</span>}{item.label}</summary>
+            <details open={childActive || undefined}>
+              <summary className={cn(childActive && 'font-semibold')}>
+                {item.icon && <span aria-hidden="true">{item.icon}</span>}
+                {item.label}
+              </summary>
               <ul>
                 {item.children.map((child) => renderItem(child))}
               </ul>
@@ -173,6 +203,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
                 </>
               ),
               onClick: () => onChange?.(item.key),
+              'aria-current': isActive ? 'page' : undefined,
             })}
           </li>
         );
