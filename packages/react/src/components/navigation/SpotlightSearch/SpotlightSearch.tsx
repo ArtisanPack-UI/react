@@ -99,9 +99,10 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
 
     const filter = filterFn ?? defaultFilter;
 
+    const limit = Math.max(0, maxResults);
     const flatItems = useMemo(
-      () => items.filter((item) => filter(item, query)).slice(0, maxResults),
-      [items, filter, query, maxResults],
+      () => items.filter((item) => filter(item, query)).slice(0, limit),
+      [items, filter, query, limit],
     );
 
     const groups = useMemo(() => {
@@ -128,8 +129,8 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
 
       const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-          e.preventDefault();
           if (open) {
+            e.preventDefault();
             onClose();
           }
         }
