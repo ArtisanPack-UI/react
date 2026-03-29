@@ -1,13 +1,13 @@
 import { forwardRef, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
+export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   /** Illustration or icon to display */
   icon?: ReactNode;
   /** Heading text */
-  title?: string;
-  /** HTML element to render the title as (default "h3") */
-  titleAs?: ElementType;
+  heading?: string;
+  /** HTML element to render the heading as (default "h3") */
+  headingAs?: ElementType;
   /** Descriptive message */
   description?: string;
   /** Action element (e.g. a button) */
@@ -15,7 +15,7 @@ export interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ icon, title, titleAs: TitleTag = 'h3', description, action, className, children, ...rest }, ref) => {
+  ({ icon, heading, headingAs: HeadingTag = 'h3', description, action, className, children, ...rest }, ref) => {
     return (
       <div
         ref={ref}
@@ -23,7 +23,7 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
         {...rest}
       >
         {icon && <div className="text-base-content/40 text-6xl">{icon}</div>}
-        {title && <TitleTag className="text-lg font-semibold">{title}</TitleTag>}
+        {heading && <HeadingTag className="text-lg font-semibold">{heading}</HeadingTag>}
         {description && <p className="text-base-content/60 max-w-sm">{description}</p>}
         {children}
         {action && <div className="mt-2">{action}</div>}

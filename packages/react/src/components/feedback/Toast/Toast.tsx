@@ -114,22 +114,26 @@ export function ToastProvider({
     setToasts([]);
   }, []);
 
-  const toastsRef = useRef<ToastItem[]>([]);
-  toastsRef.current = toasts;
+  const evictedIdsRef = useRef<string[]>([]);
 
   const show = useCallback(
     (options: Omit<ToastItem, 'id'>): string => {
       const id = `toast-${++counterRef.current}`;
       const duration = options.duration ?? defaultDuration;
 
-      const current = toastsRef.current;
-      const next = [...current, { ...options, id }];
-      const evictCount = next.length - max;
-      const evictedIds = evictCount > 0 ? next.slice(0, evictCount).map((t) => t.id) : [];
-      const nextToasts = evictCount > 0 ? next.slice(evictCount) : next;
+      evictedIdsRef.current = [];
 
-      setToasts(nextToasts);
-      evictedIds.forEach((evictedId) => clearTimer(evictedId));
+      setToasts((prev) => {
+        const next = [...prev, { ...options, id }];
+        if (next.length > max) {
+          const evictCount = next.length - max;
+          evictedIdsRef.current = next.slice(0, evictCount).map((t) => t.id);
+          return next.slice(evictCount);
+        }
+        return next;
+      });
+
+      evictedIdsRef.current.forEach((evictedId) => clearTimer(evictedId));
 
       if (duration > 0) {
         const timer = setTimeout(() => dismiss(id), duration);

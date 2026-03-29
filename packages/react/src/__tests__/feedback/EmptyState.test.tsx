@@ -4,8 +4,8 @@ import { describe, it, expect } from 'vitest';
 import { EmptyState } from '../../components/feedback/EmptyState/EmptyState';
 
 describe('EmptyState', () => {
-  it('renders title', () => {
-    render(<EmptyState title="No items found" />);
+  it('renders heading', () => {
+    render(<EmptyState heading="No items found" />);
     expect(screen.getByText('No items found')).toBeInTheDocument();
   });
 
@@ -33,7 +33,7 @@ describe('EmptyState', () => {
     render(
       <EmptyState
         icon={<span data-testid="icon">📭</span>}
-        title="No results"
+        heading="No results"
         description="Nothing here yet"
         action={<button>Create</button>}
       />,
@@ -51,7 +51,7 @@ describe('EmptyState', () => {
 
   it('forwards ref', () => {
     const ref = React.createRef<HTMLDivElement>();
-    render(<EmptyState ref={ref} title="Empty" />);
+    render(<EmptyState ref={ref} heading="Empty" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 });

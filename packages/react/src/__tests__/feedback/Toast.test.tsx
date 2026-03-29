@@ -105,6 +105,29 @@ describe('Toast', () => {
     expect(screen.queryByText('Saved!')).not.toBeInTheDocument();
   });
 
+  it('uses 5000ms as default auto-dismiss duration', () => {
+    render(
+      <ToastProvider>
+        <TestConsumer />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByText('Success'));
+    expect(screen.getByText('Saved!')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(4999);
+    });
+
+    expect(screen.getByText('Saved!')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.queryByText('Saved!')).not.toBeInTheDocument();
+  });
+
   it('does not auto-dismiss when duration is 0', () => {
     render(
       <ToastProvider>
