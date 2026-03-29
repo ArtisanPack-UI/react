@@ -59,7 +59,9 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
     };
 
     const icon = iconMap[colorScheme];
-    const ariaLabel = nextMode ? `Switch to ${modeNameMap[nextMode]}` : modeNameMap[colorScheme];
+    const ariaLabel = nextMode && nextMode !== colorScheme
+      ? `Switch to ${modeNameMap[nextMode]}`
+      : `${modeNameMap[colorScheme]} (current)`;
 
     return (
       <button

@@ -101,9 +101,9 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
           isOpen && 'tooltip-open',
           className,
         )}
+        {...rest}
         data-tip={tip}
         id={id}
-        {...rest}
       >
         {child}
         <span id={tipId} role="tooltip" className="sr-only" aria-hidden={!isOpen}>

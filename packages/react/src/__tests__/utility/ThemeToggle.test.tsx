@@ -98,4 +98,16 @@ describe('ThemeToggle', () => {
     // On dark, next is system
     expect(screen.getByLabelText('Switch to system theme')).toBeInTheDocument();
   });
+
+  it('shows non-actionable label for single-mode list', () => {
+    renderWithTheme(<ThemeToggle modes={['dark']} />, 'dark');
+    const button = screen.getByRole('button');
+
+    // Next mode is same as current — should not say "Switch to"
+    expect(button).toHaveAttribute('aria-label', 'dark mode (current)');
+
+    // Clicking should not change the label
+    fireEvent.click(button);
+    expect(button).toHaveAttribute('aria-label', 'dark mode (current)');
+  });
 });
