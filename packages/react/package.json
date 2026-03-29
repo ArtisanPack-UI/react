@@ -30,6 +30,14 @@
       "import": "./dist/data.mjs",
       "types": "./dist/data.d.ts"
     },
+    "./chart": {
+      "import": "./dist/chart.mjs",
+      "types": "./dist/chart.d.ts"
+    },
+    "./feedback": {
+      "import": "./dist/feedback.mjs",
+      "types": "./dist/feedback.d.ts"
+    },
     "./utility": {
       "import": "./dist/utility.mjs",
       "types": "./dist/utility.d.ts"
@@ -47,18 +55,29 @@
     "@artisanpack-ui/tokens": "*"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.0",
-    "@testing-library/react": "^16.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tsup": "^8.3.0",
-    "typescript": "^5.7.0",
-    "vitest": "^2.1.0",
-    "@vitejs/plugin-react": "^4.3.0"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "apexcharts": "~3.45.2",
+    "jsdom": "^29.0.1",
+    "react": "^19.2.4",
+    "react-apexcharts": "1.5.0",
+    "react-dom": "^19.2.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "peerDependencies": {
+    "apexcharts": "^3.41.0",
     "react": "^18.0.0 || ^19.0.0",
+    "react-apexcharts": "^1.5.0",
     "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "apexcharts": { "optional": true },
+    "react-apexcharts": { "optional": true }
   },
   "license": "MIT"
 }
