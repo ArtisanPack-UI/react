@@ -1,4 +1,4 @@
-import { createElement, forwardRef, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type ElementType, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {

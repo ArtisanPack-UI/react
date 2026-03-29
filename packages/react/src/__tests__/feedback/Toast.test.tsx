@@ -56,16 +56,36 @@ describe('Toast', () => {
     );
 
     fireEvent.click(screen.getByText('Success'));
-    expect(screen.getByText('Saved!').closest('[role="alert"]')).toHaveClass('alert-success');
+    expect(screen.getByText('Saved!').closest('.alert')).toHaveClass('alert-success');
 
     fireEvent.click(screen.getByText('Error'));
-    expect(screen.getByText('Failed!').closest('[role="alert"]')).toHaveClass('alert-error');
+    expect(screen.getByText('Failed!').closest('.alert')).toHaveClass('alert-error');
 
     fireEvent.click(screen.getByText('Warning'));
-    expect(screen.getByText('Careful!').closest('[role="alert"]')).toHaveClass('alert-warning');
+    expect(screen.getByText('Careful!').closest('.alert')).toHaveClass('alert-warning');
 
     fireEvent.click(screen.getByText('Info'));
-    expect(screen.getByText('FYI!').closest('[role="alert"]')).toHaveClass('alert-info');
+    expect(screen.getByText('FYI!').closest('.alert')).toHaveClass('alert-info');
+  });
+
+  it('uses role="alert" for warning/error and role="status" for info/success', () => {
+    render(
+      <ToastProvider>
+        <TestConsumer />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByText('Error'));
+    expect(screen.getByText('Failed!').closest('.alert')).toHaveAttribute('role', 'alert');
+
+    fireEvent.click(screen.getByText('Warning'));
+    expect(screen.getByText('Careful!').closest('.alert')).toHaveAttribute('role', 'alert');
+
+    fireEvent.click(screen.getByText('Success'));
+    expect(screen.getByText('Saved!').closest('.alert')).toHaveAttribute('role', 'status');
+
+    fireEvent.click(screen.getByText('Info'));
+    expect(screen.getByText('FYI!').closest('.alert')).toHaveAttribute('role', 'status');
   });
 
   it('auto-dismisses after default duration', () => {
@@ -149,7 +169,7 @@ describe('Toast', () => {
     expect(screen.getByText('Careful!')).toBeInTheDocument();
   });
 
-  it('renders toast container with aria-live', () => {
+  it('renders toast container with aria-live and accessible name', () => {
     render(
       <ToastProvider>
         <TestConsumer />
@@ -157,7 +177,9 @@ describe('Toast', () => {
     );
 
     fireEvent.click(screen.getByText('Success'));
-    expect(screen.getByRole('log')).toHaveAttribute('aria-live', 'polite');
+    const container = screen.getByRole('log');
+    expect(container).toHaveAttribute('aria-live', 'polite');
+    expect(container).toHaveAttribute('aria-label', 'Notifications');
   });
 
   it('does not render toast container when empty', () => {

@@ -29,6 +29,14 @@ describe('Skeleton', () => {
     expect(el.style.height).toBe('48px');
   });
 
+  it('applies circle variant with width only', () => {
+    const { container } = render(<Skeleton circle width="64px" />);
+    const el = container.firstChild as HTMLElement;
+    expect(el).toHaveClass('rounded-full');
+    expect(el.style.width).toBe('64px');
+    expect(el.style.height).toBe('64px');
+  });
+
   it('applies custom className', () => {
     const { container } = render(<Skeleton className="custom" />);
     expect(container.firstChild).toHaveClass('custom');

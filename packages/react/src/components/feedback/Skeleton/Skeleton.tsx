@@ -18,8 +18,8 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
         aria-hidden="true"
         className={cn('skeleton', circle && 'rounded-full', className)}
         style={{
-          width: width ?? (circle ? height : undefined),
-          height,
+          width: circle ? (width ?? height) : width,
+          height: circle ? (height ?? width) : height,
           ...style,
         }}
         {...rest}

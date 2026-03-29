@@ -114,22 +114,21 @@ export function ToastProvider({
     setToasts([]);
   }, []);
 
+  const toastsRef = useRef<ToastItem[]>([]);
+  toastsRef.current = toasts;
+
   const show = useCallback(
     (options: Omit<ToastItem, 'id'>): string => {
       const id = `toast-${++counterRef.current}`;
       const duration = options.duration ?? defaultDuration;
-      const evictedIds: string[] = [];
 
-      setToasts((prev) => {
-        const next = [...prev, { ...options, id }];
-        if (next.length > max) {
-          const evicted = next.slice(0, next.length - max);
-          evictedIds.push(...evicted.map((t) => t.id));
-          return next.slice(next.length - max);
-        }
-        return next;
-      });
+      const current = toastsRef.current;
+      const next = [...current, { ...options, id }];
+      const evictCount = next.length - max;
+      const evictedIds = evictCount > 0 ? next.slice(0, evictCount).map((t) => t.id) : [];
+      const nextToasts = evictCount > 0 ? next.slice(evictCount) : next;
 
+      setToasts(nextToasts);
       evictedIds.forEach((evictedId) => clearTimer(evictedId));
 
       if (duration > 0) {
@@ -180,7 +179,7 @@ export function ToastProvider({
     <ToastContext.Provider value={api}>
       {children}
       {toasts.length > 0 && (
-        <div className={cn('toast z-50', ...position)} aria-live="polite" role="log">
+        <div className={cn('toast z-50', ...position)} aria-live="polite" aria-label="Notifications" role="log">
           {toasts.map((toast) => (
             <ToastMessage key={toast.id} toast={toast} onDismiss={dismiss} />
           ))}
@@ -208,10 +207,12 @@ interface ToastMessageProps extends HTMLAttributes<HTMLDivElement> {
 
 export const ToastMessage = forwardRef<HTMLDivElement, ToastMessageProps>(
   ({ toast, onDismiss, className, ...rest }, ref) => {
+    const isUrgent = toast.color === 'error' || toast.color === 'warning';
+
     return (
       <div
         ref={ref}
-        role="alert"
+        role={isUrgent ? 'alert' : 'status'}
         className={cn('alert', toast.color && toastColorMap[toast.color], className)}
         {...rest}
       >
