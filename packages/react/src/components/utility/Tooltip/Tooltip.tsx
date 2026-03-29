@@ -48,43 +48,40 @@ const positionMap: Record<TooltipPosition, string> = {
  * Uses DaisyUI's tooltip component with proper ARIA attributes.
  */
 export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
-  ({ tip, position = 'top', color, open, className, children, ...rest }, ref) => {
-    const tooltipId = useId();
+  ({ tip, position = 'top', color, open, id, className, children, ...rest }, ref) => {
+    const generatedId = useId();
+    const tipId = `${id ?? generatedId}-tip`;
     const [visible, setVisible] = useState(false);
 
     const isOpen = open ?? visible;
 
+    const childProps = isValidElement(children)
+      ? (children as ReactElement<Record<string, unknown>>).props
+      : null;
+
+    const mergeDescribedBy = (existing: unknown): string | undefined => {
+      if (!isOpen) {
+        return existing ? String(existing) : undefined;
+      }
+      return existing ? `${existing} ${tipId}` : tipId;
+    };
+
+    const wrapHandler = <E,>(show: boolean, originalKey: string) => {
+      return (e: E) => {
+        setVisible(show);
+        if (childProps && typeof childProps[originalKey] === 'function') {
+          (childProps[originalKey] as (e: E) => void)(e);
+        }
+      };
+    };
+
     const child = isValidElement(children)
       ? cloneElement(children as ReactElement<Record<string, unknown>>, {
-          'aria-describedby': isOpen ? tooltipId : undefined,
-          onMouseEnter: (e: React.MouseEvent) => {
-            setVisible(true);
-            const childProps = (children as ReactElement<Record<string, unknown>>).props;
-            if (typeof childProps.onMouseEnter === 'function') {
-              (childProps.onMouseEnter as (e: React.MouseEvent) => void)(e);
-            }
-          },
-          onMouseLeave: (e: React.MouseEvent) => {
-            setVisible(false);
-            const childProps = (children as ReactElement<Record<string, unknown>>).props;
-            if (typeof childProps.onMouseLeave === 'function') {
-              (childProps.onMouseLeave as (e: React.MouseEvent) => void)(e);
-            }
-          },
-          onFocus: (e: React.FocusEvent) => {
-            setVisible(true);
-            const childProps = (children as ReactElement<Record<string, unknown>>).props;
-            if (typeof childProps.onFocus === 'function') {
-              (childProps.onFocus as (e: React.FocusEvent) => void)(e);
-            }
-          },
-          onBlur: (e: React.FocusEvent) => {
-            setVisible(false);
-            const childProps = (children as ReactElement<Record<string, unknown>>).props;
-            if (typeof childProps.onBlur === 'function') {
-              (childProps.onBlur as (e: React.FocusEvent) => void)(e);
-            }
-          },
+          'aria-describedby': mergeDescribedBy(childProps?.['aria-describedby']),
+          onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
+          onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
+          onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
+          onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
         })
       : children;
 
@@ -99,11 +96,13 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
           className,
         )}
         data-tip={tip}
-        role="tooltip"
-        id={tooltipId}
+        id={id}
         {...rest}
       >
         {child}
+        <span id={tipId} role="tooltip" className="sr-only" aria-hidden={!isOpen}>
+          {tip}
+        </span>
       </div>
     );
   },

@@ -6,7 +6,10 @@ export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
   source: string;
   /** Custom render function — receives the raw source and should return an HTML string.
    *  When omitted a minimal built-in parser handles headings, bold, italic, code,
-   *  links, unordered lists, ordered lists, blockquotes, horizontal rules, and paragraphs. */
+   *  links, unordered lists, ordered lists, blockquotes, horizontal rules, and paragraphs.
+   *
+   *  **Security:** The returned string is injected via `dangerouslySetInnerHTML`.
+   *  It must be produced by a trusted source or explicitly sanitized to prevent XSS. */
   renderMarkdown?: (source: string) => string;
 }
 
@@ -26,13 +29,13 @@ function defaultRenderMarkdown(source: string): string {
 
   const decodeEntities = (str: string): string =>
     str
-      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCharCode(parseInt(hex, 16)))
-      .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)))
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
+      .replace(/&#39;/g, "'")
+      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)));
 
   const isSafeUrl = (url: string): boolean => {
     const trimmed = url.trim().toLowerCase();

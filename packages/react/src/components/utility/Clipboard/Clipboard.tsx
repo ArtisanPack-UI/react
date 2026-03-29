@@ -69,6 +69,9 @@ export const Clipboard = forwardRef<HTMLButtonElement, ClipboardProps>(
 
     const handleCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
       userOnClick?.(e);
+      if (e.defaultPrevented) {
+        return;
+      }
       try {
         await navigator.clipboard.writeText(text);
         setCopied(true);

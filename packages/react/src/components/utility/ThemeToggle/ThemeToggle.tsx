@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type MouseEvent } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 import { useTheme, type ColorScheme } from '../../../hooks/use-theme';
@@ -13,7 +13,7 @@ export interface ThemeToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonEl
 const sizeMap: Record<Size, string> = {
   xs: 'btn-xs',
   sm: 'btn-sm',
-  md: '',
+  md: 'btn-md',
   lg: 'btn-lg',
 };
 
@@ -46,9 +46,9 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
   ({ size = 'md', modes = ['light', 'dark', 'system'], onClick: onClickProp, className, ...rest }, ref) => {
     const { colorScheme, setColorScheme } = useTheme();
 
-    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
       onClickProp?.(e);
-      if (modes.length === 0) {
+      if (e.defaultPrevented || modes.length === 0) {
         return;
       }
       const currentIndex = modes.indexOf(colorScheme);

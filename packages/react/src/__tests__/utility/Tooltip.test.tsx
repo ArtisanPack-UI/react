@@ -13,89 +13,92 @@ describe('Tooltip', () => {
     expect(screen.getByText('Hover me')).toBeInTheDocument();
   });
 
-  it('has role="tooltip"', () => {
+  it('has role="tooltip" on the accessible text element', () => {
     render(
       <Tooltip tip="Help text">
         <button>Hover me</button>
       </Tooltip>,
     );
+    // Tooltip text is hidden until triggered
+    fireEvent.mouseEnter(screen.getByText('Hover me'));
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Help text');
   });
 
-  it('sets data-tip attribute', () => {
-    render(
+  it('sets data-tip attribute on the wrapper', () => {
+    const { container } = render(
       <Tooltip tip="Help text">
         <button>Hover me</button>
       </Tooltip>,
     );
-    expect(screen.getByRole('tooltip')).toHaveAttribute('data-tip', 'Help text');
+    expect(container.querySelector('.tooltip')).toHaveAttribute('data-tip', 'Help text');
   });
 
   it('applies position class', () => {
     const positions = ['top', 'bottom', 'left', 'right'] as const;
     positions.forEach((position) => {
-      const { unmount } = render(
+      const { container, unmount } = render(
         <Tooltip tip="Help" position={position}>
           <button>Trigger</button>
         </Tooltip>,
       );
-      expect(screen.getByRole('tooltip')).toHaveClass(`tooltip-${position}`);
+      expect(container.querySelector('.tooltip')).toHaveClass(`tooltip-${position}`);
       unmount();
     });
   });
 
   it('applies color class', () => {
-    render(
+    const { container } = render(
       <Tooltip tip="Info" color="primary">
         <button>Trigger</button>
       </Tooltip>,
     );
-    expect(screen.getByRole('tooltip')).toHaveClass('tooltip-primary');
+    expect(container.querySelector('.tooltip')).toHaveClass('tooltip-primary');
   });
 
   it('applies tooltip-open class when open prop is true', () => {
-    render(
+    const { container } = render(
       <Tooltip tip="Always visible" open>
         <button>Trigger</button>
       </Tooltip>,
     );
-    expect(screen.getByRole('tooltip')).toHaveClass('tooltip-open');
+    expect(container.querySelector('.tooltip')).toHaveClass('tooltip-open');
   });
 
   it('toggles tooltip-open class on hover', () => {
-    render(
+    const { container } = render(
       <Tooltip tip="Help text">
         <button>Hover me</button>
       </Tooltip>,
     );
-    const tooltip = screen.getByRole('tooltip');
+    const wrapper = container.querySelector('.tooltip')!;
     const trigger = screen.getByText('Hover me');
 
-    expect(tooltip).not.toHaveClass('tooltip-open');
+    expect(wrapper).not.toHaveClass('tooltip-open');
 
     fireEvent.mouseEnter(trigger);
-    expect(tooltip).toHaveClass('tooltip-open');
+    expect(wrapper).toHaveClass('tooltip-open');
 
     fireEvent.mouseLeave(trigger);
-    expect(tooltip).not.toHaveClass('tooltip-open');
+    expect(wrapper).not.toHaveClass('tooltip-open');
   });
 
   it('toggles tooltip-open class on focus', () => {
-    render(
+    const { container } = render(
       <Tooltip tip="Help text">
         <button>Focus me</button>
       </Tooltip>,
     );
-    const tooltip = screen.getByRole('tooltip');
+    const wrapper = container.querySelector('.tooltip')!;
     const trigger = screen.getByText('Focus me');
 
-    expect(tooltip).not.toHaveClass('tooltip-open');
+    expect(wrapper).not.toHaveClass('tooltip-open');
 
     fireEvent.focus(trigger);
-    expect(tooltip).toHaveClass('tooltip-open');
+    expect(wrapper).toHaveClass('tooltip-open');
 
     fireEvent.blur(trigger);
-    expect(tooltip).not.toHaveClass('tooltip-open');
+    expect(wrapper).not.toHaveClass('tooltip-open');
   });
 
   it('sets aria-describedby on child when hovered', () => {
@@ -151,6 +154,45 @@ describe('Tooltip', () => {
     expect(trigger).not.toHaveAttribute('aria-describedby');
   });
 
+  it('merges with existing aria-describedby on child', () => {
+    render(
+      <Tooltip tip="Extra info">
+        <button aria-describedby="existing-id">Trigger</button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByText('Trigger');
+
+    fireEvent.mouseEnter(trigger);
+    const describedBy = trigger.getAttribute('aria-describedby')!;
+    expect(describedBy).toContain('existing-id');
+    expect(describedBy.split(' ')).toHaveLength(2);
+  });
+
+  it('preserves existing aria-describedby when tooltip is hidden', () => {
+    render(
+      <Tooltip tip="Extra info">
+        <button aria-describedby="existing-id">Trigger</button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByText('Trigger');
+    expect(trigger).toHaveAttribute('aria-describedby', 'existing-id');
+  });
+
+  it('aria-describedby references an element containing the tip text', () => {
+    const { container } = render(
+      <Tooltip tip="Accessible tip">
+        <button>Trigger</button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByText('Trigger');
+
+    fireEvent.mouseEnter(trigger);
+    const describedById = trigger.getAttribute('aria-describedby')!;
+    const tooltipEl = container.querySelector(`#${CSS.escape(describedById)}`);
+    expect(tooltipEl).toBeInTheDocument();
+    expect(tooltipEl).toHaveTextContent('Accessible tip');
+  });
+
   it('calls existing event handlers on the child', () => {
     const onMouseEnter = vi.fn();
     render(
@@ -163,12 +205,12 @@ describe('Tooltip', () => {
   });
 
   it('applies custom className', () => {
-    render(
+    const { container } = render(
       <Tooltip tip="Help" className="custom">
         <button>Trigger</button>
       </Tooltip>,
     );
-    expect(screen.getByRole('tooltip')).toHaveClass('custom');
+    expect(container.querySelector('.tooltip')).toHaveClass('custom');
   });
 
   it('forwards ref', () => {
@@ -179,5 +221,18 @@ describe('Tooltip', () => {
       </Tooltip>,
     );
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('uses custom id when provided', () => {
+    const { container } = render(
+      <Tooltip tip="Help" id="custom-tooltip">
+        <button>Trigger</button>
+      </Tooltip>,
+    );
+    expect(container.querySelector('.tooltip')).toHaveAttribute('id', 'custom-tooltip');
+
+    const trigger = screen.getByText('Trigger');
+    fireEvent.mouseEnter(trigger);
+    expect(trigger.getAttribute('aria-describedby')).toBe('custom-tooltip-tip');
   });
 });
