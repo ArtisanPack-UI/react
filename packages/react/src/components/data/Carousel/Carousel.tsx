@@ -59,13 +59,24 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [total],
     );
 
-    const next = useCallback(() => goTo(current + 1), [current, goTo]);
-    const prev = useCallback(() => goTo(current - 1), [current, goTo]);
+    useEffect(() => {
+      if (total > 0) {
+        setCurrent((c) => Math.min(c, total - 1));
+      }
+    }, [total]);
+
+    const safeIndex = total > 0 ? Math.max(0, Math.min(current, total - 1)) : 0;
+
+    const next = useCallback(() => goTo(safeIndex + 1), [safeIndex, goTo]);
+    const prev = useCallback(() => goTo(safeIndex - 1), [safeIndex, goTo]);
 
     useEffect(() => {
       if (!autoplay || total <= 1) return;
 
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const prefersReduced =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReduced) return;
 
       autoplayRef.current = setInterval(next, interval);
@@ -82,6 +93,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         tag === 'TEXTAREA' ||
         tag === 'SELECT' ||
         tag === 'BUTTON' ||
+        tag === 'A' ||
         target.isContentEditable
       );
     };
@@ -124,7 +136,6 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     if (total === 0) return null;
 
-    const safeIndex = Math.max(0, Math.min(current, total - 1));
     const slide = slides[safeIndex];
 
     return (
@@ -147,7 +158,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           aria-label={`Slide ${safeIndex + 1} of ${total}`}
         >
           {renderSlide ? (
-            renderSlide(slide, current)
+            renderSlide(slide, safeIndex)
           ) : slide.content !== undefined ? (
             slide.content
           ) : (

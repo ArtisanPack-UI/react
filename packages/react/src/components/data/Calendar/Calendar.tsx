@@ -326,14 +326,11 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                 </button>
                 {dayEvents.length > 0 && (
                   <div className="flex gap-0.5 mt-0.5">
-                    {dayEvents.slice(0, 3).map((event, ei) => (
+                    {dayEvents.slice(0, 3).map((event) => (
                       <button
-                        key={ei}
+                        key={event.id}
                         type="button"
-                        className={cn(
-                          'w-1.5 h-1.5 rounded-full cursor-pointer',
-                          event.color ? eventDotMap[event.color] : eventDotMap.primary,
-                        )}
+                        className="relative flex items-center justify-center w-4 h-4 cursor-pointer"
                         aria-label={event.title}
                         onClick={(e) => handleEventDotInteraction(event, e)}
                         onKeyDown={(e) => {
@@ -342,7 +339,15 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                             handleEventDotInteraction(event, e);
                           }
                         }}
-                      />
+                      >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full',
+                            event.color ? eventDotMap[event.color] : eventDotMap.primary,
+                          )}
+                          aria-hidden="true"
+                        />
+                      </button>
                     ))}
                     {dayEvents.length > 3 && (
                       <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>

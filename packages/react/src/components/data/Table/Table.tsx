@@ -115,22 +115,25 @@ function TableInner<T extends Record<string, unknown>>(
 
   const toggleSelectAll = () => {
     if (!onSelectionChange) return;
+    const base = new Set(selectedKeys ?? []);
     if (allSelected) {
-      onSelectionChange(new Set());
+      for (const row of rows) {
+        base.delete(getNestedValue(row, selectableKey) as string | number);
+      }
     } else {
-      const all = new Set(
-        rows.map((row) => getNestedValue(row, selectableKey) as string | number),
-      );
-      onSelectionChange(all);
+      for (const row of rows) {
+        base.add(getNestedValue(row, selectableKey) as string | number);
+      }
     }
+    onSelectionChange(base);
   };
 
   const toggleSelect = (key: string | number) => {
-    if (!onSelectionChange || !selectedKeys) return;
-    const next = new Set(selectedKeys);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    onSelectionChange(next);
+    if (!onSelectionChange) return;
+    const base = new Set(selectedKeys ?? []);
+    if (base.has(key)) base.delete(key);
+    else base.add(key);
+    onSelectionChange(base);
   };
 
   const hasActions = !!renderActions;
@@ -168,11 +171,7 @@ function TableInner<T extends Record<string, unknown>>(
               {headers.map((header) => (
                 <th
                   key={header.key}
-                  className={cn(
-                    header.sortable && 'cursor-pointer select-none hover:bg-base-200',
-                    header.className,
-                  )}
-                  onClick={header.sortable ? () => handleSort(header.key) : undefined}
+                  className={header.className}
                   aria-sort={
                     sortBy?.key === header.key
                       ? sortBy.direction === 'asc'
@@ -181,14 +180,22 @@ function TableInner<T extends Record<string, unknown>>(
                       : undefined
                   }
                 >
-                  <span className="flex items-center gap-1">
-                    {header.label}
-                    {header.sortable && sortBy?.key === header.key && (
-                      <span aria-hidden="true">
-                        {sortBy.direction === 'asc' ? '\u25B2' : '\u25BC'}
-                      </span>
-                    )}
-                  </span>
+                  {header.sortable ? (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 w-full cursor-pointer select-none hover:bg-base-200 px-1 -mx-1 rounded"
+                      onClick={() => handleSort(header.key)}
+                    >
+                      {header.label}
+                      {sortBy?.key === header.key && (
+                        <span aria-hidden="true">
+                          {sortBy.direction === 'asc' ? '\u25B2' : '\u25BC'}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    header.label
+                  )}
                 </th>
               ))}
               {hasActions && <th className="text-right">Actions</th>}

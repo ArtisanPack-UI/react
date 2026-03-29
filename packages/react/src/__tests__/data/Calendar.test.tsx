@@ -144,6 +144,10 @@ describe('Calendar', () => {
     const dot = screen.getByLabelText('Meeting');
     fireEvent.keyDown(dot, { key: 'Enter' });
     expect(onEventClick).toHaveBeenCalledWith(events[0]);
+
+    onEventClick.mockClear();
+    fireEvent.keyDown(dot, { key: ' ' });
+    expect(onEventClick).toHaveBeenCalledWith(events[0]);
   });
 
   it('forwards ref', () => {
