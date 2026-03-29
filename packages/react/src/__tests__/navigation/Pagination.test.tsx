@@ -110,6 +110,13 @@ describe('Pagination', () => {
     expect(screen.getByLabelText('Pagination')).toBeInTheDocument();
   });
 
+  it('renders nothing when totalPages is 0', () => {
+    render(<Pagination currentPage={1} totalPages={0} />);
+    expect(screen.queryByLabelText('Page 1')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Previous page')).toBeDisabled();
+    expect(screen.getByLabelText('Next page')).toBeDisabled();
+  });
+
   it('forwards ref', () => {
     const ref = vi.fn();
     render(<Pagination ref={ref} currentPage={1} totalPages={3} />);

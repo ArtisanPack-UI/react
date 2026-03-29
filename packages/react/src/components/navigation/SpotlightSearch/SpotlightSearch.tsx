@@ -186,17 +186,23 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
     );
 
     const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-      const items = getListItems();
-      if (items.length === 0) return;
+      const listElements = getListItems();
+      if (listElements.length === 0) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const next = activeIndex < items.length - 1 ? activeIndex + 1 : 0;
+        const next = activeIndex < listElements.length - 1 ? activeIndex + 1 : 0;
         focusItem(next);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const next = activeIndex > 0 ? activeIndex - 1 : items.length - 1;
+        const next = activeIndex > 0 ? activeIndex - 1 : listElements.length - 1;
         focusItem(next);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        focusItem(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        focusItem(flatItems.length - 1);
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (activeIndex >= 0 && activeIndex < flatItems.length) {
@@ -329,6 +335,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
                             id={`spotlight-item-${autoId}-${globalIndex}`}
                             role="option"
                             aria-selected={isActive}
+                            onMouseEnter={() => focusItem(globalIndex)}
                           >
                             {item.renderLink({
                               className: optionClass,

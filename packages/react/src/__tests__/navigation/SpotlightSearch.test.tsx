@@ -197,6 +197,36 @@ describe('SpotlightSearch', () => {
     expect(onSelect).toHaveBeenCalledWith(sampleItems[0]);
   });
 
+  it('navigates to first item with Home key', () => {
+    render(
+      <SpotlightSearch
+        open={true}
+        onClose={vi.fn()}
+        items={sampleItems}
+      />,
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Home' });
+    const options = screen.getAllByRole('option');
+    expect(options[0]).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('navigates to last item with End key', () => {
+    render(
+      <SpotlightSearch
+        open={true}
+        onClose={vi.fn()}
+        items={sampleItems}
+      />,
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, { key: 'End' });
+    const options = screen.getAllByRole('option');
+    expect(options[options.length - 1]).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('renders custom placeholder', () => {
     render(
       <SpotlightSearch

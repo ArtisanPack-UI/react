@@ -40,7 +40,8 @@ function getPageRange(
   total: number,
   siblings: number,
 ): (number | 'ellipsis')[] {
-  if (total <= 1) return [1];
+  if (total <= 0) return [];
+  if (total === 1) return [1];
 
   const pages: (number | 'ellipsis')[] = [];
   const rangeStart = Math.max(2, current - siblings);
