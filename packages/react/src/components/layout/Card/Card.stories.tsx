@@ -2,6 +2,15 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Card } from './Card';
 import { Button } from '../../form/Button/Button';
 
+function svgPlaceholder(width: number, height: number, text: string, fill = '#6366f1') {
+  return (
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${fill}"/><text x="${width / 2}" y="${height / 2 + 8}" text-anchor="middle" fill="#fff" font-size="${Math.min(width, height) * 0.12}" font-family="sans-serif">${text}</text></svg>`,
+    )
+  );
+}
+
 const meta: Meta<typeof Card> = {
   title: 'Layout/Card',
   component: Card,
@@ -33,12 +42,7 @@ export const WithFigure: Story = {
     children: <p>A card with a figure on top.</p>,
     figure: (
       <img
-        src={
-          'data:image/svg+xml,' +
-          encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="#6366f1"/><text x="200" y="108" text-anchor="middle" fill="#fff" font-size="24" font-family="sans-serif">400 × 200</text></svg>',
-          )
-        }
+        src={svgPlaceholder(400, 200, '400 × 200')}
         alt="Placeholder"
         style={{ width: '100%', height: 200, objectFit: 'cover' }}
       />
@@ -90,12 +94,7 @@ export const HorizontalFigure: Story = {
     figurePosition: 'left',
     figure: (
       <img
-        src={
-          'data:image/svg+xml,' +
-          encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#8b5cf6"/><text x="100" y="108" text-anchor="middle" fill="#fff" font-size="20" font-family="sans-serif">200 × 200</text></svg>',
-          )
-        }
+        src={svgPlaceholder(200, 200, '200 × 200', '#8b5cf6')}
         alt="Placeholder"
         style={{ width: 200, height: 200, objectFit: 'cover' }}
       />
@@ -115,7 +114,7 @@ export const WithMenu: Story = {
 export const AsLink: Story = {
   args: {
     title: 'Clickable Card',
-    link: '#',
+    link: '/products/widget-pro',
     children: <p>This entire card is a link.</p>,
   },
 };

@@ -1,6 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj, Decorator } from '@storybook/react-vite';
 import { Tooltip } from './Tooltip';
 import { Button } from '../../form/Button/Button';
+
+const centeredDecorator: Decorator = (Story) => (
+  <div className="p-16 flex justify-center">
+    <Story />
+  </div>
+);
 
 const meta: Meta<typeof Tooltip> = {
   title: 'Utility/Tooltip',
@@ -26,7 +32,7 @@ export const Default: Story = {
     tip: 'Hello, I am a tooltip!',
     children: <Button label="Hover me" color="primary" />,
   },
-  decorators: [(Story) => <div className="p-16 flex justify-center"><Story /></div>],
+  decorators: [centeredDecorator],
 };
 
 export const Positions: Story = {
@@ -63,6 +69,18 @@ export const Colors: Story = {
       <Tooltip tip="Success" color="success">
         <Button label="Success" color="success" />
       </Tooltip>
+      <Tooltip tip="Warning" color="warning">
+        <Button label="Warning" color="warning" />
+      </Tooltip>
+      <Tooltip tip="Error" color="error">
+        <Button label="Error" color="error" />
+      </Tooltip>
+      <Tooltip tip="Info" color="info">
+        <Button label="Info" color="info" />
+      </Tooltip>
+      <Tooltip tip="Neutral" color="neutral">
+        <Button label="Neutral" color="neutral" />
+      </Tooltip>
     </div>
   ),
 };
@@ -73,5 +91,5 @@ export const AlwaysOpen: Story = {
     open: true,
     children: <Button label="Pinned tooltip" color="primary" />,
   },
-  decorators: [(Story) => <div className="p-16 flex justify-center"><Story /></div>],
+  decorators: [centeredDecorator],
 };

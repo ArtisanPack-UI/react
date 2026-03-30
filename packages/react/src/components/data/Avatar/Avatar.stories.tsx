@@ -85,6 +85,7 @@ export const Colors: Story = {
       <Avatar placeholder="W" color="warning" />
       <Avatar placeholder="E" color="error" />
       <Avatar placeholder="I" color="info" />
+      <Avatar placeholder="N" color="neutral" />
     </div>
   ),
 };

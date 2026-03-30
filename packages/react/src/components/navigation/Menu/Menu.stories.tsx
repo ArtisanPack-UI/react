@@ -53,9 +53,9 @@ export const WithTitle: Story = {
 export const WithIcons: Story = {
   args: {
     items: [
-      { key: 'home', label: 'Home', icon: <span>🏠</span> },
-      { key: 'settings', label: 'Settings', icon: <span>⚙️</span> },
-      { key: 'profile', label: 'Profile', icon: <span>👤</span> },
+      { key: 'home', label: 'Home', icon: <span aria-hidden="true">🏠</span> },
+      { key: 'settings', label: 'Settings', icon: <span aria-hidden="true">⚙️</span> },
+      { key: 'profile', label: 'Profile', icon: <span aria-hidden="true">👤</span> },
     ],
     activeKey: 'home',
   },

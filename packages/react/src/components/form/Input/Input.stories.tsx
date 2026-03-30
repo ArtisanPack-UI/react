@@ -38,7 +38,7 @@ export const WithIcons: Story = {
   args: {
     label: 'Search',
     placeholder: 'Search...',
-    icon: <span>🔍</span>,
+    icon: <span aria-hidden="true">🔍</span>,
   },
 };
 
