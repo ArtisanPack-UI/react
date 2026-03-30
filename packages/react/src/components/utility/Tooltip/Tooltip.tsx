@@ -59,11 +59,16 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     const isOpen = open ?? visible;
 
     // Wrap Fragments in a focusable span so we can attach event handlers and ARIA
-    const trigger: ReactElement = isValidElement(children) && children.type === Fragment
-      ? createElement('span', { tabIndex: 0 }, children.props.children as ReactNode)
-      : isValidElement(children)
-        ? (children as ReactElement<Record<string, unknown>>)
-        : createElement('span', { tabIndex: 0 }, children);
+    const trigger: ReactElement<Record<string, unknown>> =
+      isValidElement(children) && children.type === Fragment
+        ? createElement(
+            'span',
+            { tabIndex: 0 },
+            (children.props as { children?: ReactNode }).children,
+          )
+        : isValidElement(children)
+          ? (children as ReactElement<Record<string, unknown>>)
+          : createElement('span', { tabIndex: 0 }, children);
 
     const triggerProps = trigger.props as Record<string, unknown>;
 
@@ -83,13 +88,16 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       };
     };
 
-    const child = cloneElement(trigger, {
-      'aria-describedby': mergeDescribedBy(triggerProps['aria-describedby']),
-      onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
-      onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
-      onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
-      onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
-    });
+    const child = cloneElement(
+      trigger as ReactElement<Record<string, unknown>>,
+      {
+        'aria-describedby': mergeDescribedBy(triggerProps['aria-describedby']),
+        onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
+        onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
+        onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
+        onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
+      } as Record<string, unknown>,
+    );
 
     return (
       <div
