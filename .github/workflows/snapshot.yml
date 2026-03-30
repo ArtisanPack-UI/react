@@ -40,14 +40,25 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Create snapshot versions
-        run: |
-          npx changeset version --snapshot ${{ github.event.inputs.tag }}
+      - name: Validate snapshot tag
         env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if ! echo "$TAG" | grep -qE '^[A-Za-z0-9._-]+$'; then
+            echo "::error::Invalid snapshot tag: must match [A-Za-z0-9._-]+"
+            exit 1
+          fi
+
+      - name: Create snapshot versions
+        env:
+          TAG: ${{ github.event.inputs.tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx changeset version --snapshot "$TAG"
 
       - name: Publish snapshot to npm
-        run: |
-          npx changeset publish --tag ${{ github.event.inputs.tag }}
         env:
+          TAG: ${{ github.event.inputs.tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npx changeset publish --tag "$TAG"

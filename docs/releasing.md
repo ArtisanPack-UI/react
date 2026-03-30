@@ -68,7 +68,7 @@ Merging the "Version Packages" PR triggers the release job again. This time ther
 
 ### Summary of the flow
 
-```
+```text
 PR with changeset → merge to main → bot opens "Version Packages" PR → merge that → npm publish
 ```
 
@@ -173,17 +173,21 @@ This means if any package gets a minor bump, all three packages are bumped to th
 ## Troubleshooting
 
 ### "Version Packages" PR not appearing
+
 - Make sure there are `.changeset/*.md` files (not just `config.json` and `README.md`) on `main`
 - Check the release job logs in GitHub Actions
 
 ### Publish fails with auth error
+
 - Verify `NPM_TOKEN` is set in repo secrets (Settings → Secrets and variables → Actions)
 - Verify the token has publish access to the `@artisanpack-ui` scope
 
 ### Snapshot version looks wrong
+
 - Snapshot versions are generated automatically: `0.0.0-<tag>-<timestamp>`
 - The base version comes from the current package.json version
 
 ### Provenance attestation fails
+
 - Ensure the workflow has `id-token: write` permission
 - Provenance only works in GitHub Actions, not from local machines
