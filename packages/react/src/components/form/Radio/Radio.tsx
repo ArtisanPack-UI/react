@@ -1,34 +1,52 @@
+/** @module Radio */
+
 import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single option in a {@link Radio} group.
+ *
+ * Options are generic key-value objects where the keys used for `value`, `label`,
+ * and `hint` are configured via `optionValue`, `optionLabel`, and `optionHint` props
+ * on the Radio component.
+ */
 export interface RadioOption {
+  /** Allows any additional properties for flexible option data. */
   [key: string]: unknown;
+  /** When true, this option is rendered in a disabled state and cannot be selected. */
   disabled?: boolean;
 }
 
+/**
+ * Props for the {@link Radio} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size` and `type`).
+ * Renders a group of radio buttons from an `options` array with support for
+ * card layout, horizontal/vertical orientation, and DaisyUI color variants.
+ */
 export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Radio group label */
+  /** Group label rendered as a `<legend>` element for the radio group fieldset. */
   label?: string;
-  /** Helper text below the group */
+  /** Helper text displayed below the radio group. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the group. Replaces `hint` when present and adds `aria-invalid` to the fieldset. */
   error?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant applied to each radio input and card highlight. */
   color?: DaisyColor;
-  /** Key to use as option value */
+  /** Property key on each option object to use as the radio input `value`. @defaultValue `'id'` */
   optionValue?: string;
-  /** Key to use as option label */
+  /** Property key on each option object to use as the displayed label text. @defaultValue `'name'` */
   optionLabel?: string;
-  /** Key to use as option hint */
+  /** Property key on each option object to use as optional hint text below the label. @defaultValue `'hint'` */
   optionHint?: string;
-  /** Array of radio options */
+  /** Array of option objects to render as radio buttons. */
   options?: RadioOption[];
-  /** Display options horizontally */
+  /** When true, displays the options horizontally in a row. Only applies when `card` is false. @defaultValue `false` */
   inline?: boolean;
-  /** Display options as cards */
+  /** When true, renders each option inside a bordered card with checked-state highlighting. @defaultValue `false` */
   card?: boolean;
-  /** Custom card CSS classes */
+  /** Additional CSS classes applied to each card container when `card` is true. */
   cardClass?: string;
 }
 
@@ -55,7 +73,25 @@ const cardColorMap: Record<string, string> = {
 };
 
 /**
- * Radio button group with options, card variant, and color support.
+ * A radio button group that renders options from an array with support for standard
+ * and card layouts, horizontal/vertical orientation, per-option hints, and DaisyUI
+ * color variants. Uses a `<fieldset>` with `role="radiogroup"` for accessibility.
+ * The forwarded ref points to the first enabled radio input.
+ *
+ * @example
+ * ```tsx
+ * const options = [
+ *   { id: 'sm', name: 'Small' },
+ *   { id: 'md', name: 'Medium' },
+ *   { id: 'lg', name: 'Large' },
+ * ];
+ * <Radio label="Size" options={options} color="primary" />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Radio label="Plan" options={plans} card optionValue="slug" optionLabel="title" optionHint="description" />
+ * ```
  */
 export const Radio = forwardRef<HTMLInputElement, RadioProps>(
   (

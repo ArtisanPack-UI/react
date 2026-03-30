@@ -1,3 +1,11 @@
+/**
+ * @module Calendar
+ *
+ * Full month calendar component with date selection, event display, and month navigation.
+ * Supports configurable week start day, min/max date constraints, event dots with click
+ * handlers, weekend highlighting, and custom day rendering.
+ */
+
 import {
   forwardRef,
   useCallback,
@@ -10,26 +18,49 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a calendar event displayed as a colored dot on a day cell.
+ */
 export interface CalendarEvent {
+  /** Unique identifier for the event. */
   id: string | number;
+  /** Display title for the event, shown in tooltips and as aria-label. */
   title: string;
-  date: string; // ISO date string (YYYY-MM-DD)
+  /** Start date in ISO format (YYYY-MM-DD). */
+  date: string;
+  /** Optional end date in ISO format for multi-day events. */
   endDate?: string;
+  /** DaisyUI color for the event dot indicator. @defaultValue 'primary' */
   color?: DaisyColor;
+  /** Optional description text for the event. */
   description?: string;
 }
 
+/**
+ * Props for the {@link Calendar} component.
+ */
 export interface CalendarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+  /** Currently selected date (controlled). Syncs the view month when changed. */
   value?: Date;
+  /** Callback fired when a day is clicked. Receives the selected Date object. */
   onChange?: (date: Date) => void;
+  /** Array of events to display as colored dots on their respective days. */
   events?: CalendarEvent[];
+  /** Callback fired when an event dot is clicked. */
   onEventClick?: (event: CalendarEvent) => void;
+  /** Whether weeks start on Sunday instead of Monday. @defaultValue false */
   weekStartsOnSunday?: boolean;
+  /** Whether to visually highlight weekend days. @defaultValue false */
   highlightWeekends?: boolean;
+  /** Whether to highlight today's date with a ring indicator. @defaultValue true */
   highlightToday?: boolean;
+  /** Minimum selectable date. Days before this are disabled. */
   minDate?: Date;
+  /** Maximum selectable date. Days after this are disabled. */
   maxDate?: Date;
+  /** DaisyUI color for the selected day highlight. @defaultValue 'primary' */
   color?: DaisyColor;
+  /** Custom render function for day cells, receiving the date and its events. */
   renderDay?: (date: Date, events: CalendarEvent[]) => ReactNode;
 }
 
@@ -100,6 +131,27 @@ const MONTH_NAMES = [
   'December',
 ];
 
+/**
+ * Full month calendar with date selection, event display, and month navigation.
+ *
+ * Renders an accessible grid with weekday headers, day buttons, and event dot indicators.
+ * Includes previous/next month buttons and a "Today" shortcut.
+ *
+ * @example
+ * ```tsx
+ * const [date, setDate] = useState<Date>();
+ *
+ * <Calendar
+ *   value={date}
+ *   onChange={setDate}
+ *   events={[
+ *     { id: 1, title: 'Meeting', date: '2025-03-15', color: 'primary' },
+ *   ]}
+ *   highlightWeekends
+ *   color="primary"
+ * />
+ * ```
+ */
 export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
   (
     {

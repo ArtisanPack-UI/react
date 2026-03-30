@@ -1,3 +1,5 @@
+/** @module File */
+
 import {
   forwardRef,
   useCallback,
@@ -9,32 +11,50 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link File} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size`, `type`, `value`, and `defaultValue`).
+ * Supports both standard file input and drag-and-drop zone rendering modes.
+ */
 export interface FileProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'size' | 'type' | 'value' | 'defaultValue'
 > {
-  /** File input label */
+  /** Text label displayed above the file input. */
   label?: string;
-  /** Helper text below the file input */
+  /** Helper text displayed below the file input. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the input. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** Enable drag-and-drop zone */
+  /** When true, renders a drag-and-drop zone instead of the standard file input. @defaultValue `false` */
   withDragDrop?: boolean;
-  /** Text for drag-drop area */
+  /** Custom text displayed inside the drag-and-drop zone. @defaultValue `'Drop files here or click to browse'` */
   dragDropText?: string;
-  /** Additional CSS classes for drag-drop area */
+  /** Additional CSS classes applied to the drag-and-drop zone container. */
   dragDropClass?: string;
-  /** Show upload progress */
+  /** Upload progress percentage (0-100). When greater than 0, a progress bar is displayed. */
   progress?: number;
-  /** Hide upload progress bar */
+  /** When true, hides the upload progress bar even when `progress` is set. @defaultValue `false` */
   hideProgress?: boolean;
-  /** Callback with selected files */
+  /** Callback fired when files are selected, either via input change or drag-and-drop. Receives the `FileList` or `null`. */
   onFilesSelected?: (files: FileList | null) => void;
 }
 
 /**
- * File upload component with drag-and-drop support and progress display.
+ * A file upload component with two rendering modes: a standard styled file input and
+ * a drag-and-drop zone. Supports upload progress display, accessible keyboard interaction,
+ * and a unified `onFilesSelected` callback for both modes.
+ *
+ * @example
+ * ```tsx
+ * <File label="Upload Resume" accept=".pdf,.doc" onFilesSelected={handleFiles} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <File label="Images" withDragDrop multiple progress={uploadProgress} accept="image/*" />
+ * ```
  */
 export const File = forwardRef<HTMLInputElement, FileProps>(
   (

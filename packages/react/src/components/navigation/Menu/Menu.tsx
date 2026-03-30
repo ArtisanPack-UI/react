@@ -1,3 +1,11 @@
+/**
+ * @module Menu
+ *
+ * Vertical or horizontal menu component with DaisyUI styling, active state management,
+ * nested sub-menus via `<details>`, and full keyboard navigation (arrow keys, Home, End).
+ * Supports custom link renderers for React Router or Inertia integration.
+ */
+
 import {
   forwardRef,
   useRef,
@@ -9,18 +17,24 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single menu item, optionally with nested children.
+ */
 export interface MenuItemType {
-  /** Unique key for the item */
+  /** Unique key used to identify this item for active state and selection callbacks. */
   key: string;
-  /** Display label */
+  /** Display label for the menu item. Can be a string or any React node. */
   label: ReactNode;
-  /** Icon element */
+  /** Optional icon element displayed before the label. */
   icon?: ReactNode;
-  /** Disable this item */
+  /** Whether this item is disabled and non-interactive. */
   disabled?: boolean;
-  /** Nested sub-items */
+  /** Nested sub-items rendered inside a collapsible `<details>` element. */
   children?: MenuItemType[];
-  /** Custom link element rendered instead of button (for React Router / Inertia) */
+  /**
+   * Custom link renderer for integration with React Router, Inertia, or other routing libraries.
+   * When provided, replaces the default `<button>` element.
+   */
   renderLink?: (props: {
     className: string;
     children: ReactNode;
@@ -29,22 +43,25 @@ export interface MenuItemType {
   }) => ReactElement;
 }
 
+/**
+ * Props for the {@link Menu} component.
+ */
 export interface MenuProps extends Omit<HTMLAttributes<HTMLUListElement>, 'onChange'> {
-  /** Menu items to render */
+  /** Array of menu items to render. */
   items: MenuItemType[];
-  /** Currently active item key */
+  /** Key of the currently active item. Highlights the matching item and auto-opens parent sub-menus. */
   activeKey?: string;
-  /** Callback when item is selected */
+  /** Callback fired when a menu item is selected, receiving the item's key. */
   onChange?: (key: string) => void;
-  /** Horizontal layout */
+  /** Render the menu horizontally instead of vertically. */
   horizontal?: boolean;
-  /** DaisyUI color for active item */
+  /** DaisyUI color variant applied to the active item. */
   color?: DaisyColor;
-  /** Menu size */
+  /** Size variant for the menu (xs, sm, md, lg). */
   size?: Size;
-  /** Compact spacing */
+  /** Use compact spacing between items. */
   compact?: boolean;
-  /** Menu title */
+  /** Optional title displayed at the top of the menu. */
   title?: string;
 }
 
@@ -77,7 +94,13 @@ const activeColorMap: Record<DaisyColor, string> = {
   neutral: 'bg-neutral text-neutral-content',
 };
 
-/** Recursively checks if activeKey matches any item in the subtree. */
+/**
+ * Recursively checks if the given `activeKey` matches any item in the subtree.
+ *
+ * @param items - Array of menu items to search through.
+ * @param activeKey - The key to search for.
+ * @returns `true` if a matching key is found in the item tree.
+ */
 function hasActiveDescendant(items: MenuItemType[], activeKey: string | undefined): boolean {
   if (!activeKey) return false;
   return items.some(
@@ -89,6 +112,26 @@ function hasActiveDescendant(items: MenuItemType[], activeKey: string | undefine
 
 /**
  * Menu component with vertical/horizontal layout, active state, and keyboard navigation.
+ *
+ * Renders a DaisyUI-styled `<ul>` with `role="menu"`. Supports nested sub-menus,
+ * custom link renderers, and full keyboard navigation with arrow keys, Home, and End.
+ *
+ * @example
+ * ```tsx
+ * <Menu
+ *   items={[
+ *     { key: 'home', label: 'Home' },
+ *     { key: 'about', label: 'About' },
+ *     { key: 'settings', label: 'Settings', children: [
+ *       { key: 'profile', label: 'Profile' },
+ *       { key: 'account', label: 'Account' },
+ *     ]},
+ *   ]}
+ *   activeKey="home"
+ *   onChange={(key) => console.log('Selected:', key)}
+ *   color="primary"
+ * />
+ * ```
  */
 export const Menu = forwardRef<HTMLUListElement, MenuProps>(
   (

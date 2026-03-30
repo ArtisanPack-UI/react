@@ -1,3 +1,13 @@
+/**
+ * @module Accordion
+ *
+ * An accordion container that manages the open/close state of child {@link Collapse}
+ * panels. Supports single-open and multiple-open modes, controlled and uncontrolled
+ * usage, and DaisyUI's `join` visual grouping.
+ *
+ * @packageDocumentation
+ */
+
 import {
   forwardRef,
   useState,
@@ -11,7 +21,12 @@ import { cn } from '@artisanpack-ui/tokens';
 import { Collapse } from '../Collapse/Collapse';
 import type { CollapseProps } from '../Collapse/Collapse';
 
-/** Type predicate that matches Collapse or wrapped variants by displayName */
+/**
+ * Type predicate that matches Collapse elements or wrapped variants by displayName.
+ *
+ * @param child - A React element to test.
+ * @returns `true` if the element is a Collapse component.
+ */
 function isCollapseElement(
   child: ReactElement,
 ): child is ReactElement<CollapseProps, typeof Collapse> {
@@ -21,23 +36,51 @@ function isCollapseElement(
   );
 }
 
+/**
+ * Props for the {@link Accordion} component.
+ *
+ * Indices in `openIndices`, `defaultOpenIndices`, and the `onOpenChange`
+ * callback refer to the position among Collapse children only -- non-Collapse
+ * children are skipped when counting.
+ */
 export interface AccordionProps extends HTMLAttributes<HTMLDivElement> {
-  /** Allow multiple panels open at once (default: false = single open) */
+  /** Allow multiple panels to be open simultaneously. When `false` (default), opening a panel closes any other open panel. */
   multiple?: boolean;
-  /** Controlled: indices of open Collapse panels (relative to Collapse children only) */
+  /** Controlled: indices of the currently open Collapse panels (relative to Collapse children only). */
   openIndices?: number[];
-  /** Default open Collapse panel indices (relative to Collapse children only) */
+  /** Indices of panels that should be open on first render (uncontrolled mode, relative to Collapse children only). */
   defaultOpenIndices?: number[];
-  /** Callback when open panels change (indices relative to Collapse children only) */
+  /** Callback fired when the set of open panels changes. Receives an array of open Collapse indices. */
   onOpenChange?: (indices: number[]) => void;
-  /** Join items visually (DaisyUI join) */
+  /** Apply DaisyUI `join` styling to visually connect the child panels. @defaultValue `true` */
   join?: boolean;
 }
 
 /**
- * Container for Collapse items. Controls single or multiple open panels.
- * Indices in openIndices/defaultOpenIndices/onOpenChange refer to the
- * position among Collapse children only (non-Collapse children are skipped).
+ * Accordion container that manages the open/close state of child Collapse panels.
+ *
+ * Supports both controlled (`openIndices` + `onOpenChange`) and uncontrolled
+ * (`defaultOpenIndices`) usage. Non-Collapse children are rendered as-is and
+ * do not affect index counting.
+ *
+ * @example
+ * ```tsx
+ * <Accordion defaultOpenIndices={[0]}>
+ *   <Collapse title="Section 1">Content 1</Collapse>
+ *   <Collapse title="Section 2">Content 2</Collapse>
+ *   <Collapse title="Section 3">Content 3</Collapse>
+ * </Accordion>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Multiple panels open at once
+ * <Accordion multiple defaultOpenIndices={[0, 2]}>
+ *   <Collapse title="A">Alpha</Collapse>
+ *   <Collapse title="B">Beta</Collapse>
+ *   <Collapse title="C">Gamma</Collapse>
+ * </Accordion>
+ * ```
  */
 export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
   (

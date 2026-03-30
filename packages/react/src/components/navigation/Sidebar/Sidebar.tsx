@@ -1,3 +1,11 @@
+/**
+ * @module Sidebar
+ *
+ * Collapsible side navigation component built on the DaisyUI drawer pattern.
+ * Supports left/right placement, overlay or push mode, configurable width,
+ * and keyboard dismissal via the Escape key.
+ */
+
 import {
   forwardRef,
   useId,
@@ -8,7 +16,13 @@ import {
   type ReactNode,
 } from 'react';
 
-/** Stable callback ref — always calls the latest version without re-triggering effects. */
+/**
+ * Stable callback ref hook. Always calls the latest version of the provided
+ * function without re-triggering effects that depend on it.
+ *
+ * @param fn - The callback function to stabilize.
+ * @returns A stable reference that always invokes the latest `fn`.
+ */
 function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
   const fnRef = useRef(fn);
   /* eslint-disable react-hooks/refs -- standard stable-callback pattern */
@@ -18,23 +32,44 @@ function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...a
 }
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Sidebar} component.
+ */
 export interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
-  /** Whether the sidebar is open */
+  /** Whether the sidebar is currently open (controlled). */
   open: boolean;
-  /** Callback to toggle the sidebar */
+  /** Callback fired when the sidebar open state should change. */
   onOpenChange: (open: boolean) => void;
-  /** Sidebar content (the navigation) */
+  /** The navigation content rendered inside the sidebar panel. */
   sidebarContent: ReactNode;
-  /** Side to display (left or right) */
+  /** Which side of the viewport the sidebar appears on. @defaultValue 'left' */
   side?: 'left' | 'right';
-  /** Sidebar width class */
+  /** Tailwind CSS width class for the sidebar panel. @defaultValue 'w-80' */
   width?: string;
-  /** Overlay the content instead of pushing */
+  /** Whether to overlay the main content (fixed position) instead of pushing it aside. */
   overlay?: boolean;
 }
 
 /**
- * Collapsible side navigation using DaisyUI drawer pattern.
+ * Collapsible side navigation using the DaisyUI drawer pattern.
+ *
+ * Renders a drawer with a toggle checkbox, overlay backdrop, and a `<nav>` panel.
+ * Pressing Escape while focus is within the sidebar panel closes it.
+ *
+ * @example
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <Sidebar
+ *   open={open}
+ *   onOpenChange={setOpen}
+ *   sidebarContent={<ul><li>Dashboard</li><li>Settings</li></ul>}
+ *   side="left"
+ *   width="w-64"
+ * >
+ *   <main>Page content here</main>
+ * </Sidebar>
+ * ```
  */
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
   (

@@ -1,8 +1,10 @@
 /**
- * ArtisanPack UI - Shadow Tokens
+ * @module shadows
  *
- * Elevation shadows, semantic colored shadows, and glow effects.
- * Derived from the Livewire component library's design tokens.
+ * Shadow tokens: elevation shadows (light and dark mode), semantic colored shadows,
+ * and glow effects for interactive states.
+ *
+ * @packageDocumentation
  */
 
 /** Standard elevation shadow scale */

@@ -1,15 +1,42 @@
+/**
+ * @module Skeleton
+ *
+ * A placeholder loading animation used to indicate that content is being
+ * loaded. Renders a pulsing rectangle (or circle) at the specified
+ * dimensions, replacing actual content until it is ready.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Skeleton} component.
+ */
 export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
-  /** Width of the skeleton (CSS value) */
+  /** Width of the skeleton as a CSS value (e.g. `"200px"`, `"100%"`). */
   width?: string;
-  /** Height of the skeleton (CSS value) */
+  /** Height of the skeleton as a CSS value (e.g. `"1rem"`, `"40px"`). */
   height?: string;
-  /** Whether the skeleton is circular */
+  /** When `true`, renders the skeleton as a circle. Uses `width` or `height` for both dimensions. */
   circle?: boolean;
 }
 
+/**
+ * Skeleton placeholder for content that is still loading.
+ *
+ * The element is hidden from assistive technologies via `aria-hidden`.
+ *
+ * @example
+ * ```tsx
+ * // Rectangular skeleton for a text block
+ * <Skeleton width="100%" height="1rem" />
+ *
+ * // Circular skeleton for an avatar
+ * <Skeleton circle width="48px" />
+ * ```
+ */
 export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
   ({ width, height, circle = false, className, style, ...rest }, ref) => {
     return (

@@ -1,17 +1,34 @@
+/**
+ * @module Icon
+ *
+ * A lightweight SVG icon wrapper that supports DaisyUI color tokens,
+ * predefined sizes, and accessible labeling. Pass a single `path`
+ * string for simple icons or use `children` for multi-path SVGs.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type SVGAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Icon} component.
+ */
 export interface IconProps extends SVGAttributes<SVGSVGElement> {
-  /** SVG path data or child elements to render inside the <svg> */
+  /** SVG path `d` attribute for single-path icons. Mutually exclusive with `children`. */
   path?: string;
-  /** The color variant */
+  /** DaisyUI color variant applied as a text color class. */
   color?: DaisyColor;
-  /** Predefined size */
+  /** Predefined size preset. Defaults to `"md"`. */
   size?: Size;
-  /** Custom label for accessibility — if omitted the icon is decorative (aria-hidden) */
+  /**
+   * Accessible label for the icon. When provided, the SVG is given
+   * `role="img"` and `aria-label`. When omitted, the icon is treated
+   * as decorative and hidden from assistive technologies.
+   */
   label?: string;
-  /** SVG viewBox attribute (defaults to "0 0 24 24") */
+  /** SVG `viewBox` attribute. Defaults to `"0 0 24 24"`. */
   viewBox?: string;
 }
 
@@ -34,8 +51,23 @@ const sizeMap: Record<Size, string> = {
 };
 
 /**
- * SVG icon component with size and color props.
- * Accepts either a `path` prop for a single-path icon or children for complex SVGs.
+ * SVG icon component with DaisyUI color and size support.
+ *
+ * Accepts either a `path` prop for a single-path icon or `children`
+ * for complex multi-path SVGs. When no `label` is provided, the icon
+ * is marked as decorative via `aria-hidden="true"`.
+ *
+ * @example
+ * ```tsx
+ * // Single-path icon
+ * <Icon path="M12 2L2 22h20L12 2z" color="warning" size="lg" label="Warning" />
+ *
+ * // Multi-path icon via children
+ * <Icon size="md">
+ *   <path d="M12 2L2 22h20L12 2z" />
+ *   <circle cx="12" cy="16" r="1" />
+ * </Icon>
+ * ```
  */
 export const Icon = forwardRef<SVGSVGElement, IconProps>(
   (

@@ -1,3 +1,10 @@
+/**
+ * Navigation components pre-wired with Inertia's client-side router.
+ * Includes links, menus, breadcrumbs, and pagination.
+ *
+ * @packageDocumentation
+ */
+
 export { InertiaLink } from './InertiaLink';
 export type { InertiaLinkProps } from './InertiaLink';
 

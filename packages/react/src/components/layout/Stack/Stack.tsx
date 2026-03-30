@@ -1,20 +1,38 @@
+/**
+ * @module Stack
+ *
+ * A flexbox layout component for vertical or horizontal stacking with
+ * type-safe gap, alignment, and justification props. Maps to Tailwind
+ * CSS flex utilities.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/** Allowed gap size values corresponding to Tailwind's spacing scale. */
 type GapSize = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16;
+
+/** Cross-axis alignment options (maps to Tailwind `items-*`). */
 type Align = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+
+/** Main-axis justification options (maps to Tailwind `justify-*`). */
 type Justify = 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
 
+/**
+ * Props for the {@link Stack} component.
+ */
 export interface StackProps extends HTMLAttributes<HTMLDivElement> {
-  /** Stack direction */
+  /** Stack direction. @defaultValue `'vertical'` */
   direction?: 'vertical' | 'horizontal';
-  /** Gap between items */
+  /** Gap between items using Tailwind's spacing scale. @defaultValue `2` */
   gap?: GapSize;
-  /** Align items on the cross axis */
+  /** Cross-axis alignment of child items (`items-*`). */
   align?: Align;
-  /** Justify items on the main axis */
+  /** Main-axis justification of child items (`justify-*`). */
   justify?: Justify;
-  /** Allow items to wrap */
+  /** Allow child items to wrap to the next line. */
   wrap?: boolean;
 }
 
@@ -51,6 +69,26 @@ const justifyMap: Record<Justify, string> = {
 
 /**
  * Flexbox layout component for vertical or horizontal stacking.
+ *
+ * A convenience wrapper around `display: flex` with declarative props
+ * for direction, gap, alignment, justification, and wrapping.
+ *
+ * @example
+ * ```tsx
+ * <Stack gap={4}>
+ *   <div>First</div>
+ *   <div>Second</div>
+ *   <div>Third</div>
+ * </Stack>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Stack direction="horizontal" align="center" justify="between" gap={6}>
+ *   <span>Left</span>
+ *   <span>Right</span>
+ * </Stack>
+ * ```
  */
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
   (

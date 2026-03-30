@@ -2,9 +2,16 @@ import { useCallback, useMemo, type ChangeEvent } from 'react';
 import { useForm, type InertiaFormProps } from '@inertiajs/react';
 import type { UseFormSubmitOptions } from '@inertiajs/core';
 
+/** Generic form data constraint used across form utilities. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormDataRecord = Record<string, any>;
 
+/**
+ * Return type of {@link useInertiaForm}, providing the raw Inertia form instance
+ * alongside field-binding helpers for ArtisanPack UI form components.
+ *
+ * @typeParam TForm - The form data shape
+ */
 export interface InertiaFormHelpers<TForm extends FormDataRecord> {
   /** The raw Inertia form instance */
   form: InertiaFormProps<TForm>;
@@ -60,6 +67,17 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
  * Enhanced Inertia form hook that returns field-binding helpers
  * for ArtisanPack UI form components.
  *
+ * Wraps Inertia's `useForm` and adds `field()` and `checkbox()` helpers
+ * that return props ready to spread onto ArtisanPack UI input components.
+ *
+ * @typeParam TForm - The form data shape
+ *
+ * @param initialData - Initial form values, or a factory function returning them
+ * @returns Form instance and field-binding helpers
+ *
+ * @see {@link InertiaForm} for the form wrapper component
+ * @see {@link InertiaFormHelpers} for the full return type
+ *
  * @example
  * ```tsx
  * const { form, field, checkbox, post } = useInertiaForm({
@@ -79,6 +97,12 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
 export function useInertiaForm<TForm extends FormDataRecord>(
   initialData: TForm | (() => TForm),
 ): InertiaFormHelpers<TForm>;
+/**
+ * Overload that accepts a remember key for persisting form data across navigations.
+ *
+ * @param rememberKey - Key used by Inertia to remember form state in history
+ * @param initialData - Initial form values, or a factory function returning them
+ */
 export function useInertiaForm<TForm extends FormDataRecord>(
   rememberKey: string,
   initialData: TForm | (() => TForm),

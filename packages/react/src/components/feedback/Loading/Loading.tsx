@@ -1,15 +1,31 @@
+/**
+ * @module Loading
+ *
+ * Renders an animated loading indicator using DaisyUI's loading
+ * component. Supports multiple visual variants (spinner, dots, ring,
+ * ball, bars, infinity), DaisyUI color schemes, and four sizes.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Visual variant of the loading indicator animation.
+ */
 type LoadingVariant = 'spinner' | 'dots' | 'ring' | 'ball' | 'bars' | 'infinity';
 
+/**
+ * Props for the {@link Loading} component.
+ */
 export interface LoadingProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
-  /** The color variant of the spinner */
+  /** The DaisyUI color variant applied to the loading indicator. */
   color?: DaisyColor;
-  /** The size of the spinner */
+  /** The size of the loading indicator. */
   size?: Size;
-  /** The visual style of the loading indicator */
+  /** The visual animation style of the loading indicator. Defaults to `"spinner"`. */
   variant?: LoadingVariant;
 }
 
@@ -40,6 +56,21 @@ const variantMap: Record<LoadingVariant, string> = {
   infinity: 'loading-infinity',
 };
 
+/**
+ * Loading indicator component with multiple animation variants.
+ *
+ * Renders a `<span>` with `role="status"` and an `aria-label` of
+ * `"Loading"` for assistive technology support.
+ *
+ * @example
+ * ```tsx
+ * // Default spinner
+ * <Loading />
+ *
+ * // Large colored dots
+ * <Loading variant="dots" color="primary" size="lg" />
+ * ```
+ */
 export const Loading = forwardRef<HTMLSpanElement, LoadingProps>(
   ({ color, size, variant = 'spinner', className, ...rest }, ref) => {
     return (

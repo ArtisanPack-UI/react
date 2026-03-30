@@ -1,19 +1,39 @@
+/**
+ * @module Drawer
+ *
+ * A side-panel overlay built on DaisyUI's drawer component. Includes focus
+ * trapping, keyboard dismiss (Escape), overlay click-to-close, and proper
+ * ARIA dialog semantics.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, useEffect, useRef, useId, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Drawer} component.
+ */
 export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
-  /** Whether the drawer is open */
+  /** Whether the drawer panel is visible. */
   open: boolean;
-  /** Callback to close the drawer */
+  /** Callback fired when the drawer should close (overlay click, Escape key, etc.). */
   onClose: () => void;
-  /** Side panel content */
+  /** Content rendered inside the sliding side panel. */
   side: ReactNode;
-  /** Open from the right side */
+  /** Open the panel from the right (end) side instead of the left. */
   end?: boolean;
-  /** Prevent closing via overlay click or escape */
+  /** Prevent closing via overlay click or Escape key. */
   persistent?: boolean;
 }
 
+/**
+ * Returns all focusable elements within a container, filtering out hidden,
+ * inert, or negative-tabindex elements.
+ *
+ * @param container - The DOM element to search within.
+ * @returns An array of focusable HTMLElements.
+ */
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
   const candidates = Array.from(
     container.querySelectorAll<HTMLElement>(
@@ -31,6 +51,31 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
 
 /**
  * Side panel overlay with focus trapping, keyboard dismiss, and accessible labeling.
+ *
+ * When open, focus is trapped inside the side panel and restored to the
+ * previously focused element on close. The panel can be dismissed via
+ * the overlay click or the Escape key unless `persistent` is set.
+ *
+ * @example
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <Drawer
+ *   open={open}
+ *   onClose={() => setOpen(false)}
+ *   side={<nav>Sidebar navigation</nav>}
+ * >
+ *   <main>Main content</main>
+ * </Drawer>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Right-side drawer
+ * <Drawer open={open} onClose={close} side={<aside>Panel</aside>} end>
+ *   <div>Page content</div>
+ * </Drawer>
+ * ```
  */
 export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
   (

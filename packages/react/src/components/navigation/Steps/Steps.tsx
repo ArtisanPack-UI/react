@@ -1,28 +1,45 @@
+/**
+ * @module Steps
+ *
+ * Multi-step progress indicator component using DaisyUI's steps pattern.
+ * Displays a sequence of labeled steps with visual completion state,
+ * configurable colors, and vertical or horizontal orientation.
+ */
+
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single step in the progress indicator.
+ */
 export interface StepItem {
-  /** Step label */
+  /** Display label rendered next to the step indicator. */
   label: ReactNode;
-  /** Icon or content inside the step circle */
+  /** Optional icon or content rendered inside the step circle. */
   icon?: ReactNode;
-  /** DaisyUI color override for this step */
+  /** DaisyUI color override for this individual step, taking precedence over the group color. */
   color?: DaisyColor;
-  /** Optional data attribute content */
+  /** Custom content for the DaisyUI `data-content` attribute on the step circle. */
   dataContent?: string;
 }
 
+/**
+ * Props for the {@link Steps} component.
+ */
 export interface StepsProps extends HTMLAttributes<HTMLUListElement> {
-  /** Step items */
+  /** Array of step items to display. */
   steps: StepItem[];
-  /** Index of the current step (0-based). All steps up to and including this index are marked complete. */
+  /**
+   * Index of the current step (0-based). All steps up to and including this index
+   * are visually marked as complete. @defaultValue -1 (no steps complete)
+   */
   currentStep?: number;
-  /** Vertical layout */
+  /** Whether to render the steps vertically instead of horizontally. */
   vertical?: boolean;
-  /** DaisyUI color for completed steps */
+  /** DaisyUI color applied to all completed steps (can be overridden per step). */
   color?: DaisyColor;
-  /** Step size */
+  /** Size variant for the step indicators (xs, sm, md, lg). */
   size?: Size;
 }
 
@@ -46,6 +63,23 @@ const colorMap: Record<DaisyColor, string> = {
 
 /**
  * Multi-step progress indicator with DaisyUI styling.
+ *
+ * Renders a `<ul>` with `aria-label="Progress"` containing step items.
+ * The current step receives `aria-current="step"` for accessibility.
+ *
+ * @example
+ * ```tsx
+ * <Steps
+ *   steps={[
+ *     { label: 'Register' },
+ *     { label: 'Choose Plan' },
+ *     { label: 'Payment' },
+ *     { label: 'Complete' },
+ *   ]}
+ *   currentStep={1}
+ *   color="primary"
+ * />
+ * ```
  */
 export const Steps = forwardRef<HTMLUListElement, StepsProps>(
   ({ steps, currentStep = -1, vertical = false, color, size, className, ...rest }, ref) => {

@@ -1,3 +1,5 @@
+/** @module Pin */
+
 import {
   forwardRef,
   useCallback,
@@ -11,24 +13,31 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Pin} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size` and `type`).
+ * Renders a row of individual single-character inputs for PIN/OTP entry
+ * with auto-focus navigation, paste support, and completion callbacks.
+ */
 export interface PinProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Number of PIN input fields */
+  /** Number of individual PIN input fields to render. This is required. */
   length: number;
-  /** Accept only numeric input */
+  /** When true, restricts input to digits only (0-9) and sets `inputMode="numeric"`. @defaultValue `false` */
   numeric?: boolean;
-  /** Hide PIN characters */
+  /** When true, masks the input characters using `type="password"`. @defaultValue `false` */
   hide?: boolean;
-  /** Error message */
+  /** Error message displayed below the PIN inputs. Adds `aria-invalid` to each field. */
   error?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant applied to each individual PIN input field. */
   color?: DaisyColor;
-  /** Callback when all fields are filled */
+  /** Callback fired when all PIN fields are filled. Receives the complete PIN string. */
   onComplete?: (value: string) => void;
-  /** Callback when PIN becomes incomplete */
+  /** Callback fired when the PIN becomes incomplete (e.g., a character is deleted). Receives the current partial value. */
   onIncomplete?: (value: string) => void;
-  /** Current value (controlled) */
+  /** The current PIN value for controlled usage. Each character maps to one input field. */
   value?: string;
-  /** Callback when value changes */
+  /** Callback fired on every input change with the current concatenated PIN value. */
   onValueChange?: (value: string) => void;
 }
 
@@ -44,7 +53,20 @@ const colorMap: Record<string, string> = {
 };
 
 /**
- * Multi-input PIN/OTP entry with auto-focus, paste support, and completion events.
+ * A multi-field PIN/OTP entry component with auto-focus navigation between fields,
+ * clipboard paste support, arrow key navigation, and completion/incompletion callbacks.
+ * Supports both controlled and uncontrolled usage. The forwarded ref points to the
+ * first input field.
+ *
+ * @example
+ * ```tsx
+ * <Pin length={6} numeric onComplete={(pin) => verifyOTP(pin)} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Pin length={4} hide color="primary" value={pin} onValueChange={setPin} />
+ * ```
  */
 export const Pin = forwardRef<HTMLInputElement, PinProps>(
   (

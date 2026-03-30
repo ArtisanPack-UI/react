@@ -1,18 +1,35 @@
+/**
+ * @module Markdown
+ *
+ * Renders a markdown string as HTML inside a `prose`-styled container.
+ * Ships with a minimal built-in parser that handles common constructs
+ * (headings, bold, italic, inline code, links, lists, blockquotes,
+ * horizontal rules, and paragraphs). For richer rendering, supply a
+ * custom `renderMarkdown` function backed by a library such as `marked`
+ * or `remark`.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Markdown} component.
+ */
 export interface MarkdownProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   'children' | 'dangerouslySetInnerHTML'
 > {
-  /** Raw markdown source text */
+  /** Raw markdown source text to render. */
   source: string;
-  /** Custom render function — receives the raw source and should return an HTML string.
-   *  When omitted a minimal built-in parser handles headings, bold, italic, code,
-   *  links, unordered lists, ordered lists, blockquotes, horizontal rules, and paragraphs.
+  /**
+   * Custom render function that receives the raw markdown source and
+   * returns an HTML string. When omitted a minimal built-in parser is used.
    *
-   *  **Security:** The returned string is injected via `dangerouslySetInnerHTML`.
-   *  It must be produced by a trusted source or explicitly sanitized to prevent XSS. */
+   * **Security:** The returned string is injected via `dangerouslySetInnerHTML`.
+   * It must be produced by a trusted source or explicitly sanitized to prevent XSS.
+   */
   renderMarkdown?: (source: string) => string;
 }
 
@@ -141,8 +158,20 @@ function defaultRenderMarkdown(source: string): string {
 
 /**
  * Markdown renderer component.
- * Uses a minimal built-in parser by default or accepts a custom `renderMarkdown`
- * function for full-featured rendering (e.g. via `marked` or `remark`).
+ *
+ * Uses a minimal built-in parser by default or accepts a custom
+ * `renderMarkdown` function for full-featured rendering. Output is
+ * wrapped in a `<div class="prose">` for Tailwind Typography styling.
+ *
+ * @example
+ * ```tsx
+ * // Built-in parser
+ * <Markdown source="# Hello\n\nThis is **bold** and *italic*." />
+ *
+ * // Custom renderer (e.g. using `marked`)
+ * import { marked } from 'marked';
+ * <Markdown source={content} renderMarkdown={(src) => marked.parse(src)} />
+ * ```
  */
 export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
   ({ source, renderMarkdown, className, ...rest }, ref) => {

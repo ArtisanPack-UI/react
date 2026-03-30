@@ -1,3 +1,5 @@
+/** @module RichTextEditor */
+
 import {
   forwardRef,
   useCallback,
@@ -9,27 +11,40 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link RichTextEditor} component.
+ *
+ * Extends native `<div>` HTML attributes. Provides a `contentEditable` wrapper
+ * with toolbar support, controlled HTML value, and consistent form field styling.
+ */
 export interface RichTextEditorProps extends HTMLAttributes<HTMLDivElement> {
-  /** Editor label */
+  /** Text label displayed above the editor. */
   label?: string;
-  /** Helper text below the editor */
+  /** Helper text displayed below the editor. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the editor. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** The current HTML content */
+  /**
+   * The current HTML content for the editable area. Rendered via `dangerouslySetInnerHTML`.
+   *
+   * **Security warning:** Always sanitize this value (e.g., with DOMPurify) before passing
+   * user-generated content to prevent XSS attacks.
+   */
   value?: string;
-  /** Callback when content changes */
+  /** Callback fired on every input event with the current `innerHTML` of the editable area. */
   onValueChange?: (value: string) => void;
-  /** Toolbar content (custom toolbar elements) */
+  /** Custom toolbar content rendered above the editable area inside a styled toolbar bar. */
   toolbar?: ReactNode;
-  /** Minimum height for the editable area */
+  /** CSS min-height for the editable content area. @defaultValue `'200px'` */
   minHeight?: string;
-  /** Whether the field is required */
+  /** Whether the field is required. Shows a required indicator on the label. */
   required?: boolean;
 }
 
 /**
- * Rich text editing component using contentEditable.
+ * A rich text editor using `contentEditable` with an optional toolbar, controlled HTML
+ * value management, and consistent DaisyUI form field styling. Syncs external value
+ * changes without resetting the cursor position.
  *
  * For a full rich text editor experience, integrate a third-party library
  * like TipTap, Lexical, or Slate and use this component's prop interface
@@ -37,9 +52,21 @@ export interface RichTextEditorProps extends HTMLAttributes<HTMLDivElement> {
  * consistent styling.
  *
  * **Security warning:** The `value` prop is rendered via `dangerouslySetInnerHTML`.
- * You must ensure the HTML string is sanitized (e.g. with DOMPurify) or comes
- * from a trusted source before passing it to this component. Rendering unsanitized
- * user input will expose your application to XSS attacks.
+ * Always sanitize HTML (e.g., with DOMPurify) before passing user-generated content.
+ *
+ * @example
+ * ```tsx
+ * <RichTextEditor label="Description" value={html} onValueChange={setHtml} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <RichTextEditor
+ *   label="Content"
+ *   toolbar={<><button onClick={handleBold}>B</button><button onClick={handleItalic}>I</button></>}
+ *   minHeight="300px"
+ * />
+ * ```
  */
 export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
   (

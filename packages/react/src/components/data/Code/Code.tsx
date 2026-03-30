@@ -1,16 +1,50 @@
+/**
+ * @module Code
+ *
+ * Code display component using DaisyUI's mockup-code pattern. Renders a
+ * formatted code block with optional line numbers, a copy-to-clipboard button,
+ * language/label header, and scrollable max height.
+ */
+
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Code} component.
+ */
 export interface CodeProps extends HTMLAttributes<HTMLDivElement> {
+  /** The code string to display. */
   code: string;
+  /** Programming language name displayed in the header bar. */
   language?: string;
+  /** Custom label displayed in the header bar (takes precedence over `language`). */
   label?: string;
+  /** Hint or description text displayed below the code block. */
   hint?: string;
+  /** Whether to show line numbers. @defaultValue false */
   showLineNumbers?: boolean;
+  /** Whether to show the copy-to-clipboard button. @defaultValue true */
   copyable?: boolean;
+  /** Maximum height CSS value for the code block (enables scrolling). */
   maxHeight?: string;
 }
 
+/**
+ * Code display component with copy-to-clipboard, line numbers, and a language header.
+ *
+ * Uses DaisyUI's `mockup-code` class for styling. The copy button uses the
+ * Clipboard API and shows a checkmark icon for 2 seconds after copying.
+ *
+ * @example
+ * ```tsx
+ * <Code
+ *   code={`const greeting = "Hello, world!";`}
+ *   language="typescript"
+ *   showLineNumbers
+ *   copyable
+ * />
+ * ```
+ */
 export const Code = forwardRef<HTMLDivElement, CodeProps>(
   (
     {

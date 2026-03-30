@@ -1,3 +1,13 @@
+/**
+ * @module Popover
+ *
+ * Positioned floating content triggered by hover or click. Built on DaisyUI's
+ * dropdown positioning with added keyboard support, focus management,
+ * configurable show/hide delays, and controlled/uncontrolled state.
+ *
+ * @packageDocumentation
+ */
+
 import {
   forwardRef,
   useState,
@@ -18,33 +28,36 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Popover} component.
+ */
 export interface PopoverProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   'onMouseEnter' | 'onMouseLeave' | 'onFocus' | 'onBlur'
 > {
-  /** Trigger element */
+  /** The element that activates the popover. Can be any ReactNode; non-focusable elements are automatically wrapped. */
   trigger: ReactNode;
-  /** Trigger mode */
+  /** How the popover is activated. @defaultValue `'hover'` */
   triggerMode?: 'hover' | 'click';
-  /** Popover position */
+  /** Placement of the floating content relative to the trigger. @defaultValue `'bottom'` */
   position?: 'top' | 'bottom' | 'left' | 'right';
-  /** Delay in ms before showing (hover mode) */
+  /** Delay in milliseconds before showing the popover (hover mode only). @defaultValue `0` */
   showDelay?: number;
-  /** Delay in ms before hiding (hover mode) */
+  /** Delay in milliseconds before hiding the popover (hover mode only). @defaultValue `300` */
   hideDelay?: number;
-  /** Whether the popover is open (controlled) */
+  /** Whether the popover is open (controlled mode). */
   open?: boolean;
-  /** Callback when open state changes */
+  /** Callback fired when the open state changes. */
   onOpenChange?: (open: boolean) => void;
-  /** Prevent closing via outside click or escape */
+  /** Prevent closing via outside click or Escape key. */
   persistent?: boolean;
-  /** External mouse enter handler */
+  /** External mouse-enter handler forwarded to the container. */
   onMouseEnter?: (e: ReactMouseEvent<HTMLDivElement>) => void;
-  /** External mouse leave handler */
+  /** External mouse-leave handler forwarded to the container. */
   onMouseLeave?: (e: ReactMouseEvent<HTMLDivElement>) => void;
-  /** External focus handler */
+  /** External focus handler forwarded to the container. */
   onFocus?: (e: FocusEvent<HTMLDivElement>) => void;
-  /** External blur handler */
+  /** External blur handler forwarded to the container. */
   onBlur?: (e: FocusEvent<HTMLDivElement>) => void;
 }
 
@@ -59,6 +72,27 @@ const positionMap: Record<Position, string> = {
 
 /**
  * Positioned floating content triggered by hover or click.
+ *
+ * Wraps a trigger element and a floating content panel. In hover mode,
+ * the popover also responds to focus/blur for keyboard accessibility.
+ * In click mode, the trigger receives `aria-expanded` and `aria-controls`
+ * attributes. The popover dismisses on Escape and outside clicks unless
+ * `persistent` is set.
+ *
+ * @example
+ * ```tsx
+ * <Popover trigger={<Button>Hover me</Button>}>
+ *   <p>Popover content</p>
+ * </Popover>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Click-triggered popover on the right
+ * <Popover trigger={<Button>Click</Button>} triggerMode="click" position="right">
+ *   <p>Side panel content</p>
+ * </Popover>
+ * ```
  */
 export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
   (

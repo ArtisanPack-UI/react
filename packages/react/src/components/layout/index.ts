@@ -1,4 +1,14 @@
-// Layout components
+/**
+ * @module layout
+ *
+ * Layout components for structuring page content, managing visibility,
+ * and organizing UI elements. Includes containers (Card, Grid, Stack),
+ * interactive panels (Accordion, Collapse, Drawer, Modal, Tabs), floating
+ * surfaces (Dropdown, Popover), and visual separators (Divider).
+ *
+ * @packageDocumentation
+ */
+
 export { Accordion } from './Accordion/Accordion';
 export type { AccordionProps } from './Accordion/Accordion';
 

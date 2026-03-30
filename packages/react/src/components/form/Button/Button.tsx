@@ -1,33 +1,41 @@
+/** @module Button */
+
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Button} component.
+ *
+ * Extends native `<button>` HTML attributes. When the `link` prop is provided,
+ * the component renders as an `<a>` element styled as a button.
+ */
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Button text label */
+  /** Text label displayed inside the button. Hidden on small screens when `responsive` is true. */
   label?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant applied to the button. Accepts standard theme colors plus `'ghost'` and `'outline'`. */
   color?: DaisyColor | 'ghost' | 'outline';
-  /** Button size */
+  /** Controls the button size using DaisyUI size modifiers. */
   size?: Size;
-  /** Icon element to display before the label */
+  /** Icon element rendered before the label text. Wrapped with `aria-hidden="true"`. */
   icon?: ReactNode;
-  /** Icon element to display after the label */
+  /** Icon element rendered after the label text and children. Wrapped with `aria-hidden="true"`. */
   iconRight?: ReactNode;
-  /** Show loading spinner */
+  /** When true, disables the button and shows a loading spinner in place of the left icon. */
   loading?: boolean;
-  /** Render as a link */
+  /** When provided, renders the button as an `<a>` element pointing to this URL. */
   link?: string;
-  /** Open link in new tab */
+  /** When true and `link` is set, opens the link in a new tab with `rel="noopener noreferrer"`. */
   external?: boolean;
-  /** Display badge text */
+  /** Text content for an inline badge rendered after the button label. */
   badge?: string;
-  /** Custom badge CSS classes */
+  /** Additional CSS classes applied to the badge element. */
   badgeClasses?: string;
-  /** Hide label on small screens */
+  /** When true, hides the label on small screens and only shows it on `sm` breakpoint and above. */
   responsive?: boolean;
-  /** Tooltip text */
+  /** Tooltip text displayed on hover. Wraps the button in a DaisyUI tooltip container. */
   tooltip?: string;
-  /** Tooltip position */
+  /** Position of the tooltip relative to the button. @defaultValue `'top'` */
   tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
 }
 
@@ -59,7 +67,25 @@ const tooltipPositionMap: Record<string, string> = {
 };
 
 /**
- * Button component with color variants, sizes, icons, and loading state.
+ * A versatile button component with DaisyUI color variants, size options, icon support,
+ * loading state, tooltip, badge, and optional link rendering.
+ *
+ * Renders a `<button>` by default or an `<a>` element when the `link` prop is provided.
+ * Supports `forwardRef` for direct access to the underlying `<button>` element.
+ *
+ * @example
+ * ```tsx
+ * <Button color="primary" icon={<PlusIcon />} loading={false}>
+ *   Add Item
+ * </Button>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Button link="/dashboard" external tooltip="Go to dashboard">
+ *   Dashboard
+ * </Button>
+ * ```
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (

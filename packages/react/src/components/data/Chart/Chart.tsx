@@ -1,21 +1,45 @@
+/**
+ * @module Chart
+ *
+ * Charting component powered by ApexCharts (via react-apexcharts). Supports bar, line,
+ * area, donut, pie, radialBar, radar, and polarArea chart types. Accepts data as either
+ * simple data points or multi-series arrays, with DaisyUI color integration and
+ * deep-mergeable ApexCharts options.
+ */
+
 import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 import type { ApexOptions } from 'apexcharts';
 
+/**
+ * A single data point for simple chart types (pie, donut, single-series bar/line).
+ */
 export interface ChartDataPoint {
+  /** Label for this data point (used as x-axis category or pie slice label). */
   label: string;
+  /** Numeric value for this data point. */
   value: number;
+  /** DaisyUI color name or CSS color string for this data point. */
   color?: DaisyColor | string;
 }
 
+/**
+ * A named data series for multi-series chart types (bar, line, area).
+ */
 export interface ChartSeries {
+  /** Display name for the series (shown in legend and tooltips). */
   name: string;
+  /** Array of numeric values for this series. */
   data: number[];
+  /** DaisyUI color name or CSS color string for this series. */
   color?: DaisyColor | string;
 }
 
+/**
+ * Supported chart type identifiers for the {@link Chart} component.
+ */
 export type ChartType =
   | 'bar'
   | 'line'
@@ -26,17 +50,31 @@ export type ChartType =
   | 'radar'
   | 'polarArea';
 
+/**
+ * Props for the {@link Chart} component.
+ */
 export interface ChartProps extends HTMLAttributes<HTMLDivElement> {
+  /** The type of chart to render. */
   type: ChartType;
+  /** Category labels for the x-axis or pie/donut slices. Falls back to `data[].label` if not provided. */
   labels?: string[];
+  /** Multi-series data for bar, line, and area charts. */
   series?: ChartSeries[];
+  /** Simple data points for single-series or pie/donut charts. */
   data?: ChartDataPoint[];
+  /** Chart height in pixels or CSS string. @defaultValue 350 */
   height?: number | string;
+  /** Chart width in pixels or CSS string. */
   width?: number | string;
+  /** Default DaisyUI color applied to all series/data points without an explicit color. */
   color?: DaisyColor;
+  /** ApexCharts options object, deep-merged with the component's defaults. */
   options?: ApexOptions;
+  /** Whether to show the chart legend. @defaultValue true */
   showLegend?: boolean;
+  /** Whether to enable chart animations. @defaultValue true */
   animated?: boolean;
+  /** Optional title displayed above the chart. */
   title?: string;
 }
 
@@ -68,6 +106,36 @@ function resolveColor(color: string | undefined, index: number): string {
   return color;
 }
 
+/**
+ * Chart component powered by ApexCharts with DaisyUI color integration.
+ *
+ * Supports both simple data points and multi-series data. Automatically resolves
+ * DaisyUI color names to hex values and deep-merges user-provided ApexCharts options
+ * with sensible defaults.
+ *
+ * @example
+ * ```tsx
+ * // Pie chart with simple data
+ * <Chart
+ *   type="pie"
+ *   data={[
+ *     { label: 'Desktop', value: 60, color: 'primary' },
+ *     { label: 'Mobile', value: 30, color: 'secondary' },
+ *     { label: 'Tablet', value: 10, color: 'accent' },
+ *   ]}
+ * />
+ *
+ * // Multi-series line chart
+ * <Chart
+ *   type="line"
+ *   labels={['Jan', 'Feb', 'Mar']}
+ *   series={[
+ *     { name: 'Sales', data: [10, 20, 30], color: 'primary' },
+ *     { name: 'Returns', data: [5, 3, 8], color: 'error' },
+ *   ]}
+ * />
+ * ```
+ */
 export const Chart = forwardRef<HTMLDivElement, ChartProps>(
   (
     {
@@ -186,6 +254,14 @@ export const Chart = forwardRef<HTMLDivElement, ChartProps>(
 
 Chart.displayName = 'Chart';
 
+/**
+ * Recursively deep-merges two plain objects. Arrays and non-object values
+ * in `source` overwrite those in `target`.
+ *
+ * @param target - The base object to merge into.
+ * @param source - The object whose values take precedence.
+ * @returns A new merged object.
+ */
 function deepMerge<T extends Record<string, unknown>>(
   target: T,
   source: Record<string, unknown>,

@@ -1,8 +1,11 @@
 /**
- * ArtisanPack UI - Color Resolver
+ * @module color-resolver
  *
  * Runtime utility to resolve DaisyUI theme colors from CSS custom properties.
- * Works in browser environments where getComputedStyle is available.
+ * Works in browser environments where `getComputedStyle` is available.
+ * Falls back to default hex values during SSR or when CSS variables are not set.
+ *
+ * @packageDocumentation
  */
 
 import { type DaisyColor, colors, daisyColorMap } from './colors';

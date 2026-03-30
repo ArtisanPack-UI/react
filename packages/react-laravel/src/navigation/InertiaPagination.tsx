@@ -3,6 +3,13 @@ import { router } from '@inertiajs/react';
 import { Pagination, type PaginationProps } from '@artisanpack-ui/react';
 import type { LaravelPaginator } from '../types';
 
+/**
+ * Props for the {@link InertiaPagination} component.
+ * Extends the base `PaginationProps` but replaces page state management
+ * with a Laravel paginator object and Inertia router integration.
+ *
+ * @see {@link LaravelPaginator}
+ */
 export interface InertiaPaginationProps extends Omit<
   PaginationProps,
   'currentPage' | 'totalPages' | 'onChange'
@@ -26,6 +33,24 @@ export interface InertiaPaginationProps extends Omit<
 /**
  * Pagination pre-wired with Inertia's router for client-side page navigation.
  * Accepts a Laravel paginator response and handles URL-based page changes.
+ *
+ * When a page is selected, the component uses `router.get()` to navigate while
+ * preserving scroll position and component state by default.
+ *
+ * @see {@link InertiaPaginationProps} for available props
+ *
+ * @example
+ * ```tsx
+ * // Basic usage with Laravel paginator
+ * <InertiaPagination paginator={users} />
+ *
+ * // With preserved query params and partial reloads
+ * <InertiaPagination
+ *   paginator={users}
+ *   preserveParams={{ search: 'john', sort: 'name' }}
+ *   only={['users']}
+ * />
+ * ```
  */
 export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>(
   (

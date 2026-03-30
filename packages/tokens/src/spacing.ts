@@ -1,8 +1,10 @@
 /**
- * ArtisanPack UI - Spacing Tokens
+ * @module spacing
  *
- * Consistent spacing scale based on 0.25rem (4px) increments.
- * Derived from the Livewire component library's design tokens.
+ * Consistent spacing scale based on 0.25rem (4px) increments,
+ * plus named aliases for common use cases.
+ *
+ * @packageDocumentation
  */
 
 /** Full spacing scale with numeric keys mapped to rem values */

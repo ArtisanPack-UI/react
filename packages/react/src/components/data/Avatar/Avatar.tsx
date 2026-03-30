@@ -1,18 +1,40 @@
+/**
+ * @module Avatar
+ *
+ * Avatar component for displaying user profile images, initials, or icons.
+ * Supports online/offline status indicators, colored rings, and an optional
+ * title/subtitle layout for user info display.
+ */
+
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Avatar} component.
+ */
 export interface AvatarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  /** URL of the avatar image. When omitted, falls back to placeholder initials or icon. */
   image?: string;
+  /** Alt text for the avatar image. */
   alt?: string;
+  /** Text used to generate initials (first letter of each word, up to 2 characters). */
   placeholder?: string;
+  /** DaisyUI color for the placeholder background and ring. @defaultValue 'neutral' */
   color?: DaisyColor;
+  /** Size of the avatar circle. @defaultValue 'md' */
   size?: Size;
+  /** Custom icon element displayed when no image is set. Takes precedence over placeholder initials. */
   icon?: ReactNode;
+  /** Title text displayed beside the avatar (enables the info layout). */
   title?: ReactNode;
+  /** Subtitle text displayed below the title in the info layout. */
   subtitle?: ReactNode;
+  /** Whether to show a colored ring border around the avatar. */
   ring?: boolean;
+  /** Show an online status indicator dot. */
   online?: boolean;
+  /** Show an offline status indicator dot. */
   offline?: boolean;
 }
 
@@ -60,6 +82,21 @@ function getInitials(text: string): string {
     .join('');
 }
 
+/**
+ * Avatar component for displaying user profile images, initials, or icons.
+ *
+ * When `title` or `subtitle` is provided, renders a horizontal layout with the
+ * avatar and user info side-by-side. Otherwise renders the avatar alone.
+ *
+ * @example
+ * ```tsx
+ * // Image avatar with ring
+ * <Avatar image="/user.jpg" alt="Jane Doe" ring color="primary" size="lg" />
+ *
+ * // Placeholder initials with title
+ * <Avatar placeholder="Jane Doe" title="Jane Doe" subtitle="Admin" color="success" />
+ * ```
+ */
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
   (
     {

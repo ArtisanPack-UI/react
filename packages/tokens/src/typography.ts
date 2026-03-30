@@ -1,8 +1,10 @@
 /**
- * ArtisanPack UI - Typography Tokens
+ * @module typography
  *
- * Font families, sizes, weights, line heights, and letter spacing.
- * Derived from the Livewire component library's design tokens.
+ * Typography tokens: font families, sizes, weights, line heights, letter spacing,
+ * and pre-built heading/body presets.
+ *
+ * @packageDocumentation
  */
 
 /** Font family stacks */

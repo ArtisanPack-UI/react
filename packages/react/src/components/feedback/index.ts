@@ -1,3 +1,13 @@
+/**
+ * @module feedback
+ *
+ * Feedback components for communicating status, progress, and errors
+ * to users. Includes alerts, loading indicators, skeletons, empty
+ * states, error displays, and a toast notification system.
+ *
+ * @packageDocumentation
+ */
+
 export { Alert } from './Alert/Alert';
 export type { AlertProps } from './Alert/Alert';
 

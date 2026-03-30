@@ -1,3 +1,11 @@
+/**
+ * @module data
+ *
+ * Data display component exports for the ArtisanPack UI React library.
+ * Includes avatars, badges, calendars, carousels, charts, code blocks,
+ * diffs, progress bars, sparklines, stats, tables, and timelines.
+ */
+
 export { Avatar } from './Avatar/Avatar';
 export type { AvatarProps } from './Avatar/Avatar';
 

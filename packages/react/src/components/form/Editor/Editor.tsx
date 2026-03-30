@@ -1,21 +1,39 @@
+/** @module Editor */
+
 import { forwardRef, useId, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Editor} component.
+ *
+ * Extends native `<textarea>` HTML attributes. Provides a monospace-styled
+ * textarea suitable for code or structured text editing.
+ */
 export interface EditorProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  /** Editor label */
+  /** Text label displayed above the editor. */
   label?: string;
-  /** Helper text below the editor */
+  /** Helper text displayed below the editor. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the editor. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
 }
 
 /**
- * Code/text editor component.
+ * A code/text editor component that renders a monospace-styled textarea with label,
+ * hint, and error support. Defaults to 12 rows of height.
  *
- * Renders a styled textarea by default. For a full code editor experience,
- * integrate a third-party library like CodeMirror or Monaco Editor and use
- * this component's prop interface as a base.
+ * For a full code editor experience, integrate a third-party library like
+ * CodeMirror or Monaco Editor and use this component's prop interface as a base.
+ *
+ * @example
+ * ```tsx
+ * <Editor label="HTML Source" placeholder="Enter HTML..." rows={20} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Editor label="Config" value={config} onChange={handleChange} error={errors.config} />
+ * ```
  */
 export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
   ({ label, hint, error, className, id: providedId, required, ...rest }, ref) => {

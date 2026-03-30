@@ -1,8 +1,11 @@
 /**
- * ArtisanPack UI - Glass Helpers
+ * @module glass
  *
  * Glassmorphism token values, preset configurations, and style helper functions.
- * Derived from the Livewire component library's glass token system.
+ * Provides four presets (base, frosted, liquid, transparent) with automatic
+ * dark mode support and optional DaisyUI color tinting.
+ *
+ * @packageDocumentation
  */
 
 import type { CSSProperties } from './types';

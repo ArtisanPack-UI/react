@@ -1,3 +1,12 @@
+/**
+ * @module Table
+ *
+ * Feature-rich data table component built on DaisyUI's table classes.
+ * Supports sortable columns, row selection with checkboxes, expandable row details,
+ * custom cell renderers, action columns, zebra striping, and empty state messaging.
+ * Generic over the row data type for type-safe header definitions and render functions.
+ */
+
 import {
   forwardRef,
   Fragment,
@@ -9,43 +18,84 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Defines a column header for the {@link Table} component.
+ *
+ * @typeParam T - The row data type.
+ */
 export interface TableHeader<T = Record<string, unknown>> {
+  /** Dot-notation key path to the row value for this column (e.g., 'user.name'). */
   key: string;
+  /** Display label for the column header. */
   label: ReactNode;
+  /** Whether this column is sortable. Requires `onSort` on the Table. */
   sortable?: boolean;
+  /** Additional CSS class for the header and body cells. */
   className?: string;
+  /** Custom render function for cells in this column. Receives the cell value, full row, and row index. */
   render?: (value: unknown, row: T, index: number) => ReactNode;
 }
 
+/**
+ * Configuration for the current sort state of the table.
+ */
 export interface TableSortConfig {
+  /** Column key currently being sorted. */
   key: string;
+  /** Sort direction. */
   direction: 'asc' | 'desc';
 }
 
+/**
+ * Props for the {@link Table} component.
+ *
+ * @typeParam T - The row data type. Must extend `Record<string, unknown>`.
+ */
 export interface TableProps<T = Record<string, unknown>> extends Omit<
   HTMLAttributes<HTMLDivElement>,
   'children'
 > {
+  /** Column header definitions. */
   headers: TableHeader<T>[];
+  /** Array of row data objects. */
   rows: T[];
+  /** Dot-notation key path used to derive unique keys for each row. @defaultValue 'id' */
   keyBy?: string;
+  /** Whether to apply zebra striping to alternating rows. */
   striped?: boolean;
+  /** Whether rows highlight on hover. @defaultValue true */
   hoverable?: boolean;
+  /** Whether to use compact row padding. */
   compact?: boolean;
+  /** DaisyUI size variant for the table (xs, sm, md, lg). */
   size?: Size;
+  /** Whether to hide the table header row. */
   noHeaders?: boolean;
+  /** Current sort configuration (controlled). */
   sortBy?: TableSortConfig;
+  /** Callback fired when a sortable column header is clicked. */
   onSort?: (sort: TableSortConfig) => void;
+  /** Whether to show row selection checkboxes. */
   selectable?: boolean;
+  /** Set of currently selected row keys (controlled). */
   selectedKeys?: Set<string | number>;
+  /** Callback fired when the selection changes. */
   onSelectionChange?: (keys: Set<string | number>) => void;
+  /** Dot-notation key path used to derive the selectable key for each row. @defaultValue 'id' */
   selectableKey?: string;
+  /** Whether rows can be expanded to show additional detail. */
   expandable?: boolean;
+  /** Dot-notation key path used to derive the expandable key for each row. @defaultValue 'id' */
   expandableKey?: string;
+  /** Render function for expanded row content. */
   renderExpansion?: (row: T, index: number) => ReactNode;
+  /** Render function for the actions column on each row. */
   renderActions?: (row: T, index: number) => ReactNode;
+  /** Content displayed when the rows array is empty. @defaultValue 'No data available.' */
   emptyText?: ReactNode;
+  /** Content rendered in the table footer. */
   footer?: ReactNode;
+  /** Additional CSS class for the outer scroll container. */
   containerClassName?: string;
 }
 
@@ -56,6 +106,13 @@ const sizeMap: Record<Size, string> = {
   lg: 'table-lg',
 };
 
+/**
+ * Retrieves a nested value from an object using a dot-notation path.
+ *
+ * @param obj - The source object to traverse.
+ * @param path - Dot-notation key path (e.g., 'user.address.city').
+ * @returns The resolved value, or `undefined` if the path does not exist.
+ */
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce<unknown>((acc, key) => {
     if (acc && typeof acc === 'object' && key in (acc as Record<string, unknown>)) {
@@ -73,6 +130,11 @@ function safeStringify(value: unknown): string {
   }
 }
 
+/**
+ * Internal Table implementation with generic type parameter.
+ *
+ * @typeParam T - The row data type.
+ */
 function TableInner<T extends Record<string, unknown>>(
   {
     headers,
@@ -320,6 +382,30 @@ function TableInner<T extends Record<string, unknown>>(
   );
 }
 
+/**
+ * Feature-rich data table with sorting, selection, expandable rows, and custom rendering.
+ *
+ * Built on DaisyUI's `table` classes with full accessibility support including
+ * `aria-sort` on sortable headers, `aria-expanded` on expandable row toggles,
+ * and `aria-label` on selection checkboxes.
+ *
+ * @example
+ * ```tsx
+ * const headers = [
+ *   { key: 'name', label: 'Name', sortable: true },
+ *   { key: 'email', label: 'Email' },
+ * ];
+ *
+ * <Table
+ *   headers={headers}
+ *   rows={users}
+ *   keyBy="id"
+ *   striped
+ *   sortBy={{ key: 'name', direction: 'asc' }}
+ *   onSort={setSortConfig}
+ * />
+ * ```
+ */
 export const Table = forwardRef(TableInner) as <T extends Record<string, unknown>>(
   props: TableProps<T> & { ref?: React.Ref<HTMLDivElement> },
 ) => React.ReactElement | null;
