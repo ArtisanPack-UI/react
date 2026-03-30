@@ -9,23 +9,50 @@
     ".": {
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./navigation": {
+      "import": "./dist/navigation.mjs",
+      "types": "./dist/navigation.d.ts"
+    },
+    "./form": {
+      "import": "./dist/form.mjs",
+      "types": "./dist/form.d.ts"
+    },
+    "./layout": {
+      "import": "./dist/layout.mjs",
+      "types": "./dist/layout.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth.mjs",
+      "types": "./dist/auth.d.ts"
+    },
+    "./feedback": {
+      "import": "./dist/feedback.mjs",
+      "types": "./dist/feedback.d.ts"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@artisanpack-ui/react": "*"
   },
   "devDependencies": {
     "@inertiajs/react": "^3.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^26.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "peerDependencies": {
     "@inertiajs/react": "^2.0.0 || ^3.0.0",
