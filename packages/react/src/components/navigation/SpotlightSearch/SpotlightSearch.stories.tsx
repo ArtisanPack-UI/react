@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { SpotlightSearch } from './SpotlightSearch';
@@ -32,63 +32,49 @@ const groupedItems: SpotlightItem[] = [
   { key: 'docs', label: 'Documentation', group: 'Resources' },
 ];
 
+function SpotlightStoryWrapper({
+  buttonLabel = 'Open Spotlight',
+  ...props
+}: Omit<ComponentProps<typeof SpotlightSearch>, 'open' | 'onClose'> & { buttonLabel?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button className="btn btn-primary" onClick={() => setOpen(true)}>
+        {buttonLabel}
+      </button>
+      <SpotlightSearch open={open} onClose={() => setOpen(false)} {...props} />
+    </>
+  );
+}
+
 export const Default: Story = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <>
-        <button className="btn btn-primary" onClick={() => setOpen(true)}>
-          Open Spotlight
-        </button>
-        <SpotlightSearch
-          open={open}
-          onClose={() => setOpen(false)}
-          items={sampleItems}
-          onSelect={onSelectAction}
-          shortcut={false}
-        />
-      </>
-    );
-  },
+  render: () => (
+    <SpotlightStoryWrapper
+      items={sampleItems}
+      onSelect={onSelectAction}
+      shortcut={false}
+    />
+  ),
 };
 
 export const WithGroups: Story = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <>
-        <button className="btn btn-primary" onClick={() => setOpen(true)}>
-          Open Spotlight with Groups
-        </button>
-        <SpotlightSearch
-          open={open}
-          onClose={() => setOpen(false)}
-          items={groupedItems}
-          onSelect={onSelectAction}
-          shortcut={false}
-        />
-      </>
-    );
-  },
+  render: () => (
+    <SpotlightStoryWrapper
+      buttonLabel="Open Spotlight with Groups"
+      items={groupedItems}
+      onSelect={onSelectAction}
+      shortcut={false}
+    />
+  ),
 };
 
 export const CustomPlaceholder: Story = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <>
-        <button className="btn btn-primary" onClick={() => setOpen(true)}>
-          Open Spotlight
-        </button>
-        <SpotlightSearch
-          open={open}
-          onClose={() => setOpen(false)}
-          items={sampleItems}
-          onSelect={onSelectAction}
-          placeholder="Type a command or search..."
-          shortcut={false}
-        />
-      </>
-    );
-  },
+  render: () => (
+    <SpotlightStoryWrapper
+      items={sampleItems}
+      onSelect={onSelectAction}
+      placeholder="Type a command or search..."
+      shortcut={false}
+    />
+  ),
 };

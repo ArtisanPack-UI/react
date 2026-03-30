@@ -26,11 +26,16 @@ export default meta;
 type Story = StoryObj<typeof ThemeToggle>;
 
 export const Default: Story = {
-  render: () => (
-    <ThemeProvider>
-      <ThemeToggle />
-    </ThemeProvider>
-  ),
+  args: {
+    size: 'md',
+  },
+  decorators: [
+    (Story) => (
+      <ThemeProvider>
+        <Story />
+      </ThemeProvider>
+    ),
+  ],
 };
 
 export const Sizes: Story = {

@@ -98,21 +98,27 @@ jobs:
     needs: [build]
     if: github.event_name == 'pull_request'
 
+    env:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
         with:
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
         with:
           node-version: 20
           cache: npm
 
       - name: Install dependencies
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
         run: npm ci
 
       - name: Run Chromatic
-        if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
         uses: chromaui/action@v11
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}

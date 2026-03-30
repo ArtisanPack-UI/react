@@ -1,14 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Stack } from './Stack';
 
-const toneMap: Record<string, string> = {
+const toneMap = {
   primary: 'bg-primary text-primary-content',
   secondary: 'bg-secondary text-secondary-content',
   accent: 'bg-accent text-accent-content',
   neutral: 'bg-neutral text-neutral-content',
-};
+} as const;
 
-function Box({ tone = 'primary', label }: { tone?: string; label: string }) {
+type Tone = keyof typeof toneMap;
+
+function Box({ tone = 'primary', label }: { tone?: Tone; label: string }) {
   return (
     <div
       className={`rounded-lg p-4 text-center font-semibold min-w-20 ${toneMap[tone] ?? toneMap.primary}`}
