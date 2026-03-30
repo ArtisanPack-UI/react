@@ -11,9 +11,10 @@ import {
 /** Stable callback ref — always calls the latest version without re-triggering effects. */
 function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
   const fnRef = useRef(fn);
+  /* eslint-disable react-hooks/refs -- standard stable-callback pattern */
   fnRef.current = fn;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useCallback((...args: A) => fnRef.current(...args), []);
+  /* eslint-enable react-hooks/refs */
 }
 import { cn } from '@artisanpack-ui/tokens';
 

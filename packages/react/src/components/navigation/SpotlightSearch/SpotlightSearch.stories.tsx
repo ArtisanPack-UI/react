@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import { SpotlightSearch } from './SpotlightSearch';
 import type { SpotlightItem } from './SpotlightSearch';
+
+const onSelectAction = fn();
 
 const meta: Meta<typeof SpotlightSearch> = {
   title: 'Navigation/SpotlightSearch',
@@ -35,13 +38,13 @@ export const Default: Story = {
     return (
       <>
         <button className="btn btn-primary" onClick={() => setOpen(true)}>
-          Open Spotlight (Cmd+K)
+          Open Spotlight
         </button>
         <SpotlightSearch
           open={open}
           onClose={() => setOpen(false)}
           items={sampleItems}
-          onSelect={(item) => console.log('Selected:', item.label)}
+          onSelect={onSelectAction}
           shortcut={false}
         />
       </>
@@ -61,7 +64,7 @@ export const WithGroups: Story = {
           open={open}
           onClose={() => setOpen(false)}
           items={groupedItems}
-          onSelect={(item) => console.log('Selected:', item.label)}
+          onSelect={onSelectAction}
           shortcut={false}
         />
       </>
@@ -81,7 +84,7 @@ export const CustomPlaceholder: Story = {
           open={open}
           onClose={() => setOpen(false)}
           items={sampleItems}
-          onSelect={(item) => console.log('Selected:', item.label)}
+          onSelect={onSelectAction}
           placeholder="Type a command or search..."
           shortcut={false}
         />

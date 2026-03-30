@@ -199,6 +199,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const menuId = `dropdown-menu-${autoId}`;
 
+    /* eslint-disable react-hooks/refs -- ref writes happen in event handlers, not during render */
     const renderTrigger = () => {
       if (trigger) {
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
@@ -258,6 +259,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         {...rest}
       >
         {renderTrigger()}
+        {/* eslint-enable react-hooks/refs */}
         <ul
           ref={menuRef}
           id={menuId}

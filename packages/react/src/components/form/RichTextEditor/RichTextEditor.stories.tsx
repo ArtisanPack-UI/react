@@ -25,10 +25,10 @@ export const WithToolbar: Story = {
     label: 'Article Body',
     toolbar: (
       <>
-        <button type="button" className="btn btn-ghost btn-xs" style={{ fontWeight: 'bold' }}>
+        <button type="button" className="btn btn-ghost btn-xs font-bold" aria-label="Bold">
           B
         </button>
-        <button type="button" className="btn btn-ghost btn-xs" style={{ fontStyle: 'italic' }}>
+        <button type="button" className="btn btn-ghost btn-xs italic" aria-label="Italic">
           I
         </button>
       </>

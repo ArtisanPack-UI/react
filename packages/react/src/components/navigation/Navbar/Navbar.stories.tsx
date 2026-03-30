@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Navbar } from './Navbar';
 
@@ -10,56 +11,40 @@ const meta: Meta<typeof Navbar> = {
 export default meta;
 type Story = StoryObj<typeof Navbar>;
 
+const baseNavbarArgs = {
+  start: <span className="text-xl font-bold">ArtisanPack</span>,
+  center: (
+    <div className="flex gap-4">
+      <a className="link link-hover" href="#" onClick={(e: React.MouseEvent) => e.preventDefault()}>
+        Home
+      </a>
+      <a className="link link-hover" href="#" onClick={(e: React.MouseEvent) => e.preventDefault()}>
+        About
+      </a>
+      <a className="link link-hover" href="#" onClick={(e: React.MouseEvent) => e.preventDefault()}>
+        Contact
+      </a>
+    </div>
+  ),
+  end: (
+    <div className="avatar placeholder">
+      <div className="bg-neutral text-neutral-content w-10 rounded-full">
+        <span>JM</span>
+      </div>
+    </div>
+  ),
+};
+
 export const Default: Story = {
   args: {
-    start: <span className="text-xl font-bold">ArtisanPack</span>,
-    center: (
-      <div className="flex gap-4">
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          Home
-        </a>
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          About
-        </a>
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          Contact
-        </a>
-      </div>
-    ),
-    end: (
-      <div className="avatar placeholder">
-        <div className="bg-neutral text-neutral-content w-10 rounded-full">
-          <span>JM</span>
-        </div>
-      </div>
-    ),
+    ...baseNavbarArgs,
   },
 };
 
 export const WithGlass: Story = {
   args: {
+    ...baseNavbarArgs,
     glass: true,
-    start: <span className="text-xl font-bold">ArtisanPack</span>,
-    center: (
-      <div className="flex gap-4">
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          Home
-        </a>
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          About
-        </a>
-        <a className="link link-hover" href="#" onClick={(e) => e.preventDefault()}>
-          Contact
-        </a>
-      </div>
-    ),
-    end: (
-      <div className="avatar placeholder">
-        <div className="bg-neutral text-neutral-content w-10 rounded-full">
-          <span>JM</span>
-        </div>
-      </div>
-    ),
   },
   decorators: [
     (Story) => (

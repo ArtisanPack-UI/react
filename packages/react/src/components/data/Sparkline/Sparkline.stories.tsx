@@ -65,6 +65,18 @@ export const ColorVariants: Story = {
         <span className="w-20 text-sm">Info</span>
         <Sparkline data={sampleData} color="info" />
       </div>
+      <div className="flex items-center gap-3">
+        <span className="w-20 text-sm">Secondary</span>
+        <Sparkline data={sampleData} color="secondary" />
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-20 text-sm">Accent</span>
+        <Sparkline data={sampleData} color="accent" />
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-20 text-sm">Neutral</span>
+        <Sparkline data={sampleData} color="neutral" />
+      </div>
     </div>
   ),
 };

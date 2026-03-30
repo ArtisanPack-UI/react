@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { Table } from '../../components/data/Table/Table';
 import type { TableHeader } from '../../components/data/Table/Table';
 
-interface User {
+interface User extends Record<string, unknown> {
   id: number;
   name: string;
   email: string;
@@ -72,21 +72,15 @@ describe('Table', () => {
 
   it('handles sorting', () => {
     const onSort = vi.fn();
-    const sortableHeaders: TableHeader<User>[] = [
-      { key: 'name', label: 'Name', sortable: true },
-    ];
-    render(
-      <Table headers={sortableHeaders} rows={rows} onSort={onSort} />,
-    );
+    const sortableHeaders: TableHeader<User>[] = [{ key: 'name', label: 'Name', sortable: true }];
+    render(<Table headers={sortableHeaders} rows={rows} onSort={onSort} />);
     fireEvent.click(screen.getByText('Name'));
     expect(onSort).toHaveBeenCalledWith({ key: 'name', direction: 'asc' });
   });
 
   it('toggles sort direction', () => {
     const onSort = vi.fn();
-    const sortableHeaders: TableHeader<User>[] = [
-      { key: 'name', label: 'Name', sortable: true },
-    ];
+    const sortableHeaders: TableHeader<User>[] = [{ key: 'name', label: 'Name', sortable: true }];
     render(
       <Table
         headers={sortableHeaders}

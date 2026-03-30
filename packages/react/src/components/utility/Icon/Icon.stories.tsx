@@ -73,6 +73,8 @@ export const ColorVariants: Story = {
       <Icon path={checkPath} color="warning" viewBox="0 0 20 20" />
       <Icon path={checkPath} color="error" viewBox="0 0 20 20" />
       <Icon path={checkPath} color="info" viewBox="0 0 20 20" />
+      <Icon path={checkPath} color="neutral" viewBox="0 0 20 20" />
+      <Icon path={checkPath} viewBox="0 0 20 20" />
     </div>
   ),
 };

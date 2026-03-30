@@ -1,7 +1,7 @@
 import {
   forwardRef,
-  useState,
   useEffect,
+  useState,
   useId,
   type HTMLAttributes,
   type ReactNode,
@@ -126,12 +126,14 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       : (isSelectableTab(tabs, internalTab) ? internalTab : firstSelectableTab(tabs));
 
     // Sync internalTab when tabs change and current selection becomes invalid
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync when tabs list changes */
     useEffect(() => {
       if (isControlled) return;
       if (!isSelectableTab(tabs, internalTab)) {
         setInternalTab(firstSelectableTab(tabs));
       }
     }, [tabs, isControlled, internalTab]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const isVertical = vertical || verticalRight;
 

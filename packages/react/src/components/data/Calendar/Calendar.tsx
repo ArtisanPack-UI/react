@@ -122,9 +122,12 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     const today = new Date();
     const [viewDate, setViewDate] = useState(() => value ?? today);
 
+    // Sync viewDate when controlled value changes
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync from controlled prop */
     useEffect(() => {
       if (value) setViewDate(value);
     }, [value]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();

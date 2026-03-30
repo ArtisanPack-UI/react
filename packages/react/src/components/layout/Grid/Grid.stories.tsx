@@ -1,12 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Grid } from './Grid';
 
-function Box({ color = '#6366f1', label }: { color?: string; label: string }) {
+const toneMap: Record<string, string> = {
+  primary: 'bg-primary text-primary-content',
+  secondary: 'bg-secondary text-secondary-content',
+  accent: 'bg-accent text-accent-content',
+  neutral: 'bg-neutral text-neutral-content',
+};
+
+function Box({ tone = 'primary', label }: { tone?: string; label: string }) {
   return (
-    <div
-      className="rounded-lg p-4 text-white text-center font-semibold"
-      style={{ backgroundColor: color }}
-    >
+    <div className={`rounded-lg p-4 text-center font-semibold ${toneMap[tone] ?? toneMap.primary}`}>
       {label}
     </div>
   );
@@ -27,12 +31,12 @@ export const Default: Story = {
   },
   render: (args) => (
     <Grid {...args}>
-      <Box label="1" color="#6366f1" />
-      <Box label="2" color="#8b5cf6" />
-      <Box label="3" color="#a78bfa" />
-      <Box label="4" color="#6366f1" />
-      <Box label="5" color="#8b5cf6" />
-      <Box label="6" color="#a78bfa" />
+      <Box label="1" tone="primary" />
+      <Box label="2" tone="secondary" />
+      <Box label="3" tone="accent" />
+      <Box label="4" tone="primary" />
+      <Box label="5" tone="secondary" />
+      <Box label="6" tone="accent" />
     </Grid>
   ),
 };
@@ -46,14 +50,14 @@ export const Responsive: Story = {
   },
   render: (args) => (
     <Grid {...args}>
-      <Box label="1" color="#6366f1" />
-      <Box label="2" color="#8b5cf6" />
-      <Box label="3" color="#a78bfa" />
-      <Box label="4" color="#c4b5fd" />
-      <Box label="5" color="#6366f1" />
-      <Box label="6" color="#8b5cf6" />
-      <Box label="7" color="#a78bfa" />
-      <Box label="8" color="#c4b5fd" />
+      <Box label="1" tone="primary" />
+      <Box label="2" tone="secondary" />
+      <Box label="3" tone="accent" />
+      <Box label="4" tone="neutral" />
+      <Box label="5" tone="primary" />
+      <Box label="6" tone="secondary" />
+      <Box label="7" tone="accent" />
+      <Box label="8" tone="neutral" />
     </Grid>
   ),
 };
@@ -65,12 +69,12 @@ export const CustomGap: Story = {
   },
   render: (args) => (
     <Grid {...args}>
-      <Box label="1" color="#6366f1" />
-      <Box label="2" color="#8b5cf6" />
-      <Box label="3" color="#a78bfa" />
-      <Box label="4" color="#6366f1" />
-      <Box label="5" color="#8b5cf6" />
-      <Box label="6" color="#a78bfa" />
+      <Box label="1" tone="primary" />
+      <Box label="2" tone="secondary" />
+      <Box label="3" tone="accent" />
+      <Box label="4" tone="primary" />
+      <Box label="5" tone="secondary" />
+      <Box label="6" tone="accent" />
     </Grid>
   ),
 };
@@ -84,12 +88,12 @@ export const DifferentGaps: Story = {
   },
   render: (args) => (
     <Grid {...args}>
-      <Box label="1" color="#6366f1" />
-      <Box label="2" color="#8b5cf6" />
-      <Box label="3" color="#a78bfa" />
-      <Box label="4" color="#6366f1" />
-      <Box label="5" color="#8b5cf6" />
-      <Box label="6" color="#a78bfa" />
+      <Box label="1" tone="primary" />
+      <Box label="2" tone="secondary" />
+      <Box label="3" tone="accent" />
+      <Box label="4" tone="primary" />
+      <Box label="5" tone="secondary" />
+      <Box label="6" tone="accent" />
     </Grid>
   ),
 };
@@ -100,10 +104,10 @@ export const TwoColumns: Story = {
   },
   render: (args) => (
     <Grid {...args}>
-      <Box label="Left" color="#6366f1" />
-      <Box label="Right" color="#8b5cf6" />
-      <Box label="Left" color="#a78bfa" />
-      <Box label="Right" color="#c4b5fd" />
+      <Box label="Left" tone="primary" />
+      <Box label="Right" tone="secondary" />
+      <Box label="Left" tone="accent" />
+      <Box label="Right" tone="neutral" />
     </Grid>
   ),
 };

@@ -6,6 +6,14 @@ const meta: Meta<typeof ThemeToggle> = {
   title: 'Utility/ThemeToggle',
   component: ThemeToggle,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Theme toggle button that cycles through light, dark, and system color schemes. Must be used within a ThemeProvider.',
+      },
+    },
+  },
   argTypes: {
     size: {
       control: 'select',
@@ -54,6 +62,14 @@ export const LightDarkOnly: Story = {
   render: () => (
     <ThemeProvider>
       <ThemeToggle modes={['light', 'dark']} />
+    </ThemeProvider>
+  ),
+};
+
+export const Disabled: Story = {
+  render: () => (
+    <ThemeProvider>
+      <ThemeToggle disabled />
     </ThemeProvider>
   ),
 };

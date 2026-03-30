@@ -60,11 +60,13 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [total],
     );
 
+    /* eslint-disable react-hooks/set-state-in-effect -- clamp index when slides are removed */
     useEffect(() => {
       if (total > 0) {
         setCurrent((c) => Math.min(c, total - 1));
       }
     }, [total]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const safeIndex = total > 0 ? Math.max(0, Math.min(current, total - 1)) : 0;
 

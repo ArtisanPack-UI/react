@@ -49,6 +49,10 @@ export const ColorVariants: Story = {
       <Calendar color="secondary" />
       <Calendar color="accent" />
       <Calendar color="success" />
+      <Calendar color="warning" />
+      <Calendar color="error" />
+      <Calendar color="info" />
+      <Calendar color="neutral" />
     </div>
   ),
 };

@@ -142,6 +142,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
     }, [shortcut, open, onClose]);
 
     // Focus input when opening
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional reset on open transition */
     useEffect(() => {
       if (open) {
         setQuery('');
@@ -149,6 +150,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
         requestAnimationFrame(() => inputRef.current?.focus());
       }
     }, [open]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const getListItems = useCallback((): HTMLElement[] => {
       if (!listRef.current) return [];

@@ -48,6 +48,13 @@ export const Random: Story = {
   },
 };
 
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Color',
+    disabled: true,
+  },
+};
+
 export const WithIcons: Story = {
   args: {
     label: 'Color',

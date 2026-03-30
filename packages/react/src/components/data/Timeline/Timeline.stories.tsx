@@ -41,10 +41,14 @@ export const Compact: Story = {
 export const WithColors: Story = {
   args: {
     items: [
-      { title: 'Step 1', subtitle: 'Completed', color: 'success' },
-      { title: 'Step 2', subtitle: 'In Progress', color: 'primary' },
-      { title: 'Step 3', subtitle: 'Warning', color: 'warning' },
-      { title: 'Step 4', subtitle: 'Error', color: 'error' },
+      { title: 'Primary', subtitle: 'Step 1', color: 'primary' },
+      { title: 'Secondary', subtitle: 'Step 2', color: 'secondary' },
+      { title: 'Accent', subtitle: 'Step 3', color: 'accent' },
+      { title: 'Neutral', subtitle: 'Step 4', color: 'neutral' },
+      { title: 'Info', subtitle: 'Step 5', color: 'info' },
+      { title: 'Success', subtitle: 'Step 6', color: 'success' },
+      { title: 'Warning', subtitle: 'Step 7', color: 'warning' },
+      { title: 'Error', subtitle: 'Step 8', color: 'error' },
     ],
   },
 };

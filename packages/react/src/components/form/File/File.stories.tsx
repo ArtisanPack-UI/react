@@ -42,6 +42,13 @@ export const WithError: Story = {
   },
 };
 
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Upload',
+    disabled: true,
+  },
+};
+
 export const Multiple: Story = {
   args: {
     label: 'Gallery Images',

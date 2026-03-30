@@ -14,7 +14,17 @@ const meta: Meta<typeof Radio> = {
   argTypes: {
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
+      options: [
+        undefined,
+        'primary',
+        'secondary',
+        'accent',
+        'success',
+        'warning',
+        'error',
+        'info',
+        'neutral',
+      ],
     },
   },
 };
@@ -39,6 +49,7 @@ export const ColorVariants: Story = {
       <Radio label="Warning" color="warning" options={defaultOptions} />
       <Radio label="Error" color="error" options={defaultOptions} />
       <Radio label="Info" color="info" options={defaultOptions} />
+      <Radio label="Neutral" color="neutral" options={defaultOptions} />
     </div>
   ),
 };
