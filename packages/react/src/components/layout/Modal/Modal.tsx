@@ -109,11 +109,7 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
     return (
       <dialog
         ref={setRefs}
-        className={cn(
-          'modal',
-          bottom && 'modal-bottom',
-          className,
-        )}
+        className={cn('modal', bottom && 'modal-bottom', className)}
         onClick={handleBackdropClick}
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
@@ -122,16 +118,15 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
         <div className={cn('modal-box', glass && 'glass')}>
           {(title || subtitle) && (
             <div className="mb-4">
-              {title && (
-                typeof title === 'string' ? (
-                  <h3 id={titleId} className="text-lg font-bold">{title}</h3>
+              {title &&
+                (typeof title === 'string' ? (
+                  <h3 id={titleId} className="text-lg font-bold">
+                    {title}
+                  </h3>
                 ) : (
                   <div id={titleId}>{title}</div>
-                )
-              )}
-              {subtitle && (
-                <p className="text-base-content/60 text-sm">{subtitle}</p>
-              )}
+                ))}
+              {subtitle && <p className="text-base-content/60 text-sm">{subtitle}</p>}
             </div>
           )}
           {!persistent && (
@@ -145,9 +140,7 @@ export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
             </button>
           )}
           <div>{children}</div>
-          {actions && (
-            <div className="modal-action">{actions}</div>
-          )}
+          {actions && <div className="modal-action">{actions}</div>}
         </div>
       </dialog>
     );

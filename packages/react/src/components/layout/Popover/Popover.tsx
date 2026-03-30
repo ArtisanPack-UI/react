@@ -128,10 +128,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       if (triggerMode !== 'click' || !isOpen || persistent) return;
 
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
           setOpen(false);
         }
       };
@@ -212,7 +209,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     };
 
     const FOCUSABLE_INTRINSICS = new Set([
-      'button', 'input', 'select', 'textarea', 'a', 'area', 'iframe', 'object',
+      'button',
+      'input',
+      'select',
+      'textarea',
+      'a',
+      'area',
+      'iframe',
+      'object',
     ]);
 
     const isFocusableElement = (el: ReactElement): boolean => {
@@ -301,12 +305,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     return (
       <div
         ref={setRefs}
-        className={cn(
-          'dropdown',
-          positionMap[position],
-          isOpen && 'dropdown-open',
-          className,
-        )}
+        className={cn('dropdown', positionMap[position], isOpen && 'dropdown-open', className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onFocus={handleFocus}

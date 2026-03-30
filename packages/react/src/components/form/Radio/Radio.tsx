@@ -84,22 +84,23 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const groupName = providedName ?? id;
     const errorId = error ? `${id}-error` : undefined;
     const hintId = hint && !error ? `${id}-hint` : undefined;
-    const firstEnabledIndex = options.findIndex(opt => !opt.disabled);
+    const firstEnabledIndex = options.findIndex((opt) => !opt.disabled);
 
     return (
-      <fieldset className="fieldset" role="radiogroup" aria-labelledby={label ? `${id}-legend` : undefined} aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined} aria-invalid={error ? true : undefined}>
+      <fieldset
+        className="fieldset"
+        role="radiogroup"
+        aria-labelledby={label ? `${id}-legend` : undefined}
+        aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
+        aria-invalid={error ? true : undefined}
+      >
         {label && (
           <legend id={`${id}-legend`} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
           </legend>
         )}
-        <div
-          className={cn(
-            card ? 'grid gap-2' : 'flex gap-3',
-            !card && !inline && 'flex-col',
-          )}
-        >
+        <div className={cn(card ? 'grid gap-2' : 'flex gap-3', !card && !inline && 'flex-col')}>
           {options.map((option, index) => {
             const value = String(option[optionValue] ?? '');
             const optLabel = String(option[optionLabel] ?? '');
@@ -133,9 +134,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                   />
                   <div>
                     <span>{optLabel}</span>
-                    {optHint && (
-                      <p className="text-xs opacity-60">{optHint}</p>
-                    )}
+                    {optHint && <p className="text-xs opacity-60">{optHint}</p>}
                   </div>
                 </label>
               );
@@ -163,19 +162,21 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
                 />
                 <div>
                   <span>{optLabel}</span>
-                  {optHint && (
-                    <p className="text-xs opacity-60">{optHint}</p>
-                  )}
+                  {optHint && <p className="text-xs opacity-60">{optHint}</p>}
                 </div>
               </label>
             );
           })}
         </div>
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

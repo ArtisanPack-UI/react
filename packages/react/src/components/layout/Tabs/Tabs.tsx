@@ -1,7 +1,7 @@
 import {
   forwardRef,
-  useState,
   useEffect,
+  useState,
   useId,
   type HTMLAttributes,
   type ReactNode,
@@ -122,16 +122,22 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     const isControlled = activeTab !== undefined;
 
     const current = isControlled
-      ? (isSelectableTab(tabs, activeTab) ? activeTab : firstSelectableTab(tabs))
-      : (isSelectableTab(tabs, internalTab) ? internalTab : firstSelectableTab(tabs));
+      ? isSelectableTab(tabs, activeTab)
+        ? activeTab
+        : firstSelectableTab(tabs)
+      : isSelectableTab(tabs, internalTab)
+        ? internalTab
+        : firstSelectableTab(tabs);
 
     // Sync internalTab when tabs change and current selection becomes invalid
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync when tabs list changes */
     useEffect(() => {
       if (isControlled) return;
       if (!isSelectableTab(tabs, internalTab)) {
         setInternalTab(firstSelectableTab(tabs));
       }
     }, [tabs, isControlled, internalTab]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const isVertical = vertical || verticalRight;
 
@@ -159,8 +165,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
         nextIndex = (currentIndex + 1) % enabledTabs.length;
       } else if (e.key === prevKey) {
         e.preventDefault();
-        nextIndex =
-          (currentIndex - 1 + enabledTabs.length) % enabledTabs.length;
+        nextIndex = (currentIndex - 1 + enabledTabs.length) % enabledTabs.length;
       } else if (e.key === 'Home') {
         e.preventDefault();
         nextIndex = 0;
@@ -229,27 +234,21 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       </div>
     );
 
-    const panel = activeTabItem && activeIndex >= 0 ? (
-      <div
-        role="tabpanel"
-        id={`tabpanel-${autoId}-${activeIndex}`}
-        aria-labelledby={`tab-${autoId}-${activeIndex}`}
-        tabIndex={0}
-        className={cn(
-          isVertical ? 'flex-1 pl-4' : 'p-4',
-          panelClassName,
-        )}
-      >
-        {activeTabItem.content}
-      </div>
-    ) : null;
+    const panel =
+      activeTabItem && activeIndex >= 0 ? (
+        <div
+          role="tabpanel"
+          id={`tabpanel-${autoId}-${activeIndex}`}
+          aria-labelledby={`tab-${autoId}-${activeIndex}`}
+          tabIndex={0}
+          className={cn(isVertical ? 'flex-1 pl-4' : 'p-4', panelClassName)}
+        >
+          {activeTabItem.content}
+        </div>
+      ) : null;
 
     return (
-      <div
-        ref={ref}
-        className={cn(isVertical && 'flex', className)}
-        {...rest}
-      >
+      <div ref={ref} className={cn(isVertical && 'flex', className)} {...rest}>
         {verticalRight ? (
           <>
             {panel}

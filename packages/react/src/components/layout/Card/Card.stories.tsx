@@ -106,7 +106,11 @@ export const HorizontalFigure: Story = {
 export const WithMenu: Story = {
   args: {
     title: 'Card with Menu',
-    menu: <button className="btn btn-ghost btn-sm" aria-label="More options">⋯</button>,
+    menu: (
+      <button className="btn btn-ghost btn-sm" aria-label="More options">
+        ⋯
+      </button>
+    ),
     children: <p>A card with a menu button in the header.</p>,
   },
 };

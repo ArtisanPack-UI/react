@@ -1,8 +1,4 @@
-import {
-  forwardRef,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 
@@ -35,11 +31,7 @@ const sizeMap: Record<Size, string> = {
 /**
  * Generate the array of page numbers/ellipses to display.
  */
-function getPageRange(
-  current: number,
-  total: number,
-  siblings: number,
-): (number | 'ellipsis')[] {
+function getPageRange(current: number, total: number, siblings: number): (number | 'ellipsis')[] {
   if (total <= 0) return [];
   if (total === 1) return [1];
 
@@ -99,12 +91,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
     };
 
     return (
-      <nav
-        ref={ref}
-        aria-label="Pagination"
-        className={className}
-        {...rest}
-      >
+      <nav ref={ref} aria-label="Pagination" className={className} {...rest}>
         <div className="join">
           <button
             type="button"
@@ -131,11 +118,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
               <button
                 key={page}
                 type="button"
-                className={cn(
-                  'join-item btn',
-                  btnSize,
-                  page === safePage && 'btn-active',
-                )}
+                className={cn('join-item btn', btnSize, page === safePage && 'btn-active')}
                 aria-current={page === safePage ? 'page' : undefined}
                 aria-label={`Page ${page}`}
                 disabled={disabled}

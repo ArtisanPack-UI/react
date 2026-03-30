@@ -112,11 +112,7 @@ export const Sparkline = forwardRef<HTMLDivElement, SparklineProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn('inline-flex items-center relative', className)}
-        {...rest}
-      >
+      <div ref={ref} className={cn('inline-flex items-center relative', className)} {...rest}>
         <svg
           ref={svgRef}
           width={svgWidth}
@@ -157,10 +153,7 @@ export const Sparkline = forwardRef<HTMLDivElement, SparklineProps>(
           ) : (
             <>
               {type === 'area' && (
-                <path
-                  d={areaPath}
-                  style={{ fill: resolvedColor, opacity: fillOpacity }}
-                />
+                <path d={areaPath} style={{ fill: resolvedColor, opacity: fillOpacity }} />
               )}
               <path
                 d={linePath}

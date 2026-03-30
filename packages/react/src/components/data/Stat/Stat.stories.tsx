@@ -66,21 +66,9 @@ export const Group: Story = {
 export const HorizontalGroup: Story = {
   render: () => (
     <StatGroup horizontal>
-      <Stat
-        title="Downloads"
-        value="31K"
-        icon={<span className="text-2xl">📥</span>}
-      />
-      <Stat
-        title="Active Users"
-        value="4,200"
-        icon={<span className="text-2xl">👥</span>}
-      />
-      <Stat
-        title="Revenue"
-        value="$12.4K"
-        icon={<span className="text-2xl">💰</span>}
-      />
+      <Stat title="Downloads" value="31K" icon={<span className="text-2xl">📥</span>} />
+      <Stat title="Active Users" value="4,200" icon={<span className="text-2xl">👥</span>} />
+      <Stat title="Revenue" value="$12.4K" icon={<span className="text-2xl">💰</span>} />
     </StatGroup>
   ),
 };

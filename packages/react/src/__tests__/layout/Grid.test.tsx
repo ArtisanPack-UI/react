@@ -28,7 +28,9 @@ describe('Grid', () => {
 
   it('applies responsive column counts', () => {
     const { container } = render(
-      <Grid cols={1} colsSm={2} colsMd={3} colsLg={4}>Content</Grid>,
+      <Grid cols={1} colsSm={2} colsMd={3} colsLg={4}>
+        Content
+      </Grid>,
     );
     const el = container.firstChild;
     expect(el).toHaveClass('grid-cols-1');
@@ -48,7 +50,11 @@ describe('Grid', () => {
   });
 
   it('applies directional gaps', () => {
-    const { container } = render(<Grid gapX={2} gapY={4}>Content</Grid>);
+    const { container } = render(
+      <Grid gapX={2} gapY={4}>
+        Content
+      </Grid>,
+    );
     expect(container.firstChild).toHaveClass('gap-x-2');
     expect(container.firstChild).toHaveClass('gap-y-4');
   });

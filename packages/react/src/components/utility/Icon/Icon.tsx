@@ -38,7 +38,10 @@ const sizeMap: Record<Size, string> = {
  * Accepts either a `path` prop for a single-path icon or children for complex SVGs.
  */
 export const Icon = forwardRef<SVGSVGElement, IconProps>(
-  ({ path, color, size = 'md', label, viewBox = '0 0 24 24', className, children, ...rest }, ref) => {
+  (
+    { path, color, size = 'md', label, viewBox = '0 0 24 24', className, children, ...rest },
+    ref,
+  ) => {
     const isDecorative = !label;
 
     return (

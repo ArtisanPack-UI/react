@@ -50,9 +50,8 @@ export const Stat = forwardRef<HTMLDivElement, StatProps>(
   ) => {
     const isPositive = change !== undefined && change > 0;
     const isNegative = change !== undefined && change < 0;
-    const changeColor = change !== undefined
-      ? (isPositive ? 'text-success' : isNegative ? 'text-error' : '')
-      : '';
+    const changeColor =
+      change !== undefined ? (isPositive ? 'text-success' : isNegative ? 'text-error' : '') : '';
     const formattedChange =
       change !== undefined ? `${isPositive ? '+' : ''}${change.toFixed(1)}%` : null;
 

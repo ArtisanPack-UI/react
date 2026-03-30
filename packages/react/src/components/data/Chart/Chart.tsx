@@ -87,7 +87,8 @@ export const Chart = forwardRef<HTMLDivElement, ChartProps>(
     },
     ref,
   ) => {
-    const isPie = type === 'pie' || type === 'donut' || type === 'radialBar' || type === 'polarArea';
+    const isPie =
+      type === 'pie' || type === 'donut' || type === 'radialBar' || type === 'polarArea';
 
     const resolvedColors = useMemo(() => {
       if (isPie && data.length > 0) {
@@ -185,7 +186,10 @@ export const Chart = forwardRef<HTMLDivElement, ChartProps>(
 
 Chart.displayName = 'Chart';
 
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<string, unknown>): T {
+function deepMerge<T extends Record<string, unknown>>(
+  target: T,
+  source: Record<string, unknown>,
+): T {
   const result = { ...target } as Record<string, unknown>;
   for (const key of Object.keys(source)) {
     const targetVal = result[key];

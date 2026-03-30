@@ -31,17 +31,7 @@ const colorMap: Record<string, string> = {
  */
 export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
   (
-    {
-      label,
-      right = false,
-      hint,
-      error,
-      color,
-      className,
-      id: providedId,
-      required,
-      ...rest
-    },
+    { label, right = false, hint, error, color, className, id: providedId, required, ...rest },
     ref,
   ) => {
     const autoId = useId();
@@ -74,10 +64,14 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
           )}
         </label>
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

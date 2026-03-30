@@ -60,11 +60,13 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [total],
     );
 
+    /* eslint-disable react-hooks/set-state-in-effect -- clamp index when slides are removed */
     useEffect(() => {
       if (total > 0) {
         setCurrent((c) => Math.min(c, total - 1));
       }
     }, [total]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const safeIndex = total > 0 ? Math.max(0, Math.min(current, total - 1)) : 0;
 
@@ -81,7 +83,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       if (prefersReduced) return;
 
       autoplayRef.current = setInterval(() => {
-        setCurrent((c) => ((c + 1) % total));
+        setCurrent((c) => (c + 1) % total);
       }, interval);
       return () => {
         if (autoplayRef.current) clearInterval(autoplayRef.current);
@@ -176,11 +178,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           ) : (
             <div className="relative">
               {slide.image && (
-                <img
-                  src={slide.image}
-                  alt={slide.alt ?? ''}
-                  className="w-full object-cover"
-                />
+                <img src={slide.image} alt={slide.alt ?? ''} className="w-full object-cover" />
               )}
               {(slide.title || slide.description) && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white">

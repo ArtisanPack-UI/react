@@ -13,34 +13,18 @@ const sampleItems: SpotlightItem[] = [
 describe('SpotlightSearch', () => {
   it('does not render when closed', () => {
     const { container } = render(
-      <SpotlightSearch
-        open={false}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
+      <SpotlightSearch open={false} onClose={vi.fn()} items={sampleItems} />,
     );
     expect(container.firstChild).toBeNull();
   });
 
   it('renders when open', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('renders all items when query is empty', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByText('About')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
@@ -48,36 +32,18 @@ describe('SpotlightSearch', () => {
   });
 
   it('renders item descriptions', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByText('Go to homepage')).toBeInTheDocument();
   });
 
   it('renders group headers', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByText('Pages')).toBeInTheDocument();
     expect(screen.getByText('Actions')).toBeInTheDocument();
   });
 
   it('filters items based on search query', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'settings' } });
     expect(screen.getByText('Settings')).toBeInTheDocument();
@@ -101,12 +67,7 @@ describe('SpotlightSearch', () => {
   it('calls onSelect when item is clicked', () => {
     const onSelect = vi.fn();
     render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-        onSelect={onSelect}
-      />,
+      <SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} onSelect={onSelect} />,
     );
     fireEvent.click(screen.getByText('Home'));
     expect(onSelect).toHaveBeenCalledWith(sampleItems[0]);
@@ -115,12 +76,7 @@ describe('SpotlightSearch', () => {
   it('calls onClose when item is selected', () => {
     const onClose = vi.fn();
     render(
-      <SpotlightSearch
-        open={true}
-        onClose={onClose}
-        items={sampleItems}
-        onSelect={vi.fn()}
-      />,
+      <SpotlightSearch open={true} onClose={onClose} items={sampleItems} onSelect={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('Home'));
     expect(onClose).toHaveBeenCalled();
@@ -128,38 +84,20 @@ describe('SpotlightSearch', () => {
 
   it('calls onClose when backdrop is clicked', () => {
     const onClose = vi.fn();
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={onClose}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={onClose} items={sampleItems} />);
     fireEvent.click(screen.getByTestId('backdrop'));
     expect(onClose).toHaveBeenCalled();
   });
 
   it('calls onClose on Escape key', () => {
     const onClose = vi.fn();
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={onClose}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={onClose} items={sampleItems} />);
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
 
   it('navigates items with ArrowDown', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     const options = screen.getAllByRole('option');
@@ -167,13 +105,7 @@ describe('SpotlightSearch', () => {
   });
 
   it('navigates items with ArrowUp', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     const input = screen.getByRole('combobox');
     // ArrowUp from -1 should wrap to last
     fireEvent.keyDown(input, { key: 'ArrowUp' });
@@ -184,12 +116,7 @@ describe('SpotlightSearch', () => {
   it('selects item on Enter', () => {
     const onSelect = vi.fn();
     render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-        onSelect={onSelect}
-      />,
+      <SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} onSelect={onSelect} />,
     );
     const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -198,13 +125,7 @@ describe('SpotlightSearch', () => {
   });
 
   it('navigates to first item with Home key', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -214,13 +135,7 @@ describe('SpotlightSearch', () => {
   });
 
   it('navigates to last item with End key', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     const input = screen.getByRole('combobox');
     fireEvent.keyDown(input, { key: 'End' });
     const options = screen.getAllByRole('option');
@@ -242,12 +157,7 @@ describe('SpotlightSearch', () => {
   it('uses custom filterFn', () => {
     const filterFn = vi.fn().mockReturnValue(true);
     render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-        filterFn={filterFn}
-      />,
+      <SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} filterFn={filterFn} />,
     );
     const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'test' } });
@@ -259,14 +169,7 @@ describe('SpotlightSearch', () => {
       key: `item-${i}`,
       label: `Item ${i}`,
     }));
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={manyItems}
-        maxResults={5}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={manyItems} maxResults={5} />);
     const options = screen.getAllByRole('option');
     expect(options.length).toBe(5);
   });
@@ -283,13 +186,7 @@ describe('SpotlightSearch', () => {
         ),
       },
     ];
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={items}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={items} />);
     expect(screen.getByTestId('custom-link')).toBeInTheDocument();
   });
 
@@ -298,13 +195,7 @@ describe('SpotlightSearch', () => {
       { key: 'search', label: 'Search', keywords: ['find', 'lookup'] },
       { key: 'other', label: 'Other' },
     ];
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={items}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={items} />);
     const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'lookup' } });
     expect(screen.getByText('Search')).toBeInTheDocument();
@@ -312,35 +203,17 @@ describe('SpotlightSearch', () => {
   });
 
   it('renders Esc kbd hint', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByText('Esc')).toBeInTheDocument();
   });
 
   it('has combobox role', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('has listbox role on results', () => {
-    render(
-      <SpotlightSearch
-        open={true}
-        onClose={vi.fn()}
-        items={sampleItems}
-      />,
-    );
+    render(<SpotlightSearch open={true} onClose={vi.fn()} items={sampleItems} />);
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 });

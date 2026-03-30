@@ -183,9 +183,7 @@ export const Menu = forwardRef<HTMLUListElement, MenuProps>(
                 {item.icon && <span aria-hidden="true">{item.icon}</span>}
                 {item.label}
               </summary>
-              <ul role="menu">
-                {item.children.map((child) => renderItem(child))}
-              </ul>
+              <ul role="menu">{item.children.map((child) => renderItem(child))}</ul>
             </details>
           </li>
         );

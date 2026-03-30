@@ -11,9 +11,10 @@ import {
 /** Stable callback ref — always calls the latest version without re-triggering effects. */
 function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
   const fnRef = useRef(fn);
+  /* eslint-disable react-hooks/refs -- standard stable-callback pattern */
   fnRef.current = fn;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useCallback((...args: A) => fnRef.current(...args), []);
+  /* eslint-enable react-hooks/refs */
 }
 import { cn } from '@artisanpack-ui/tokens';
 
@@ -91,12 +92,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
     return (
       <div
         ref={setRefs}
-        className={cn(
-          'drawer',
-          side === 'right' && 'drawer-end',
-          open && 'drawer-open',
-          className,
-        )}
+        className={cn('drawer', side === 'right' && 'drawer-end', open && 'drawer-open', className)}
         {...rest}
       >
         <input
@@ -107,19 +103,13 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
           onChange={(e) => onOpenChange(e.target.checked)}
           aria-label="Toggle sidebar"
         />
-        <div className="drawer-content">
-          {children}
-        </div>
-        <div className="drawer-side" style={overlay ? { position: 'fixed', zIndex: 50 } : undefined}>
-          <label
-            htmlFor={inputId}
-            className="drawer-overlay"
-            aria-label="Close sidebar"
-          />
-          <nav
-            className={cn('menu bg-base-200 min-h-full p-4', width)}
-            aria-label="Sidebar"
-          >
+        <div className="drawer-content">{children}</div>
+        <div
+          className="drawer-side"
+          style={overlay ? { position: 'fixed', zIndex: 50 } : undefined}
+        >
+          <label htmlFor={inputId} className="drawer-overlay" aria-label="Close sidebar" />
+          <nav className={cn('menu bg-base-200 min-h-full p-4', width)} aria-label="Sidebar">
             {sidebarContent}
           </nav>
         </div>

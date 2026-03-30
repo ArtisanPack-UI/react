@@ -17,17 +17,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
  */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
-    {
-      label,
-      hint,
-      error,
-      inline = false,
-      className,
-      id: providedId,
-      required,
-      readOnly,
-      ...rest
-    },
+    { label, hint, error, inline = false, className, id: providedId, required, readOnly, ...rest },
     ref,
   ) => {
     const autoId = useId();

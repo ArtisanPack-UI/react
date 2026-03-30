@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useRef,
-  useId,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
+import { forwardRef, useEffect, useRef, useId, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {

@@ -18,18 +18,7 @@ export interface EditorProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
  * this component's prop interface as a base.
  */
 export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
-  (
-    {
-      label,
-      hint,
-      error,
-      className,
-      id: providedId,
-      required,
-      ...rest
-    },
-    ref,
-  ) => {
+  ({ label, hint, error, className, id: providedId, required, ...rest }, ref) => {
     const autoId = useId();
     const id = providedId ?? autoId;
     const hintId = hint && !error ? `${id}-hint` : undefined;
@@ -49,11 +38,7 @@ export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
         <textarea
           ref={ref}
           id={id}
-          className={cn(
-            'textarea w-full font-mono text-sm',
-            error && 'textarea-error',
-            className,
-          )}
+          className={cn('textarea w-full font-mono text-sm', error && 'textarea-error', className)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           aria-required={required || undefined}
@@ -62,10 +47,14 @@ export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
           {...rest}
         />
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

@@ -1,4 +1,12 @@
-import { forwardRef, useCallback, useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface RichTextEditorProps extends HTMLAttributes<HTMLDivElement> {
@@ -91,16 +99,10 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
           </legend>
         )}
         <div
-          className={cn(
-            'border rounded-lg overflow-hidden',
-            error && 'border-error',
-            className,
-          )}
+          className={cn('border rounded-lg overflow-hidden', error && 'border-error', className)}
         >
           {toolbar && (
-            <div className="flex flex-wrap gap-1 p-2 border-b bg-base-200">
-              {toolbar}
-            </div>
+            <div className="flex flex-wrap gap-1 p-2 border-b bg-base-200">{toolbar}</div>
           )}
           <div
             ref={setRefs}
@@ -122,10 +124,14 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
           />
         </div>
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

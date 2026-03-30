@@ -12,9 +12,7 @@ vi.mock('react-apexcharts', () => ({
   ),
 }));
 
-const barSeries: ChartSeries[] = [
-  { name: 'Sales', data: [10, 20, 30, 40], color: 'primary' },
-];
+const barSeries: ChartSeries[] = [{ name: 'Sales', data: [10, 20, 30, 40], color: 'primary' }];
 
 const labels = ['Q1', 'Q2', 'Q3', 'Q4'];
 

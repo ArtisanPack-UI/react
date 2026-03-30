@@ -60,7 +60,7 @@ export function AppLayout({ title, header, footer, children, className }: AppLay
 export function createLayout<P extends { children: ReactNode }>(
   Layout: ComponentType<P>,
   props?: Omit<P, 'children'>,
-): (page: ReactNode) => ReactNode {
+): ((page: ReactNode) => ReactNode) & { displayName?: string } {
   const LayoutWrapper = (page: ReactNode) => {
     const layoutProps = (props ?? {}) as P;
     return <Layout {...layoutProps}>{page}</Layout>;

@@ -59,7 +59,7 @@ export const Timeline = forwardRef<HTMLUListElement, TimelineProps>(
         {items.map((item, index) => {
           const isFirst = index === 0;
           const isLast = index === items.length - 1;
-          const color = item.pending ? undefined : item.color ?? 'primary';
+          const color = item.pending ? undefined : (item.color ?? 'primary');
           const hrClass = color && !item.pending ? hrColorMap[color] : undefined;
 
           return (
@@ -90,16 +90,9 @@ export const Timeline = forwardRef<HTMLUListElement, TimelineProps>(
                   )}
                 </div>
               </div>
-              <div
-                className={cn(
-                  'timeline-end mb-10',
-                  item.pending && 'opacity-50',
-                )}
-              >
+              <div className={cn('timeline-end mb-10', item.pending && 'opacity-50')}>
                 <div className="font-bold">{item.title}</div>
-                {item.subtitle && (
-                  <div className="text-sm opacity-70">{item.subtitle}</div>
-                )}
+                {item.subtitle && <div className="text-sm opacity-70">{item.subtitle}</div>}
                 {item.description && <div className="mt-1">{item.description}</div>}
               </div>
               {!isLast && <hr className={cn(hrClass)} />}

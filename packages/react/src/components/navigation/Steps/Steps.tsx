@@ -1,8 +1,4 @@
-import {
-  forwardRef,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
@@ -52,27 +48,11 @@ const colorMap: Record<DaisyColor, string> = {
  * Multi-step progress indicator with DaisyUI styling.
  */
 export const Steps = forwardRef<HTMLUListElement, StepsProps>(
-  (
-    {
-      steps,
-      currentStep = -1,
-      vertical = false,
-      color,
-      size,
-      className,
-      ...rest
-    },
-    ref,
-  ) => {
+  ({ steps, currentStep = -1, vertical = false, color, size, className, ...rest }, ref) => {
     return (
       <ul
         ref={ref}
-        className={cn(
-          'steps',
-          vertical && 'steps-vertical',
-          size && sizeMap[size],
-          className,
-        )}
+        className={cn('steps', vertical && 'steps-vertical', size && sizeMap[size], className)}
         aria-label="Progress"
         {...rest}
       >
@@ -84,10 +64,7 @@ export const Steps = forwardRef<HTMLUListElement, StepsProps>(
           return (
             <li
               key={index}
-              className={cn(
-                'step',
-                isComplete && stepColor && colorMap[stepColor],
-              )}
+              className={cn('step', isComplete && stepColor && colorMap[stepColor])}
               aria-current={isCurrent ? 'step' : undefined}
               data-content={step.dataContent}
             >

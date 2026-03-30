@@ -27,7 +27,11 @@ export interface SpotlightItem {
   /** Keywords for search matching (in addition to label) */
   keywords?: string[];
   /** Custom link element (for React Router / Inertia) */
-  renderLink?: (props: { className: string; children: ReactNode; onClick: () => void }) => ReactElement;
+  renderLink?: (props: {
+    className: string;
+    children: ReactNode;
+    onClick: () => void;
+  }) => ReactElement;
 }
 
 export interface SpotlightSearchProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onSelect'> {
@@ -59,11 +63,7 @@ function defaultFilter(item: SpotlightItem, query: string): boolean {
   if (!q) return true;
 
   const words = q.split(/\s+/);
-  const searchable = [
-    item.label,
-    item.description ?? '',
-    ...(item.keywords ?? []),
-  ]
+  const searchable = [item.label, item.description ?? '', ...(item.keywords ?? [])]
     .join(' ')
     .toLowerCase();
 
@@ -142,6 +142,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
     }, [shortcut, open, onClose]);
 
     // Focus input when opening
+    /* eslint-disable react-hooks/set-state-in-effect -- intentional reset on open transition */
     useEffect(() => {
       if (open) {
         setQuery('');
@@ -149,19 +150,21 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
         requestAnimationFrame(() => inputRef.current?.focus());
       }
     }, [open]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const getListItems = useCallback((): HTMLElement[] => {
       if (!listRef.current) return [];
-      return Array.from(
-        listRef.current.querySelectorAll<HTMLElement>('[role="option"]'),
-      );
+      return Array.from(listRef.current.querySelectorAll<HTMLElement>('[role="option"]'));
     }, []);
 
-    const focusItem = useCallback((index: number) => {
-      setActiveIndex(index);
-      const els = getListItems();
-      els[index]?.scrollIntoView?.({ block: 'nearest' });
-    }, [getListItems]);
+    const focusItem = useCallback(
+      (index: number) => {
+        setActiveIndex(index);
+        const els = getListItems();
+        els[index]?.scrollIntoView?.({ block: 'nearest' });
+      },
+      [getListItems],
+    );
 
     const selectItem = useCallback(
       (item: SpotlightItem) => {
@@ -259,9 +262,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
               aria-autocomplete="list"
               aria-controls={listboxId}
               aria-activedescendant={
-                activeIndex >= 0
-                  ? `spotlight-item-${autoId}-${activeIndex}`
-                  : undefined
+                activeIndex >= 0 ? `spotlight-item-${autoId}-${activeIndex}` : undefined
               }
               aria-label="Search"
             />
@@ -269,12 +270,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
           </div>
 
           {/* Results */}
-          <ul
-            ref={listRef}
-            id={listboxId}
-            role="listbox"
-            className="max-h-72 overflow-y-auto p-2"
-          >
+          <ul ref={listRef} id={listboxId} role="listbox" className="max-h-72 overflow-y-auto p-2">
             {flatItems.length === 0 ? (
               <li className="px-4 py-8 text-center text-base-content/60" role="presentation">
                 {emptyMessage}

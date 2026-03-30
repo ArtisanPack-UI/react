@@ -88,32 +88,14 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       : undefined;
 
     const avatarContent = image ? (
-      <div
-        className={cn(
-          'avatar',
-          hasStatus && statusClass,
-          ringClasses,
-        )}
-      >
+      <div className={cn('avatar', hasStatus && statusClass, ringClasses)}>
         <div className={cn('rounded-full', sizeMap[size])}>
           <img src={image} alt={alt} />
         </div>
       </div>
     ) : (
-      <div
-        className={cn(
-          'avatar avatar-placeholder',
-          hasStatus && statusClass,
-          ringClasses,
-        )}
-      >
-        <div
-          className={cn(
-            'rounded-full',
-            sizeMap[size],
-            colorMap[color],
-          )}
-        >
+      <div className={cn('avatar avatar-placeholder', hasStatus && statusClass, ringClasses)}>
+        <div className={cn('rounded-full', sizeMap[size], colorMap[color])}>
           {icon ? (
             <span aria-hidden="true">{icon}</span>
           ) : (

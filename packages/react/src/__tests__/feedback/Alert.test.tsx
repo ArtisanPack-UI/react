@@ -95,9 +95,7 @@ describe('Alert', () => {
   });
 
   it('supports controlled visible prop', () => {
-    const { rerender } = render(
-      <Alert visible={true}>Controlled</Alert>,
-    );
+    const { rerender } = render(<Alert visible={true}>Controlled</Alert>);
     expect(screen.getByText('Controlled')).toBeInTheDocument();
 
     rerender(<Alert visible={false}>Controlled</Alert>);

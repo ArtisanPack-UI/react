@@ -135,7 +135,12 @@ describe('Tabs', () => {
 
   it('renders tab icons', () => {
     const tabs: TabItem[] = [
-      { name: 'tab1', label: 'Tab 1', content: <div>Content</div>, icon: <span data-testid="icon">★</span> },
+      {
+        name: 'tab1',
+        label: 'Tab 1',
+        content: <div>Content</div>,
+        icon: <span data-testid="icon">★</span>,
+      },
     ];
     render(<Tabs tabs={tabs} />);
     expect(screen.getByTestId('icon')).toBeInTheDocument();

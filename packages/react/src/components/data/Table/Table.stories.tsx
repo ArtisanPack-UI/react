@@ -30,11 +30,7 @@ const headers = [
     key: 'status',
     label: 'Status',
     render: (value: unknown) => (
-      <Badge
-        value={value as string}
-        color={value === 'Active' ? 'success' : 'neutral'}
-        size="sm"
-      />
+      <Badge value={value as string} color={value === 'Active' ? 'success' : 'neutral'} size="sm" />
     ),
   },
 ];
@@ -79,7 +75,7 @@ export const WithActions: Story = {
     headers,
     rows: users,
     keyBy: 'id',
-    renderActions: (row: Record<string, unknown>) => (
+    renderActions: (_row: Record<string, unknown>) => (
       <div className="flex gap-1">
         <Button label="Edit" size="xs" color="ghost" />
         <Button label="Delete" size="xs" color="error" />
@@ -102,14 +98,7 @@ export const Sortable: Story = {
         : String(bVal).localeCompare(String(aVal));
     });
     return (
-      <Table
-        headers={headers}
-        rows={sorted}
-        keyBy="id"
-        sortBy={sort}
-        onSort={setSort}
-        hoverable
-      />
+      <Table headers={headers} rows={sorted} keyBy="id" sortBy={sort} onSort={setSort} hoverable />
     );
   },
 };

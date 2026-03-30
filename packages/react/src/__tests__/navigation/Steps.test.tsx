@@ -62,17 +62,13 @@ describe('Steps', () => {
   });
 
   it('renders icons', () => {
-    const steps: StepItem[] = [
-      { label: 'Step 1', icon: <span data-testid="icon">★</span> },
-    ];
+    const steps: StepItem[] = [{ label: 'Step 1', icon: <span data-testid="icon">★</span> }];
     render(<Steps steps={steps} />);
     expect(screen.getByTestId('icon')).toBeInTheDocument();
   });
 
   it('supports data-content attribute', () => {
-    const steps: StepItem[] = [
-      { label: 'Step 1', dataContent: '✓' },
-    ];
+    const steps: StepItem[] = [{ label: 'Step 1', dataContent: '✓' }];
     render(<Steps steps={steps} currentStep={0} color="primary" />);
     const item = screen.getByLabelText('Progress').querySelector('.step');
     expect(item).toHaveAttribute('data-content', '✓');

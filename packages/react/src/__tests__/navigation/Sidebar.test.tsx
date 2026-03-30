@@ -5,11 +5,7 @@ import { Sidebar } from '../../components/navigation/Sidebar/Sidebar';
 describe('Sidebar', () => {
   it('renders children content', () => {
     render(
-      <Sidebar
-        open={false}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
         <span data-testid="content">Main</span>
       </Sidebar>,
     );
@@ -31,11 +27,7 @@ describe('Sidebar', () => {
 
   it('applies drawer-open class when open', () => {
     const { container } = render(
-      <Sidebar
-        open={true}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -44,11 +36,7 @@ describe('Sidebar', () => {
 
   it('does not apply drawer-open when closed', () => {
     const { container } = render(
-      <Sidebar
-        open={false}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -57,12 +45,7 @@ describe('Sidebar', () => {
 
   it('applies drawer-end for right side', () => {
     const { container } = render(
-      <Sidebar
-        open={false}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-        side="right"
-      >
+      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>} side="right">
         Main
       </Sidebar>,
     );
@@ -71,11 +54,7 @@ describe('Sidebar', () => {
 
   it('renders sidebar with navigation role', () => {
     render(
-      <Sidebar
-        open={true}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -85,11 +64,7 @@ describe('Sidebar', () => {
   it('calls onOpenChange when toggle changes', () => {
     const onOpenChange = vi.fn();
     render(
-      <Sidebar
-        open={false}
-        onOpenChange={onOpenChange}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={false} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -101,11 +76,7 @@ describe('Sidebar', () => {
   it('closes on Escape key', () => {
     const onOpenChange = vi.fn();
     render(
-      <Sidebar
-        open={true}
-        onOpenChange={onOpenChange}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={true} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -116,11 +87,7 @@ describe('Sidebar', () => {
   it('does not close on Escape when already closed', () => {
     const onOpenChange = vi.fn();
     render(
-      <Sidebar
-        open={false}
-        onOpenChange={onOpenChange}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar open={false} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );
@@ -130,12 +97,7 @@ describe('Sidebar', () => {
 
   it('applies custom width class', () => {
     render(
-      <Sidebar
-        open={true}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-        width="w-64"
-      >
+      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>} width="w-64">
         Main
       </Sidebar>,
     );
@@ -159,12 +121,7 @@ describe('Sidebar', () => {
   it('forwards ref', () => {
     const ref = vi.fn();
     render(
-      <Sidebar
-        ref={ref}
-        open={false}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-      >
+      <Sidebar ref={ref} open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
         Main
       </Sidebar>,
     );

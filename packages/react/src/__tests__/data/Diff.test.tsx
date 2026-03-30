@@ -54,9 +54,7 @@ describe('Diff', () => {
   });
 
   it('applies custom className', () => {
-    const { container } = render(
-      <Diff oldContent="a" newContent="b" className="custom-diff" />,
-    );
+    const { container } = render(<Diff oldContent="a" newContent="b" className="custom-diff" />);
     expect(container.firstChild).toHaveClass('custom-diff');
   });
 
