@@ -79,5 +79,9 @@
     "apexcharts": { "optional": true },
     "react-apexcharts": { "optional": true }
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "license": "MIT"
 }
