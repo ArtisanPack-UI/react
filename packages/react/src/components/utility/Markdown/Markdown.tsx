@@ -42,11 +42,12 @@ function defaultRenderMarkdown(source: string): string {
 
   const isSafeUrl = (url: string): boolean => {
     // Strip ASCII C0 control characters that can bypass scheme detection
-    // eslint-disable-next-line no-control-regex
+    /* eslint-disable no-control-regex */
     const trimmed = url
       .replace(/[\x00-\x1f\x7f]/g, '')
       .trim()
       .toLowerCase();
+    /* eslint-enable no-control-regex */
     if (/^(https?:|mailto:|\/|#)/.test(trimmed)) {
       return true;
     }
