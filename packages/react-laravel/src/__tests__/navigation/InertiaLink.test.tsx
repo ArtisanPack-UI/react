@@ -96,5 +96,9 @@ describe('InertiaLink', () => {
     );
     const link = screen.getByTestId('inertia-link');
     expect(link).toHaveAttribute('tabindex', '-1');
+
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
+    link.dispatchEvent(clickEvent);
+    expect(clickEvent.defaultPrevented).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, type ChangeEvent } from 'react';
 import { useForm, type InertiaFormProps } from '@inertiajs/react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,9 +25,7 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
     name: K;
     value: TForm[K];
     error: string | undefined;
-    onChange: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-    ) => void;
+    onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
     onBlur: () => void;
   };
 
@@ -41,7 +39,7 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
     name: K;
     checked: boolean;
     error: string | undefined;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   };
 
   /** Submit as POST to the given URL */
@@ -95,9 +93,7 @@ export function useInertiaForm<TForm extends FormDataRecord>(
       name,
       value: form.data[name],
       error: (form.errors as Record<string, string | undefined>)[name],
-      onChange: (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-      ) => {
+      onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form.setData(name as any, e.target.value as any);
       },
@@ -113,7 +109,7 @@ export function useInertiaForm<TForm extends FormDataRecord>(
       name,
       checked: Boolean(form.data[name]),
       error: (form.errors as Record<string, string | undefined>)[name],
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange: (e: ChangeEvent<HTMLInputElement>) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form.setData(name as any, e.target.checked as any);
       },

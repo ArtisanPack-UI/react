@@ -44,9 +44,9 @@ export interface AuthProps {
  * ```
  */
 export interface SharedPageProps {
-  auth: AuthProps;
-  flash: FlashMessages;
-  errors: Record<string, string>;
+  auth?: AuthProps;
+  flash?: FlashMessages;
+  errors?: Record<string, string>;
   [key: string]: unknown;
 }
 

@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, type ReactElement } from 'react';
+import { forwardRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
 import { Breadcrumbs, type BreadcrumbsProps, type BreadcrumbItem } from '@artisanpack-ui/react';
 
@@ -24,16 +24,15 @@ function toBreadcrumbItems(items: InertiaBreadcrumbItem[]): BreadcrumbItem[] {
 
     return {
       ...rest,
-      renderLink: (props): ReactElement => {
-        const ariaCurrent = (props as Record<string, unknown>)['aria-current'] as
-          | 'page'
-          | undefined;
-        return (
-          <Link href={href} className={props.className} aria-current={ariaCurrent}>
-            {props.children}
-          </Link>
-        );
-      },
+      renderLink: (props: {
+        className?: string;
+        children: ReactNode;
+        'aria-current'?: 'page';
+      }): ReactElement => (
+        <Link href={href} className={props.className} aria-current={props['aria-current']}>
+          {props.children}
+        </Link>
+      ),
     };
   });
 }

@@ -43,7 +43,7 @@ describe('InertiaBreadcrumbs', () => {
     );
 
     expect(screen.getByText('Current Page')).toBeInTheDocument();
-    expect(screen.queryByTestId('inertia-link-current-page')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Current Page' })).not.toBeInTheDocument();
   });
 
   it('has proper navigation aria label', () => {

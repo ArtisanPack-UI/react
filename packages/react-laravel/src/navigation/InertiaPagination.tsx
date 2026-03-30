@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback, useMemo } from 'react';
 import { router } from '@inertiajs/react';
 import { Pagination, type PaginationProps } from '@artisanpack-ui/react';
 import type { LaravelPaginator } from '../types';
@@ -41,6 +41,10 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
     },
     ref,
   ) => {
+    // Stabilize preserveParams to avoid re-creating handlePageChange on every render
+    // when consumers pass object literals
+    const preserveParamsKey = useMemo(() => JSON.stringify(preserveParams ?? {}), [preserveParams]);
+
     const handlePageChange = useCallback(
       (page: number) => {
         if (onChange) {
@@ -51,11 +55,10 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
         const url = new URL(paginator.path, window.location.origin);
         url.searchParams.set(pageParam, String(page));
 
-        if (preserveParams) {
-          Object.entries(preserveParams).forEach(([key, value]) => {
-            url.searchParams.set(key, String(value));
-          });
-        }
+        const params: Record<string, string | number> = preserveParams ?? {};
+        Object.entries(params).forEach(([key, value]) => {
+          url.searchParams.set(key, String(value));
+        });
 
         router.get(
           url.pathname + url.search,
@@ -67,7 +70,8 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
           },
         );
       },
-      [paginator.path, pageParam, preserveParams, preserveScroll, preserveState, only, onChange],
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [paginator.path, pageParam, preserveParamsKey, preserveScroll, preserveState, only, onChange],
     );
 
     return (

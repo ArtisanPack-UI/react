@@ -53,6 +53,7 @@ export const InertiaLink = forwardRef<HTMLAnchorElement, InertiaLinkProps>(
       loading = false,
       className,
       children,
+      onClick: userOnClick,
       ...rest
     },
     ref,
@@ -67,12 +68,14 @@ export const InertiaLink = forwardRef<HTMLAnchorElement, InertiaLinkProps>(
         )
       : className;
 
-    const handleClick = loading
-      ? (e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      : undefined;
+    const handleClick = (e: React.MouseEvent) => {
+      if (loading) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      userOnClick?.(e);
+    };
 
     return (
       <Link

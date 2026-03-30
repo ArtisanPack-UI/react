@@ -5,6 +5,8 @@ import { InertiaToastProvider } from '../../feedback/InertiaToastProvider';
 const mockUsePage = vi.fn();
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
+const mockToastWarning = vi.fn();
+const mockToastInfo = vi.fn();
 
 vi.mock('@inertiajs/react', () => ({
   usePage: () => mockUsePage(),
@@ -18,8 +20,8 @@ vi.mock('@artisanpack-ui/react', () => ({
     show: vi.fn(),
     success: mockToastSuccess,
     error: mockToastError,
-    warning: vi.fn(),
-    info: vi.fn(),
+    warning: mockToastWarning,
+    info: mockToastInfo,
     dismiss: vi.fn(),
     dismissAll: vi.fn(),
   }),
@@ -30,6 +32,8 @@ describe('InertiaToastProvider', () => {
     mockUsePage.mockClear();
     mockToastSuccess.mockClear();
     mockToastError.mockClear();
+    mockToastWarning.mockClear();
+    mockToastInfo.mockClear();
   });
 
   it('renders children inside ToastProvider', () => {
@@ -92,5 +96,43 @@ describe('InertiaToastProvider', () => {
 
     expect(mockToastSuccess).not.toHaveBeenCalled();
     expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockToastWarning).not.toHaveBeenCalled();
+    expect(mockToastInfo).not.toHaveBeenCalled();
+  });
+
+  it('triggers warning toast from flash message', () => {
+    mockUsePage.mockReturnValue({
+      props: { flash: { warning: 'Be careful' } },
+      url: '/items',
+    });
+
+    render(
+      <InertiaToastProvider>
+        <span>Content</span>
+      </InertiaToastProvider>,
+    );
+
+    expect(mockToastWarning).toHaveBeenCalledWith('Be careful');
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockToastInfo).not.toHaveBeenCalled();
+  });
+
+  it('triggers info toast from flash message', () => {
+    mockUsePage.mockReturnValue({
+      props: { flash: { info: 'For your info' } },
+      url: '/items',
+    });
+
+    render(
+      <InertiaToastProvider>
+        <span>Content</span>
+      </InertiaToastProvider>,
+    );
+
+    expect(mockToastInfo).toHaveBeenCalledWith('For your info');
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockToastWarning).not.toHaveBeenCalled();
   });
 });
