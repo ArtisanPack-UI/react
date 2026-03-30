@@ -60,9 +60,8 @@ When changesets land on `main`, the release job in `ci.yml` uses `changesets/act
 
 ### 3. Merge the Version Packages PR to publish
 
-Merging the "Version Packages" PR triggers the release job again. This time there are no pending changesets, so Changesets runs `npx changeset publish` which:
-- Builds all packages (`npm run build`)
-- Publishes each changed package to npm with the `latest` tag
+Merging the "Version Packages" PR triggers the release job again. This time there are no pending changesets, so the CI pipeline builds all packages first (`npm run build`), then `npx changeset publish` runs which:
+- Publishes each changed package to npm with the `latest` tag (using the already-built artifacts)
 - Creates GitHub releases with changelog content
 - Provenance attestation is included automatically (via `id-token: write` permission)
 
@@ -184,8 +183,8 @@ This means if any package gets a minor bump, all three packages are bumped to th
 
 ### Snapshot version looks wrong
 
-- Snapshot versions are generated automatically: `0.0.0-<tag>-<timestamp>`
-- The base version comes from the current package.json version
+- Snapshot versions are derived from the current `version` in each package.json, e.g. `1.2.3-snapshot-20260330120000`
+- If packages are still at `0.0.0` (before any stable release), snapshots will look like `0.0.0-snapshot-20260330120000`
 
 ### Provenance attestation fails
 
