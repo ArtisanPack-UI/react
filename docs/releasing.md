@@ -92,7 +92,7 @@ Snapshots let you publish a test version without affecting the stable `latest` t
 The workflow:
 1. Installs dependencies and builds all packages
 2. Runs the full test suite
-3. Runs `changeset version --snapshot <tag>` which creates temporary snapshot versions like `0.0.0-snapshot-20260330120000`
+3. Runs `changeset version --snapshot <tag>` which creates temporary snapshot versions like `<current-version>-snapshot-<timestamp>` (e.g. `1.2.3-snapshot-20260330120000`)
 4. Runs `changeset publish --tag <tag>` which publishes to npm under the specified dist-tag
 
 ### Installing a snapshot
