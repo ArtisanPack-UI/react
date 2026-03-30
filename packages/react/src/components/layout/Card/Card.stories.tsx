@@ -135,7 +135,7 @@ export const Composition: Story = {
           <Button label="Select" color="secondary" size="sm" />
         </div>
       </Card>
-      <Card title="Plan C" subtitle="$29/mo" glass>
+      <Card title="Plan C" subtitle="$29/mo" bordered>
         <p>Enterprise support included.</p>
         <div className="card-actions justify-end mt-2">
           <Button label="Contact Us" color="accent" size="sm" />
