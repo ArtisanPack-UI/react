@@ -9,7 +9,7 @@ export interface FlashMessages {
   error?: string;
   warning?: string;
   info?: string;
-  [key: string]: string | undefined;
+  [key: string]: unknown;
 }
 
 /**

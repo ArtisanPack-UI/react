@@ -53,19 +53,25 @@ describe('InertiaLink', () => {
   it('renders icon before children', () => {
     render(
       <InertiaLink href="/icon" icon={<span data-testid="icon">+</span>}>
-        Add
+        <span data-testid="label">Add</span>
       </InertiaLink>,
     );
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
+    const icon = screen.getByTestId('icon');
+    const label = screen.getByTestId('label');
+    expect(icon.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders iconRight after children', () => {
     render(
       <InertiaLink href="/icon" iconRight={<span data-testid="icon-right">→</span>}>
-        Next
+        <span data-testid="label">Next</span>
       </InertiaLink>,
     );
-    expect(screen.getByTestId('icon-right')).toBeInTheDocument();
+    const label = screen.getByTestId('label');
+    const iconRight = screen.getByTestId('icon-right');
+    expect(
+      label.compareDocumentPosition(iconRight) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('shows loading spinner when loading', () => {

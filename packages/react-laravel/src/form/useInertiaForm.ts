@@ -1,5 +1,6 @@
 import { useCallback, useMemo, type ChangeEvent } from 'react';
 import { useForm, type InertiaFormProps } from '@inertiajs/react';
+import type { UseFormSubmitOptions } from '@inertiajs/core';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormDataRecord = Record<string, any>;
@@ -43,16 +44,16 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
   };
 
   /** Submit as POST to the given URL */
-  post: (url: string) => void;
+  post: (url: string, options?: UseFormSubmitOptions) => void;
 
   /** Submit as PUT to the given URL */
-  put: (url: string) => void;
+  put: (url: string, options?: UseFormSubmitOptions) => void;
 
   /** Submit as PATCH to the given URL */
-  patch: (url: string) => void;
+  patch: (url: string, options?: UseFormSubmitOptions) => void;
 
   /** Submit as DELETE to the given URL */
-  destroy: (url: string) => void;
+  destroy: (url: string, options?: UseFormSubmitOptions) => void;
 }
 
 /**
@@ -117,10 +118,22 @@ export function useInertiaForm<TForm extends FormDataRecord>(
     [form],
   );
 
-  const post = useCallback((url: string) => form.post(url), [form]);
-  const put = useCallback((url: string) => form.put(url), [form]);
-  const patch = useCallback((url: string) => form.patch(url), [form]);
-  const destroy = useCallback((url: string) => form.delete(url), [form]);
+  const post = useCallback(
+    (url: string, options?: UseFormSubmitOptions) => form.post(url, options),
+    [form],
+  );
+  const put = useCallback(
+    (url: string, options?: UseFormSubmitOptions) => form.put(url, options),
+    [form],
+  );
+  const patch = useCallback(
+    (url: string, options?: UseFormSubmitOptions) => form.patch(url, options),
+    [form],
+  );
+  const destroy = useCallback(
+    (url: string, options?: UseFormSubmitOptions) => form.delete(url, options),
+    [form],
+  );
 
   return useMemo(
     () => ({ form, field, checkbox, post, put, patch, destroy }),
