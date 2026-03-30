@@ -92,7 +92,7 @@ Snapshots let you publish a test version without affecting the stable `latest` t
 The workflow:
 1. Installs dependencies and builds all packages
 2. Runs the full test suite
-3. Runs `changeset version --snapshot <tag>` which creates temporary snapshot versions like `<current-version>-snapshot-<timestamp>` (e.g. `1.2.3-snapshot-20260330120000`)
+3. Runs `changeset version --snapshot <tag>` which creates temporary snapshot versions in the format `0.0.0-<tag>-<YYYYMMDDHHMMSS>` (e.g. `0.0.0-snapshot-20260330120000`). To use the current package version as the base instead, set `snapshot.useCalculatedVersion: true` in `.changeset/config.json`.
 4. Runs `changeset publish --tag <tag>` which publishes to npm under the specified dist-tag
 
 ### Installing a snapshot
@@ -183,8 +183,8 @@ This means if any package gets a minor bump, all three packages are bumped to th
 
 ### Snapshot version looks wrong
 
-- Snapshot versions are derived from the current `version` in each package.json, e.g. `1.2.3-snapshot-20260330120000`
-- If packages are still at `0.0.0` (before any stable release), snapshots will look like `0.0.0-snapshot-20260330120000`
+- By default, Changesets generates snapshot versions as `0.0.0-<tag>-<YYYYMMDDHHMMSS>` (e.g. `0.0.0-snapshot-20260330120000`)
+- To use the current package version as the base (e.g. `1.2.3-snapshot-...`), set `snapshot.useCalculatedVersion: true` in `.changeset/config.json`
 
 ### Provenance attestation fails
 
