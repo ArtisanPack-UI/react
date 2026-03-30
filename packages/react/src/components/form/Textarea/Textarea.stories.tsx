@@ -28,7 +28,7 @@ export const WithHint: Story = {
 export const WithError: Story = {
   args: {
     label: 'Comment',
-    value: '',
+    defaultValue: '',
     error: 'Comment is required.',
   },
 };

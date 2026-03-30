@@ -33,7 +33,12 @@ export const WithFigure: Story = {
     children: <p>A card with a figure on top.</p>,
     figure: (
       <img
-        src="https://placehold.co/400x200"
+        src={
+          'data:image/svg+xml,' +
+          encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="#6366f1"/><text x="200" y="108" text-anchor="middle" fill="#fff" font-size="24" font-family="sans-serif">400 × 200</text></svg>',
+          )
+        }
         alt="Placeholder"
         style={{ width: '100%', height: 200, objectFit: 'cover' }}
       />
@@ -85,7 +90,12 @@ export const HorizontalFigure: Story = {
     figurePosition: 'left',
     figure: (
       <img
-        src="https://placehold.co/200x200"
+        src={
+          'data:image/svg+xml,' +
+          encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#8b5cf6"/><text x="100" y="108" text-anchor="middle" fill="#fff" font-size="20" font-family="sans-serif">200 × 200</text></svg>',
+          )
+        }
         alt="Placeholder"
         style={{ width: 200, height: 200, objectFit: 'cover' }}
       />
@@ -97,7 +107,7 @@ export const HorizontalFigure: Story = {
 export const WithMenu: Story = {
   args: {
     title: 'Card with Menu',
-    menu: <button className="btn btn-ghost btn-sm">⋯</button>,
+    menu: <button className="btn btn-ghost btn-sm" aria-label="More options">⋯</button>,
     children: <p>A card with a menu button in the header.</p>,
   },
 };

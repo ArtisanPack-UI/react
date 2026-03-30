@@ -13,7 +13,7 @@ const meta: Meta<typeof Tooltip> = {
     },
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
+      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info', 'neutral'],
     },
   },
 };

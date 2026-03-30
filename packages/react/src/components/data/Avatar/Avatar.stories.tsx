@@ -29,7 +29,11 @@ export const Default: Story = {
 
 export const WithImage: Story = {
   args: {
-    image: 'https://placehold.co/96x96',
+    image:
+      'data:image/svg+xml,' +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#6366f1"/><text x="48" y="54" text-anchor="middle" fill="#fff" font-size="32" font-family="sans-serif">JM</text></svg>',
+      ),
     alt: 'User avatar',
   },
 };

@@ -1,5 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj, Decorator } from '@storybook/react-vite';
 import { Menu } from './Menu';
+
+const widthDecorator: Decorator = (Story) => (
+  <div className="w-56">
+    <Story />
+  </div>
+);
 
 const meta: Meta<typeof Menu> = {
   title: 'Navigation/Menu',
@@ -32,7 +38,7 @@ export const Default: Story = {
     items: basicItems,
     activeKey: 'home',
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };
 
 export const WithTitle: Story = {
@@ -41,7 +47,7 @@ export const WithTitle: Story = {
     items: basicItems,
     activeKey: 'home',
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };
 
 export const WithIcons: Story = {
@@ -53,7 +59,7 @@ export const WithIcons: Story = {
     ],
     activeKey: 'home',
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };
 
 export const WithDisabled: Story = {
@@ -64,7 +70,7 @@ export const WithDisabled: Story = {
     ],
     activeKey: 'home',
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };
 
 export const Nested: Story = {
@@ -84,7 +90,7 @@ export const Nested: Story = {
     ],
     activeKey: 'dashboard',
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };
 
 export const Horizontal: Story = {
@@ -101,5 +107,5 @@ export const Compact: Story = {
     activeKey: 'home',
     compact: true,
   },
-  decorators: [(Story) => <div className="w-56"><Story /></div>],
+  decorators: [widthDecorator],
 };

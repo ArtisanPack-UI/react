@@ -29,7 +29,7 @@ export const WithHint: Story = {
 export const WithError: Story = {
   args: {
     label: 'Username',
-    value: 'ab',
+    defaultValue: 'ab',
     error: 'Username must be at least 3 characters.',
   },
 };

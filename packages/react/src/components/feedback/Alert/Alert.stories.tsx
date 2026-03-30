@@ -65,7 +65,7 @@ export const AllColors: Story = {
 export const WithIcon: Story = {
   args: {
     color: 'info',
-    icon: <span>ℹ️</span>,
+    icon: <span aria-hidden="true">ℹ️</span>,
     children: 'Alert with a custom icon.',
   },
 };

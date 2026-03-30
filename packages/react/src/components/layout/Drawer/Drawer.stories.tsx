@@ -12,6 +12,8 @@ const meta: Meta<typeof Drawer> = {
 export default meta;
 type Story = StoryObj<typeof Drawer>;
 
+const handleLinkClick = (e: React.MouseEvent) => e.preventDefault();
+
 export const Default: Story = {
   render: () => {
     const [open, setOpen] = useState(false);
@@ -21,9 +23,9 @@ export const Default: Story = {
         onClose={() => setOpen(false)}
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="/home" onClick={handleLinkClick}>Home</a></li>
+            <li><a href="/about" onClick={handleLinkClick}>About</a></li>
+            <li><a href="/contact" onClick={handleLinkClick}>Contact</a></li>
           </ul>
         }
       >
@@ -46,9 +48,9 @@ export const EndSide: Story = {
         end
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Profile</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="/settings" onClick={handleLinkClick}>Settings</a></li>
+            <li><a href="/profile" onClick={handleLinkClick}>Profile</a></li>
+            <li><a href="/logout" onClick={handleLinkClick}>Logout</a></li>
           </ul>
         }
       >
