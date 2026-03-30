@@ -1,7 +1,10 @@
 import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface MarkdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'dangerouslySetInnerHTML'> {
+export interface MarkdownProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'children' | 'dangerouslySetInnerHTML'
+> {
   /** Raw markdown source text */
   source: string;
   /** Custom render function — receives the raw source and should return an HTML string.
@@ -40,7 +43,10 @@ function defaultRenderMarkdown(source: string): string {
   const isSafeUrl = (url: string): boolean => {
     // Strip ASCII C0 control characters that can bypass scheme detection
     // eslint-disable-next-line no-control-regex
-    const trimmed = url.replace(/[\x00-\x1f\x7f]/g, '').trim().toLowerCase();
+    const trimmed = url
+      .replace(/[\x00-\x1f\x7f]/g, '')
+      .trim()
+      .toLowerCase();
     if (/^(https?:|mailto:|\/|#)/.test(trimmed)) {
       return true;
     }

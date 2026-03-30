@@ -32,7 +32,10 @@ export const ErrorDisplay = forwardRef<HTMLDivElement, ErrorDisplayProps>(
       <div
         ref={ref}
         role="alert"
-        className={cn('flex flex-col items-center justify-center gap-4 py-12 text-center', className)}
+        className={cn(
+          'flex flex-col items-center justify-center gap-4 py-12 text-center',
+          className,
+        )}
         {...rest}
       >
         {icon && <div className="text-error text-6xl">{icon}</div>}

@@ -90,8 +90,8 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const closeFocusTrigger = useCallback(() => {
       setOpen(false);
-      const el = triggerRef.current
-        ?? containerRef.current?.querySelector<HTMLElement>('[aria-haspopup]');
+      const el =
+        triggerRef.current ?? containerRef.current?.querySelector<HTMLElement>('[aria-haspopup]');
       el?.focus();
     }, [setOpen]);
 
@@ -99,10 +99,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       if (!isOpen) return;
 
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
           setOpen(false);
         }
       };
@@ -114,9 +111,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const getMenuItemButtons = (): HTMLElement[] => {
       if (!menuRef.current) return [];
       return Array.from(
-        menuRef.current.querySelectorAll<HTMLElement>(
-          'button[role="menuitem"]:not([disabled])',
-        ),
+        menuRef.current.querySelectorAll<HTMLElement>('button[role="menuitem"]:not([disabled])'),
       );
     };
 
@@ -171,8 +166,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         focusItem(next);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const next =
-          (focusedIndex.current - 1 + items.length) % items.length;
+        const next = (focusedIndex.current - 1 + items.length) % items.length;
         focusItem(next);
       } else if (e.key === 'Home') {
         e.preventDefault();
@@ -203,8 +197,12 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const renderTrigger = () => {
       if (trigger) {
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
-        const originalOnClick = triggerEl.props.onClick as ((...args: unknown[]) => void) | undefined;
-        const originalOnKeyDown = triggerEl.props.onKeyDown as ((...args: unknown[]) => void) | undefined;
+        const originalOnClick = triggerEl.props.onClick as
+          | ((...args: unknown[]) => void)
+          | undefined;
+        const originalOnKeyDown = triggerEl.props.onKeyDown as
+          | ((...args: unknown[]) => void)
+          | undefined;
 
         return cloneElement(triggerEl, {
           'aria-haspopup': 'true' as const,
@@ -229,7 +227,9 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
       return (
         <button
-          ref={(node) => { triggerRef.current = node; }}
+          ref={(node) => {
+            triggerRef.current = node;
+          }}
           type="button"
           className="btn btn-ghost btn-sm"
           aria-haspopup="true"
@@ -290,12 +290,7 @@ export interface DropdownItemProps extends Omit<HTMLAttributes<HTMLLIElement>, '
 export const DropdownItem = forwardRef<HTMLLIElement, DropdownItemProps>(
   ({ disabled = false, className, children, onClick, ...rest }, ref) => {
     return (
-      <li
-        ref={ref}
-        role="none"
-        className={cn(disabled && 'disabled', className)}
-        {...rest}
-      >
+      <li ref={ref} role="none" className={cn(disabled && 'disabled', className)} {...rest}>
         <button
           type="button"
           role="menuitem"

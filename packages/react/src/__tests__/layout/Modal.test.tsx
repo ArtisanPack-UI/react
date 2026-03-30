@@ -58,55 +58,91 @@ describe('Modal', () => {
 
   it('renders close button by default', () => {
     render(
-      <Modal open onClose={vi.fn()}>Content</Modal>,
+      <Modal open onClose={vi.fn()}>
+        Content
+      </Modal>,
     );
     expect(screen.getByLabelText('Close')).toBeInTheDocument();
   });
 
   it('hides close button when persistent', () => {
     render(
-      <Modal open onClose={vi.fn()} persistent>Content</Modal>,
+      <Modal open onClose={vi.fn()} persistent>
+        Content
+      </Modal>,
     );
     expect(screen.queryByLabelText('Close')).not.toBeInTheDocument();
   });
 
   it('calls onClose when close button clicked', () => {
     const onClose = vi.fn();
-    render(<Modal open onClose={onClose}>Content</Modal>);
+    render(
+      <Modal open onClose={onClose}>
+        Content
+      </Modal>,
+    );
     fireEvent.click(screen.getByLabelText('Close'));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
   it('calls showModal when open becomes true', () => {
-    render(<Modal open onClose={vi.fn()}>Content</Modal>);
+    render(
+      <Modal open onClose={vi.fn()}>
+        Content
+      </Modal>,
+    );
     expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
   });
 
   it('calls close when open becomes false', () => {
     const onClose = vi.fn();
-    const { rerender } = render(<Modal open onClose={onClose}>Content</Modal>);
-    rerender(<Modal open={false} onClose={onClose}>Content</Modal>);
+    const { rerender } = render(
+      <Modal open onClose={onClose}>
+        Content
+      </Modal>,
+    );
+    rerender(
+      <Modal open={false} onClose={onClose}>
+        Content
+      </Modal>,
+    );
     expect(HTMLDialogElement.prototype.close).toHaveBeenCalled();
   });
 
   it('applies glass effect', () => {
-    render(<Modal open onClose={vi.fn()} glass>Content</Modal>);
+    render(
+      <Modal open onClose={vi.fn()} glass>
+        Content
+      </Modal>,
+    );
     expect(document.querySelector('.modal-box')).toHaveClass('glass');
   });
 
   it('applies bottom positioning', () => {
-    render(<Modal open onClose={vi.fn()} bottom>Content</Modal>);
+    render(
+      <Modal open onClose={vi.fn()} bottom>
+        Content
+      </Modal>,
+    );
     expect(document.querySelector('.modal')).toHaveClass('modal-bottom');
   });
 
   it('has aria-modal attribute', () => {
-    render(<Modal open onClose={vi.fn()}>Content</Modal>);
+    render(
+      <Modal open onClose={vi.fn()}>
+        Content
+      </Modal>,
+    );
     expect(document.querySelector('dialog')).toHaveAttribute('aria-modal', 'true');
   });
 
   it('forwards ref', () => {
     const ref = vi.fn();
-    render(<Modal ref={ref} open onClose={vi.fn()}>Content</Modal>);
+    render(
+      <Modal ref={ref} open onClose={vi.fn()}>
+        Content
+      </Modal>,
+    );
     expect(ref).toHaveBeenCalled();
   });
 });

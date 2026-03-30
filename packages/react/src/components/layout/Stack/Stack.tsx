@@ -54,16 +54,7 @@ const justifyMap: Record<Justify, string> = {
  */
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
   (
-    {
-      direction = 'vertical',
-      gap = 2,
-      align,
-      justify,
-      wrap = false,
-      className,
-      children,
-      ...rest
-    },
+    { direction = 'vertical', gap = 2, align, justify, wrap = false, className, children, ...rest },
     ref,
   ) => {
     return (

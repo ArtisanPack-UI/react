@@ -86,14 +86,7 @@ describe('Pagination', () => {
   });
 
   it('renders custom previous/next labels', () => {
-    render(
-      <Pagination
-        currentPage={2}
-        totalPages={3}
-        previousLabel="Prev"
-        nextLabel="Next"
-      />,
-    );
+    render(<Pagination currentPage={2} totalPages={3} previousLabel="Prev" nextLabel="Next" />);
     expect(screen.getByText('Prev')).toBeInTheDocument();
     expect(screen.getByText('Next')).toBeInTheDocument();
   });

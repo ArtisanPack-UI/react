@@ -71,8 +71,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           htmlFor={id}
         >
-          {icon && <span className="opacity-50" aria-hidden="true">{icon}</span>}
-          {prefix && <span className="opacity-50" aria-hidden="true">{prefix}</span>}
+          {icon && (
+            <span className="opacity-50" aria-hidden="true">
+              {icon}
+            </span>
+          )}
+          {prefix && (
+            <span className="opacity-50" aria-hidden="true">
+              {prefix}
+            </span>
+          )}
           <input
             ref={ref}
             id={id}
@@ -83,10 +91,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             required={required}
             {...rest}
           />
-          {inline && label && (
-            <span className="label">{label}</span>
+          {inline && label && <span className="label">{label}</span>}
+          {suffix && (
+            <span className="opacity-50" aria-hidden="true">
+              {suffix}
+            </span>
           )}
-          {suffix && <span className="opacity-50" aria-hidden="true">{suffix}</span>}
           {clearable && (
             <button
               type="button"
@@ -98,7 +108,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               ✕
             </button>
           )}
-          {iconRight && <span className="opacity-50" aria-hidden="true">{iconRight}</span>}
+          {iconRight && (
+            <span className="opacity-50" aria-hidden="true">
+              {iconRight}
+            </span>
+          )}
         </label>
         {hint && !error && (
           <p id={hintId} className="fieldset-label">

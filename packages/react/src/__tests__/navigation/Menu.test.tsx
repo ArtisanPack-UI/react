@@ -124,9 +124,7 @@ describe('Menu', () => {
       {
         key: 'parent',
         label: 'Parent',
-        children: [
-          { key: 'child1', label: 'Child 1' },
-        ],
+        children: [{ key: 'child1', label: 'Child 1' }],
       },
     ];
     const { container } = render(<Menu items={items} activeKey="other" />);
@@ -140,7 +138,13 @@ describe('Menu', () => {
         key: 'link',
         label: 'Link',
         renderLink: ({ className, children, onClick, ...ariaProps }) => (
-          <a href="/test" className={className} data-testid="custom-link" onClick={onClick} {...ariaProps}>
+          <a
+            href="/test"
+            className={className}
+            data-testid="custom-link"
+            onClick={onClick}
+            {...ariaProps}
+          >
             {children}
           </a>
         ),

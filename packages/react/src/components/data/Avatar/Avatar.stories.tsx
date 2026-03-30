@@ -8,7 +8,17 @@ const meta: Meta<typeof Avatar> = {
   argTypes: {
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info', 'neutral'],
+      options: [
+        undefined,
+        'primary',
+        'secondary',
+        'accent',
+        'success',
+        'warning',
+        'error',
+        'info',
+        'neutral',
+      ],
     },
     size: {
       control: 'select',

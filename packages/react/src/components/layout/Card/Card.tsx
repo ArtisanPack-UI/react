@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  type AnchorHTMLAttributes,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
+import { forwardRef, type AnchorHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 interface CardBaseProps {
@@ -81,9 +76,7 @@ export const Card = forwardRef<HTMLDivElement | HTMLAnchorElement, CardProps>(
           {header ?? (
             <>
               {title && <h2 className="card-title">{title}</h2>}
-              {subtitle && (
-                <p className="text-base-content/60 text-sm">{subtitle}</p>
-              )}
+              {subtitle && <p className="text-base-content/60 text-sm">{subtitle}</p>}
             </>
           )}
         </div>
@@ -95,21 +88,15 @@ export const Card = forwardRef<HTMLDivElement | HTMLAnchorElement, CardProps>(
       <div className="card-body">
         {headerEl}
         {children}
-        {footer && (
-          <div className="card-actions justify-end">{footer}</div>
-        )}
+        {footer && <div className="card-actions justify-end">{footer}</div>}
       </div>
     );
 
     const cardContent = (
       <>
-        {figurePosition === 'top' || figurePosition === 'left'
-          ? figureEl
-          : null}
+        {figurePosition === 'top' || figurePosition === 'left' ? figureEl : null}
         {body}
-        {figurePosition === 'bottom' || figurePosition === 'right'
-          ? figureEl
-          : null}
+        {figurePosition === 'bottom' || figurePosition === 'right' ? figureEl : null}
       </>
     );
 

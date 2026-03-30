@@ -2,7 +2,10 @@ import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
+export interface CheckboxProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type'
+> {
   /** Checkbox label */
   label?: string;
   /** Position label on the right */
@@ -60,11 +63,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         ref={ref}
         id={id}
         type="checkbox"
-        className={cn(
-          'checkbox',
-          color && colorMap[color],
-          className,
-        )}
+        className={cn('checkbox', color && colorMap[color], className)}
         required={required}
         {...rest}
         aria-invalid={error ? true : undefined}
@@ -93,10 +92,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             )}
           </label>
           {hint && !error && (
-            <p id={hintId} className="fieldset-label">{hint}</p>
+            <p id={hintId} className="fieldset-label">
+              {hint}
+            </p>
           )}
           {error && (
-            <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+            <p id={errorId} className="fieldset-label text-error" role="alert">
+              {error}
+            </p>
           )}
         </fieldset>
       );
@@ -117,10 +120,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           )}
         </label>
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

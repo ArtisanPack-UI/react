@@ -9,7 +9,10 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface FileProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'value' | 'defaultValue'> {
+export interface FileProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type' | 'value' | 'defaultValue'
+> {
   /** File input label */
   label?: string;
   /** Helper text below the file input */
@@ -156,10 +159,14 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
             />
           )}
           {hint && !error && (
-            <p id={hintId} className="fieldset-label">{hint}</p>
+            <p id={hintId} className="fieldset-label">
+              {hint}
+            </p>
           )}
           {error && (
-            <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+            <p id={errorId} className="fieldset-label text-error" role="alert">
+              {error}
+            </p>
           )}
         </fieldset>
       );
@@ -193,10 +200,14 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
           />
         )}
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

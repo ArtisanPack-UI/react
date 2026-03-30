@@ -70,16 +70,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {required && <span className="text-error ml-1">*</span>}
           </legend>
         )}
-        <label
-          className={cn(
-            'select',
-            'w-full',
-            error && 'select-error',
-            className,
+        <label className={cn('select', 'w-full', error && 'select-error', className)} htmlFor={id}>
+          {icon && (
+            <span className="opacity-50" aria-hidden="true">
+              {icon}
+            </span>
           )}
-          htmlFor={id}
-        >
-          {icon && <span className="opacity-50" aria-hidden="true">{icon}</span>}
           <select
             ref={ref}
             id={id}
@@ -99,18 +95,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               const value = String(option[optionValue] ?? '');
               const optLabel = String(option[optionLabel] ?? '');
               return (
-                <option
-                  key={value || index}
-                  value={value}
-                  disabled={option.disabled === true}
-                >
+                <option key={value || index} value={value} disabled={option.disabled === true}>
                   {optLabel}
                 </option>
               );
             })}
             {children}
           </select>
-          {iconRight && <span className="opacity-50" aria-hidden="true">{iconRight}</span>}
+          {iconRight && (
+            <span className="opacity-50" aria-hidden="true">
+              {iconRight}
+            </span>
+          )}
         </label>
         {inline && label && (
           <label className="fieldset-label" htmlFor={id}>

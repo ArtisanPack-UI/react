@@ -43,11 +43,15 @@ const modeNameMap: Record<ColorScheme, string> = {
  * Must be used within a ThemeProvider.
  */
 export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
-  ({ size = 'md', modes = ['light', 'dark', 'system'], onClick: onClickProp, className, ...rest }, ref) => {
+  (
+    { size = 'md', modes = ['light', 'dark', 'system'], onClick: onClickProp, className, ...rest },
+    ref,
+  ) => {
     const { colorScheme, setColorScheme } = useTheme();
 
     const currentIndex = modes.indexOf(colorScheme);
-    const nextIndex = modes.length === 0 ? -1 : currentIndex === -1 ? 0 : (currentIndex + 1) % modes.length;
+    const nextIndex =
+      modes.length === 0 ? -1 : currentIndex === -1 ? 0 : (currentIndex + 1) % modes.length;
     const nextMode = nextIndex >= 0 ? modes[nextIndex] : undefined;
 
     const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
@@ -59,9 +63,10 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
     };
 
     const icon = iconMap[colorScheme];
-    const ariaLabel = nextMode && nextMode !== colorScheme
-      ? `Switch to ${modeNameMap[nextMode]}`
-      : `${modeNameMap[colorScheme]} (current)`;
+    const ariaLabel =
+      nextMode && nextMode !== colorScheme
+        ? `Switch to ${modeNameMap[nextMode]}`
+        : `${modeNameMap[colorScheme]} (current)`;
 
     return (
       <button
@@ -82,7 +87,9 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
           aria-hidden="true"
         >
           <path
-            {...(icon.fill !== 'none' ? { fillRule: 'evenodd' as const, clipRule: 'evenodd' as const } : {})}
+            {...(icon.fill !== 'none'
+              ? { fillRule: 'evenodd' as const, clipRule: 'evenodd' as const }
+              : {})}
             d={icon.path}
           />
         </svg>

@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useId,
-  useState,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
+import { forwardRef, useId, useState, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
@@ -51,12 +45,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
     const isControlled = open !== undefined;
     const isOpen = isControlled ? open : internalOpen;
 
-    const iconClass =
-      icon === 'arrow'
-        ? 'collapse-arrow'
-        : icon === 'plus'
-          ? 'collapse-plus'
-          : '';
+    const iconClass = icon === 'arrow' ? 'collapse-arrow' : icon === 'plus' ? 'collapse-plus' : '';
 
     const handleToggle = () => {
       if (disabled) return;
@@ -103,7 +92,9 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
             disabled={disabled}
           />
         )}
-        <div id={`collapse-title-${autoId}`} className="collapse-title font-semibold">{title}</div>
+        <div id={`collapse-title-${autoId}`} className="collapse-title font-semibold">
+          {title}
+        </div>
         <div className="collapse-content" id={`collapse-content-${autoId}`}>
           {children}
         </div>

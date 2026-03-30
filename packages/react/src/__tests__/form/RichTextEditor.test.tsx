@@ -15,12 +15,7 @@ describe('RichTextEditor', () => {
   });
 
   it('renders toolbar', () => {
-    render(
-      <RichTextEditor
-        label="Content"
-        toolbar={<button data-testid="bold-btn">B</button>}
-      />,
-    );
+    render(<RichTextEditor label="Content" toolbar={<button data-testid="bold-btn">B</button>} />);
     expect(screen.getByTestId('bold-btn')).toBeInTheDocument();
   });
 

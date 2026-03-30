@@ -76,9 +76,7 @@ describe('Calendar', () => {
   });
 
   it('renders non-interactive dots when onEventClick is absent', () => {
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'Meeting', date: '2025-01-15' },
-    ];
+    const events: CalendarEvent[] = [{ id: 1, title: 'Meeting', date: '2025-01-15' }];
     render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
     const dot = screen.getByTitle('Meeting');
     expect(dot.tagName).toBe('SPAN');
@@ -142,16 +140,8 @@ describe('Calendar', () => {
 
   it('fires onEventClick via click on event dot button', () => {
     const onEventClick = vi.fn();
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'Meeting', date: '2025-01-15' },
-    ];
-    render(
-      <Calendar
-        value={new Date(2025, 0, 15)}
-        events={events}
-        onEventClick={onEventClick}
-      />,
-    );
+    const events: CalendarEvent[] = [{ id: 1, title: 'Meeting', date: '2025-01-15' }];
+    render(<Calendar value={new Date(2025, 0, 15)} events={events} onEventClick={onEventClick} />);
     const dot = screen.getByLabelText('Meeting');
     expect(dot.tagName).toBe('BUTTON');
     fireEvent.click(dot);

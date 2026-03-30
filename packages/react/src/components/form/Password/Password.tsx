@@ -1,8 +1,10 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface PasswordProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size' | 'prefix'> {
+export interface PasswordProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'size' | 'prefix'
+> {
   /** Password label */
   label?: string;
   /** Helper text below the password input */
@@ -32,11 +34,7 @@ const EyeIcon = () => (
       strokeLinejoin="round"
       d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
     />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
 
@@ -89,11 +87,12 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
             {required && <span className="text-error ml-1">*</span>}
           </legend>
         )}
-        <label
-          className={cn('input w-full', error && 'input-error', className)}
-          htmlFor={id}
-        >
-          {icon && <span className="opacity-50" aria-hidden="true">{icon}</span>}
+        <label className={cn('input w-full', error && 'input-error', className)} htmlFor={id}>
+          {icon && (
+            <span className="opacity-50" aria-hidden="true">
+              {icon}
+            </span>
+          )}
           <input
             ref={ref}
             id={id}
@@ -125,17 +124,19 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
               aria-label={visible ? 'Hide password' : 'Show password'}
               tabIndex={-1}
             >
-              {visible
-                ? (visibleIcon ?? <EyeIcon />)
-                : (hiddenIcon ?? <EyeSlashIcon />)}
+              {visible ? (visibleIcon ?? <EyeIcon />) : (hiddenIcon ?? <EyeSlashIcon />)}
             </button>
           )}
         </label>
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

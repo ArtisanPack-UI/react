@@ -103,10 +103,13 @@ export function ToastProvider({
     }
   }, []);
 
-  const dismiss = useCallback((id: string) => {
-    clearTimer(id);
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, [clearTimer]);
+  const dismiss = useCallback(
+    (id: string) => {
+      clearTimer(id);
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    },
+    [clearTimer],
+  );
 
   const dismissAll = useCallback(() => {
     timersRef.current.forEach((timer) => clearTimeout(timer));
@@ -183,7 +186,12 @@ export function ToastProvider({
     <ToastContext.Provider value={api}>
       {children}
       {toasts.length > 0 && (
-        <div className={cn('toast z-50', ...position)} aria-live="polite" aria-label="Notifications" role="log">
+        <div
+          className={cn('toast z-50', ...position)}
+          aria-live="polite"
+          aria-label="Notifications"
+          role="log"
+        >
           {toasts.map((toast) => (
             <ToastMessage key={toast.id} toast={toast} onDismiss={dismiss} />
           ))}

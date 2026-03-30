@@ -49,11 +49,7 @@ function SpotlightStoryWrapper({
 
 export const Default: Story = {
   render: () => (
-    <SpotlightStoryWrapper
-      items={sampleItems}
-      onSelect={onSelectAction}
-      shortcut={false}
-    />
+    <SpotlightStoryWrapper items={sampleItems} onSelect={onSelectAction} shortcut={false} />
   ),
 };
 

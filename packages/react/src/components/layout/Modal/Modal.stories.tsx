@@ -62,9 +62,7 @@ export const Persistent: Story = {
           onClose={() => setOpen(false)}
           title="Required Action"
           persistent
-          actions={
-            <Button label="I Understand" color="primary" onClick={() => setOpen(false)} />
-          }
+          actions={<Button label="I Understand" color="primary" onClick={() => setOpen(false)} />}
         >
           <p>You must acknowledge this before continuing. Clicking outside will not close it.</p>
         </Modal>

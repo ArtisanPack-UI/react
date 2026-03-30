@@ -15,11 +15,26 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLDivElement>, 't
 }
 
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ icon, heading, headingAs: HeadingTag = 'h3', description, action, className, children, ...rest }, ref) => {
+  (
+    {
+      icon,
+      heading,
+      headingAs: HeadingTag = 'h3',
+      description,
+      action,
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
     return (
       <div
         ref={ref}
-        className={cn('flex flex-col items-center justify-center gap-4 py-12 text-center', className)}
+        className={cn(
+          'flex flex-col items-center justify-center gap-4 py-12 text-center',
+          className,
+        )}
         {...rest}
       >
         {icon && <div className="text-base-content/40 text-6xl">{icon}</div>}

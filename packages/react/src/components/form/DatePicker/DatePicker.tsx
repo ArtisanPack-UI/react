@@ -1,8 +1,10 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
-export interface DatePickerProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type' | 'prefix'> {
+export interface DatePickerProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type' | 'prefix'
+> {
   /** DatePicker label */
   label?: string;
   /** Helper text below the date picker */
@@ -60,11 +62,12 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
           </legend>
         )}
         {hasAdornments ? (
-          <label
-            className={cn('input w-full', error && 'input-error', className)}
-            htmlFor={id}
-          >
-            {icon && <span className="opacity-50" aria-hidden="true">{icon}</span>}
+          <label className={cn('input w-full', error && 'input-error', className)} htmlFor={id}>
+            {icon && (
+              <span className="opacity-50" aria-hidden="true">
+                {icon}
+              </span>
+            )}
             <input
               ref={ref}
               id={id}
@@ -78,7 +81,11 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
               {...rest}
             />
             {inline && label && <span className="label">{label}</span>}
-            {iconRight && <span className="opacity-50" aria-hidden="true">{iconRight}</span>}
+            {iconRight && (
+              <span className="opacity-50" aria-hidden="true">
+                {iconRight}
+              </span>
+            )}
           </label>
         ) : (
           <input
@@ -94,10 +101,14 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
           />
         )}
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

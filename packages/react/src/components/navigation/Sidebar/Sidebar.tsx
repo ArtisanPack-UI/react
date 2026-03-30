@@ -92,12 +92,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
     return (
       <div
         ref={setRefs}
-        className={cn(
-          'drawer',
-          side === 'right' && 'drawer-end',
-          open && 'drawer-open',
-          className,
-        )}
+        className={cn('drawer', side === 'right' && 'drawer-end', open && 'drawer-open', className)}
         {...rest}
       >
         <input
@@ -108,19 +103,13 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
           onChange={(e) => onOpenChange(e.target.checked)}
           aria-label="Toggle sidebar"
         />
-        <div className="drawer-content">
-          {children}
-        </div>
-        <div className="drawer-side" style={overlay ? { position: 'fixed', zIndex: 50 } : undefined}>
-          <label
-            htmlFor={inputId}
-            className="drawer-overlay"
-            aria-label="Close sidebar"
-          />
-          <nav
-            className={cn('menu bg-base-200 min-h-full p-4', width)}
-            aria-label="Sidebar"
-          >
+        <div className="drawer-content">{children}</div>
+        <div
+          className="drawer-side"
+          style={overlay ? { position: 'fixed', zIndex: 50 } : undefined}
+        >
+          <label htmlFor={inputId} className="drawer-overlay" aria-label="Close sidebar" />
+          <nav className={cn('menu bg-base-200 min-h-full p-4', width)} aria-label="Sidebar">
             {sidebarContent}
           </nav>
         </div>

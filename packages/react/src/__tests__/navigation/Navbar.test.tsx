@@ -28,11 +28,7 @@ describe('Navbar', () => {
 
   it('renders all three sections', () => {
     render(
-      <Navbar
-        start={<span>Start</span>}
-        center={<span>Center</span>}
-        end={<span>End</span>}
-      />,
+      <Navbar start={<span>Start</span>} center={<span>Center</span>} end={<span>End</span>} />,
     );
     expect(screen.getByText('Start')).toBeInTheDocument();
     expect(screen.getByText('Center')).toBeInTheDocument();

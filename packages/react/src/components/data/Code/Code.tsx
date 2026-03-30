@@ -93,10 +93,7 @@ export const Code = forwardRef<HTMLDivElement, CodeProps>(
           </div>
         )}
         <div
-          className={cn(
-            'mockup-code',
-            (label || language || copyable) && 'rounded-t-none',
-          )}
+          className={cn('mockup-code', (label || language || copyable) && 'rounded-t-none')}
           style={maxHeight ? { maxHeight, overflow: 'auto' } : undefined}
         >
           {showLineNumbers ? (

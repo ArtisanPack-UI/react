@@ -28,18 +28,7 @@ const colorMap: Record<string, string> = {
  */
 export const Range = forwardRef<HTMLInputElement, RangeProps>(
   (
-    {
-      label,
-      hint,
-      error,
-      color,
-      className,
-      id: providedId,
-      min = 0,
-      max = 100,
-      required,
-      ...rest
-    },
+    { label, hint, error, color, className, id: providedId, min = 0, max = 100, required, ...rest },
     ref,
   ) => {
     const autoId = useId();
@@ -69,10 +58,14 @@ export const Range = forwardRef<HTMLInputElement, RangeProps>(
           {...rest}
         />
         {hint && !error && (
-          <p id={hintId} className="fieldset-label">{hint}</p>
+          <p id={hintId} className="fieldset-label">
+            {hint}
+          </p>
         )}
         {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">{error}</p>
+          <p id={errorId} className="fieldset-label text-error" role="alert">
+            {error}
+          </p>
         )}
       </fieldset>
     );

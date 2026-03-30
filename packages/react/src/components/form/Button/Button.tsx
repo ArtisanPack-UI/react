@@ -100,14 +100,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           icon && <span aria-hidden="true">{icon}</span>
         )}
-        {label && (
-          <span className={cn(responsive && 'hidden sm:inline')}>{label}</span>
-        )}
+        {label && <span className={cn(responsive && 'hidden sm:inline')}>{label}</span>}
         {children}
         {iconRight && <span aria-hidden="true">{iconRight}</span>}
-        {badge && (
-          <span className={cn('badge', badgeClasses)}>{badge}</span>
-        )}
+        {badge && <span className={cn('badge', badgeClasses)}>{badge}</span>}
       </>
     );
 
@@ -138,10 +134,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (tooltip) {
       return (
-        <div
-          className={cn('tooltip', tooltipPositionMap[tooltipPosition])}
-          data-tip={tooltip}
-        >
+        <div className={cn('tooltip', tooltipPositionMap[tooltipPosition])} data-tip={tooltip}>
           {element}
         </div>
       );

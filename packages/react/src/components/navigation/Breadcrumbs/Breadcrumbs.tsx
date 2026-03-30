@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  type HTMLAttributes,
-  type ReactNode,
-  type ReactElement,
-} from 'react';
+import { forwardRef, type HTMLAttributes, type ReactNode, type ReactElement } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
 export interface BreadcrumbItem {
@@ -14,7 +9,11 @@ export interface BreadcrumbItem {
   /** Icon element */
   icon?: ReactNode;
   /** Custom link element (for React Router / Inertia) */
-  renderLink?: (props: { className?: string; children: ReactNode; 'aria-current'?: 'page' }) => ReactElement;
+  renderLink?: (props: {
+    className?: string;
+    children: ReactNode;
+    'aria-current'?: 'page';
+  }) => ReactElement;
 }
 
 export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
@@ -74,9 +73,7 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
         className={cn('breadcrumbs text-sm', className)}
         {...rest}
       >
-        <ul>
-          {renderItems()}
-        </ul>
+        <ul>{renderItems()}</ul>
       </nav>
     );
   },

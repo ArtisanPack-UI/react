@@ -8,7 +8,17 @@ const meta: Meta<typeof Clipboard> = {
   argTypes: {
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info', 'ghost'],
+      options: [
+        undefined,
+        'primary',
+        'secondary',
+        'accent',
+        'success',
+        'warning',
+        'error',
+        'info',
+        'ghost',
+      ],
     },
     size: {
       control: 'select',

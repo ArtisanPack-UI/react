@@ -63,17 +63,13 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
     const collapseCount = allChildren.filter(
       (c) => isValidElement(c) && isCollapseElement(c),
     ).length;
-    const deduped = Array.from(new Set(currentOpen)).filter(
-      (i) => i >= 0 && i < collapseCount,
-    );
+    const deduped = Array.from(new Set(currentOpen)).filter((i) => i >= 0 && i < collapseCount);
     const cleanOpen = multiple ? deduped : deduped.slice(0, 1);
 
     const handleToggle = (idx: number, nextOpen: boolean) => {
       let next: number[];
       if (multiple) {
-        next = nextOpen
-          ? [...cleanOpen, idx]
-          : cleanOpen.filter((i) => i !== idx);
+        next = nextOpen ? [...cleanOpen, idx] : cleanOpen.filter((i) => i !== idx);
       } else {
         next = nextOpen ? [idx] : [];
       }
@@ -107,10 +103,7 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(
               originalOnOpenChange?.(open);
               handleToggle(idx, open);
             },
-            className: cn(
-              join && 'join-item',
-              child.props.className,
-            ),
+            className: cn(join && 'join-item', child.props.className),
           });
         })}
       </div>

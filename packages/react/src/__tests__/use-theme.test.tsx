@@ -25,7 +25,9 @@ describe('ThemeProvider', () => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
-        get matches() { return mockMatches; },
+        get matches() {
+          return mockMatches;
+        },
         media: query,
         onchange: null,
         addEventListener: vi.fn((_, handler) => {

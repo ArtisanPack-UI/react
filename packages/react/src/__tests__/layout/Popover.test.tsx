@@ -4,39 +4,23 @@ import { Popover } from '../../components/layout/Popover/Popover';
 
 describe('Popover', () => {
   it('renders trigger', () => {
-    render(
-      <Popover trigger={<span>Hover me</span>}>
-        Popover content
-      </Popover>,
-    );
+    render(<Popover trigger={<span>Hover me</span>}>Popover content</Popover>);
     expect(screen.getByText('Hover me')).toBeInTheDocument();
   });
 
   it('always renders popover content in DOM', () => {
-    render(
-      <Popover trigger={<span>Trigger</span>}>
-        Popover content
-      </Popover>,
-    );
+    render(<Popover trigger={<span>Trigger</span>}>Popover content</Popover>);
     expect(screen.getByText('Popover content')).toBeInTheDocument();
   });
 
   it('adds dropdown-open class on hover', () => {
-    const { container } = render(
-      <Popover trigger={<span>Trigger</span>}>
-        Content
-      </Popover>,
-    );
+    const { container } = render(<Popover trigger={<span>Trigger</span>}>Content</Popover>);
     fireEvent.mouseEnter(container.firstChild as Element);
     expect(container.firstChild).toHaveClass('dropdown-open');
   });
 
   it('does not add dropdown-open by default without interaction', () => {
-    const { container } = render(
-      <Popover trigger={<span>Trigger</span>}>
-        Content
-      </Popover>,
-    );
+    const { container } = render(<Popover trigger={<span>Trigger</span>}>Content</Popover>);
     expect(container.firstChild).not.toHaveClass('dropdown-open');
   });
 
@@ -111,7 +95,12 @@ describe('Popover', () => {
   it('closes on Escape when not persistent', () => {
     const onOpenChange = vi.fn();
     render(
-      <Popover trigger={<button>Click</button>} triggerMode="click" open onOpenChange={onOpenChange}>
+      <Popover
+        trigger={<button>Click</button>}
+        triggerMode="click"
+        open
+        onOpenChange={onOpenChange}
+      >
         Content
       </Popover>,
     );
@@ -122,7 +111,12 @@ describe('Popover', () => {
   it('closes on outside click when not persistent', () => {
     const onOpenChange = vi.fn();
     render(
-      <Popover trigger={<button>Click</button>} triggerMode="click" open onOpenChange={onOpenChange}>
+      <Popover
+        trigger={<button>Click</button>}
+        triggerMode="click"
+        open
+        onOpenChange={onOpenChange}
+      >
         Content
       </Popover>,
     );
@@ -133,7 +127,13 @@ describe('Popover', () => {
   it('does not close on outside click when persistent', () => {
     const onOpenChange = vi.fn();
     render(
-      <Popover trigger={<button>Click</button>} triggerMode="click" open persistent onOpenChange={onOpenChange}>
+      <Popover
+        trigger={<button>Click</button>}
+        triggerMode="click"
+        open
+        persistent
+        onOpenChange={onOpenChange}
+      >
         Content
       </Popover>,
     );
@@ -144,7 +144,13 @@ describe('Popover', () => {
   it('does not close on Escape when persistent', () => {
     const onOpenChange = vi.fn();
     render(
-      <Popover trigger={<button>Click</button>} triggerMode="click" open persistent onOpenChange={onOpenChange}>
+      <Popover
+        trigger={<button>Click</button>}
+        triggerMode="click"
+        open
+        persistent
+        onOpenChange={onOpenChange}
+      >
         Content
       </Popover>,
     );

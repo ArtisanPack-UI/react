@@ -15,7 +15,11 @@ describe('Card', () => {
   });
 
   it('renders subtitle', () => {
-    render(<Card title="Title" subtitle="Subtitle">Content</Card>);
+    render(
+      <Card title="Title" subtitle="Subtitle">
+        Content
+      </Card>,
+    );
     expect(screen.getByText('Subtitle')).toBeInTheDocument();
   });
 
@@ -25,23 +29,21 @@ describe('Card', () => {
   });
 
   it('renders footer/actions', () => {
-    render(
-      <Card footer={<button>Save</button>}>Content</Card>,
-    );
+    render(<Card footer={<button>Save</button>}>Content</Card>);
     expect(screen.getByText('Save')).toBeInTheDocument();
   });
 
   it('renders menu slot', () => {
     render(
-      <Card title="Title" menu={<button>Menu</button>}>Content</Card>,
+      <Card title="Title" menu={<button>Menu</button>}>
+        Content
+      </Card>,
     );
     expect(screen.getByText('Menu')).toBeInTheDocument();
   });
 
   it('renders figure', () => {
-    render(
-      <Card figure={<img src="test.jpg" alt="Test" />}>Content</Card>,
-    );
+    render(<Card figure={<img src="test.jpg" alt="Test" />}>Content</Card>);
     expect(screen.getByAltText('Test')).toBeInTheDocument();
   });
 

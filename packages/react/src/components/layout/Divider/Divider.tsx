@@ -37,18 +37,12 @@ const positionMap: Record<LabelPosition, string> = {
  */
 export const Divider = forwardRef<HTMLDivElement, DividerProps>(
   (
-    {
-      vertical = false,
-      color,
-      label,
-      labelPosition = 'center',
-      className,
-      children,
-      ...rest
-    },
+    { vertical = false, color, label, labelPosition = 'center', className, children, ...rest },
     ref,
   ) => {
-    const hasContent = (label !== undefined && label !== '') || (children != null && children !== false && children !== '');
+    const hasContent =
+      (label !== undefined && label !== '') ||
+      (children != null && children !== false && children !== '');
 
     return (
       <div

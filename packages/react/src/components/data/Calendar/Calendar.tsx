@@ -210,10 +210,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       return false;
     };
 
-    const handleEventDotInteraction = (
-      event: CalendarEvent,
-      e: React.MouseEvent,
-    ) => {
+    const handleEventDotInteraction = (event: CalendarEvent, e: React.MouseEvent) => {
       if (onEventClick) {
         e.stopPropagation();
         onEventClick(event);

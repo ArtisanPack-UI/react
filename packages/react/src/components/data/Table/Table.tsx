@@ -1,4 +1,11 @@
-import { forwardRef, Fragment, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  Fragment,
+  useMemo,
+  useState,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 
@@ -15,8 +22,10 @@ export interface TableSortConfig {
   direction: 'asc' | 'desc';
 }
 
-export interface TableProps<T = Record<string, unknown>>
-  extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface TableProps<T = Record<string, unknown>> extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'children'
+> {
   headers: TableHeader<T>[];
   rows: T[];
   keyBy?: string;
@@ -105,8 +114,7 @@ function TableInner<T extends Record<string, unknown>>(
 
   const handleSort = (key: string) => {
     if (!onSort) return;
-    const direction =
-      sortBy?.key === key && sortBy.direction === 'asc' ? 'desc' : 'asc';
+    const direction = sortBy?.key === key && sortBy.direction === 'asc' ? 'desc' : 'asc';
     onSort({ key, direction });
   };
 
@@ -221,20 +229,15 @@ function TableInner<T extends Record<string, unknown>>(
             </tr>
           ) : (
             rows.map((row, rowIndex) => {
-              const rowKey = getNestedValue(row, keyBy) as string | number ?? rowIndex;
-              const expandKey = getNestedValue(row, expandableKey) as string | number ?? rowIndex;
-              const selectKey = getNestedValue(row, selectableKey) as string | number ?? rowIndex;
+              const rowKey = (getNestedValue(row, keyBy) as string | number) ?? rowIndex;
+              const expandKey = (getNestedValue(row, expandableKey) as string | number) ?? rowIndex;
+              const selectKey = (getNestedValue(row, selectableKey) as string | number) ?? rowIndex;
               const isExpanded = expandedKeys.has(expandKey);
               const isSelected = selectedKeys?.has(selectKey);
 
               return (
                 <Fragment key={rowKey}>
-                  <tr
-                    className={cn(
-                      hoverable && 'hover',
-                      isSelected && 'active',
-                    )}
-                  >
+                  <tr className={cn(hoverable && 'hover', isSelected && 'active')}>
                     {selectable && (
                       <td>
                         <label>
@@ -287,13 +290,11 @@ function TableInner<T extends Record<string, unknown>>(
                               ? String(value)
                               : value !== null && typeof value === 'object'
                                 ? safeStringify(value)
-                                : (value as ReactNode) ?? ''}
+                                : ((value as ReactNode) ?? '')}
                         </td>
                       );
                     })}
-                    {hasActions && (
-                      <td className="text-right">{renderActions!(row, rowIndex)}</td>
-                    )}
+                    {hasActions && <td className="text-right">{renderActions!(row, rowIndex)}</td>}
                   </tr>
                   {canExpand && isExpanded && (
                     <tr key={`expand-${rowKey}`}>

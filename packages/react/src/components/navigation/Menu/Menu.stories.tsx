@@ -64,10 +64,7 @@ export const WithIcons: Story = {
 
 export const WithDisabled: Story = {
   args: {
-    items: [
-      ...basicItems,
-      { key: 'admin', label: 'Admin', disabled: true },
-    ],
+    items: [...basicItems, { key: 'admin', label: 'Admin', disabled: true }],
     activeKey: 'home',
   },
   decorators: [widthDecorator],
