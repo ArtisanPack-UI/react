@@ -123,7 +123,7 @@ This shows which packages have pending changesets and what version bumps are que
 npx changeset version
 ```
 
-This updates package.json versions and CHANGELOGs locally. You can inspect the changes and then `git checkout .` to revert if you were just checking.
+This updates package.json versions and CHANGELOGs locally. You can inspect the changes and then `git restore .` to revert if you were just checking.
 
 ### Convenience scripts
 
