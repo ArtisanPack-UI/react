@@ -1,5 +1,11 @@
 # @artisanpack-ui/tokens
 
+## 1.0.0
+
+### Major Changes
+
+- [`3669646`](https://github.com/ArtisanPack-UI/react/commit/3669646d2dfceb05478ba72e88046e25fad32f25) Thanks [@ViewFromTheBox](https://github.com/ViewFromTheBox)! - Initial release
+
 ## 2.0.0
 
 ### Major Changes
