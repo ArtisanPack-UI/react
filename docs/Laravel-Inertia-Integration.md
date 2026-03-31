@@ -87,8 +87,8 @@ function CreateUserPage() {
 
 | Helper | Returns | Use with |
 |--------|---------|----------|
-| `field(name)` | `{ value, onChange, onBlur, error }` | Input, Select, Textarea, etc. |
-| `checkbox(name)` | `{ checked, onChange, error }` | Checkbox, Toggle |
+| `field(name)` | `{ name, value, onChange, onBlur, error }` | Input, Select, Textarea, etc. |
+| `checkbox(name)` | `{ name, checked, onChange, error }` | Checkbox, Toggle |
 
 ### Form Methods
 
