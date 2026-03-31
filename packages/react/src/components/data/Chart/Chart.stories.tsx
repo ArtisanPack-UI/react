@@ -9,29 +9,17 @@ const meta: Meta<typeof Chart> = {
     docs: {
       description: {
         component:
-          'Data visualization component powered by ApexCharts. Supports bar, line, area, donut, pie, radar, radialBar, scatter, heatmap, treemap, and candlestick chart types.',
+          'Data visualization component powered by ApexCharts. Supports bar, line, area, donut, pie, radar, radialBar, and polarArea chart types.',
       },
     },
   },
   argTypes: {
     type: {
       control: 'select',
-      options: [
-        'bar',
-        'line',
-        'area',
-        'donut',
-        'pie',
-        'radar',
-        'radialBar',
-        'scatter',
-        'heatmap',
-        'treemap',
-        'candlestick',
-      ],
+      options: ['bar', 'line', 'area', 'donut', 'pie', 'radar', 'radialBar', 'polarArea'],
     },
     height: {
-      control: 'number',
+      control: 'text',
     },
     color: {
       control: 'select',

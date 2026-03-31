@@ -10,6 +10,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type HTMLAttributes,
@@ -96,6 +97,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     const total = slides.length;
 
+    const prefersReducedMotion = useMemo(
+      () =>
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      [],
+    );
+    const effectiveAutoplay = autoplay && !prefersReducedMotion;
+
     const goTo = useCallback(
       (index: number) => {
         if (total === 0) return;
@@ -119,13 +129,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const prev = useCallback(() => goTo(safeIndex - 1), [safeIndex, goTo]);
 
     useEffect(() => {
-      if (!autoplay || total <= 1) return;
-
-      const prefersReduced =
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) return;
+      if (!effectiveAutoplay || total <= 1) return;
 
       autoplayRef.current = setInterval(() => {
         setCurrent((c) => (c + 1) % total);
@@ -133,7 +137,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       return () => {
         if (autoplayRef.current) clearInterval(autoplayRef.current);
       };
-    }, [autoplay, interval, total]);
+    }, [effectiveAutoplay, interval, total]);
 
     const isInteractiveTarget = (target: EventTarget): boolean => {
       if (!(target instanceof HTMLElement)) return false;
@@ -215,7 +219,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           role="group"
           aria-roledescription="slide"
           aria-label={`Slide ${safeIndex + 1} of ${total}`}
-          aria-live={autoplay ? 'off' : 'polite'}
+          aria-live={effectiveAutoplay ? 'off' : 'polite'}
           aria-atomic="true"
         >
           {renderSlide ? (

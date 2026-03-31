@@ -16,9 +16,6 @@ const meta: Meta<typeof Drawer> = {
     },
   },
   argTypes: {
-    open: {
-      control: 'boolean',
-    },
     end: {
       control: 'boolean',
     },
@@ -34,12 +31,18 @@ type Story = StoryObj<typeof Drawer>;
 const handleLinkClick = (e: React.MouseEvent) => e.preventDefault();
 
 export const Default: Story = {
-  render: () => {
+  args: {
+    end: false,
+    persistent: false,
+  },
+  render: (args) => {
     const [open, setOpen] = useState(false);
     return (
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
+        end={args.end}
+        persistent={args.persistent}
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
             <li>
@@ -70,13 +73,18 @@ export const Default: Story = {
 };
 
 export const EndSide: Story = {
-  render: () => {
+  args: {
+    end: true,
+    persistent: false,
+  },
+  render: (args) => {
     const [open, setOpen] = useState(false);
     return (
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
-        end
+        end={args.end}
+        persistent={args.persistent}
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
             <li>
