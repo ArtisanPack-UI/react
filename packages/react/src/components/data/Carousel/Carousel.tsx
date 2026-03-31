@@ -55,7 +55,7 @@ export interface CarouselProps extends Omit<HTMLAttributes<HTMLDivElement>, 'con
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
 
 function subscribeReducedMotion(onStoreChange: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
   const mql = window.matchMedia(reducedMotionQuery);
   mql.addEventListener('change', onStoreChange);
   return () => mql.removeEventListener('change', onStoreChange);
