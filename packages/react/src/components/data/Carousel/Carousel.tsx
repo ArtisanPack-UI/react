@@ -10,9 +10,9 @@ import {
   forwardRef,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -50,6 +50,27 @@ export interface CarouselProps extends Omit<HTMLAttributes<HTMLDivElement>, 'con
   showArrows?: boolean;
   /** Custom render function for slides, receiving the slide data and its index. */
   renderSlide?: (slide: CarouselSlide, index: number) => ReactNode;
+}
+
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+
+function subscribeReducedMotion(onStoreChange: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const mql = window.matchMedia(reducedMotionQuery);
+  mql.addEventListener('change', onStoreChange);
+  return () => mql.removeEventListener('change', onStoreChange);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(reducedMotionQuery).matches
+  );
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
 }
 
 /**
@@ -97,12 +118,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     const total = slides.length;
 
-    const prefersReducedMotion = useMemo(
-      () =>
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-      [],
+    const prefersReducedMotion = useSyncExternalStore(
+      subscribeReducedMotion,
+      getReducedMotionSnapshot,
+      getReducedMotionServerSnapshot,
     );
     const effectiveAutoplay = autoplay && !prefersReducedMotion;
 
