@@ -48,8 +48,10 @@ interface DiffLine {
  * @returns Array of diff lines with type indicators and line numbers.
  */
 function computeDiff(oldText: string, newText: string): DiffLine[] {
-  const oldLines = oldText === '' ? [] : oldText.split('\n');
-  const newLines = newText === '' ? [] : newText.split('\n');
+  const normalizedOld = oldText.replace(/\r\n?/g, '\n');
+  const normalizedNew = newText.replace(/\r\n?/g, '\n');
+  const oldLines = normalizedOld === '' ? [] : normalizedOld.split('\n');
+  const newLines = normalizedNew === '' ? [] : normalizedNew.split('\n');
   const result: DiffLine[] = [];
 
   let oldIdx = 0;

@@ -51,6 +51,11 @@ The `useInertiaForm` hook wraps Inertia's `useForm` and returns field-binding he
 import { useInertiaForm } from '@artisanpack-ui/react-laravel';
 import { Input, Button, Select, Checkbox } from '@artisanpack-ui/react';
 
+const roles = [
+  { value: 'user', label: 'User' },
+  { value: 'admin', label: 'Admin' },
+];
+
 function CreateUserPage() {
   const { form, field, checkbox } = useInertiaForm({
     name: '',
@@ -87,12 +92,16 @@ function CreateUserPage() {
 
 ### Form Methods
 
+The hook returns top-level submit helpers and the raw Inertia `form` instance (which has the same methods). Both styles work:
+
 | Method | Description |
 |--------|-------------|
-| `form.post(url, options?)` | Submit as POST |
-| `form.put(url, options?)` | Submit as PUT |
-| `form.patch(url, options?)` | Submit as PATCH |
-| `form.destroy(url, options?)` | Submit as DELETE |
+| `post(url, options?)` | Submit as POST |
+| `put(url, options?)` | Submit as PUT |
+| `patch(url, options?)` | Submit as PATCH |
+| `destroy(url, options?)` | Submit as DELETE |
+
+You can also call `form.post()`, `form.put()`, etc. directly on the Inertia form instance.
 
 ## InertiaForm Component
 

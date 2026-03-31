@@ -4,8 +4,8 @@
  * An expandable/collapsible content section built on DaisyUI's collapse
  * component. Supports controlled and uncontrolled open state, arrow or
  * plus indicator icons, and radio-input accordion behaviour via the
- * `name` prop. When `name` is set, uses `defaultChecked` so the browser
- * can coordinate one-open-at-a-time across siblings sharing the same name.
+ * `name` prop. When used inside an {@link Accordion}, state is managed
+ * by the parent via the controlled `open` prop.
  *
  * @packageDocumentation
  */
@@ -27,7 +27,7 @@ export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, 'tit
   defaultOpen?: boolean;
   /** Callback fired when the open state changes. */
   onOpenChange?: (open: boolean) => void;
-  /** HTML `name` attribute — switches to an uncontrolled radio input so the browser can coordinate one-open-at-a-time within the same name group. Use controlled `open` + `onOpenChange` if you need to track state precisely. */
+  /** HTML `name` attribute — switches to a radio input for one-open-at-a-time grouping. When used inside an Accordion, state is coordinated by the parent via `open` + `onOpenChange`. */
   name?: string;
   /** Add a border around the collapse section. */
   bordered?: boolean;
@@ -109,7 +109,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
           <input
             type="radio"
             name={name}
-            defaultChecked={isOpen}
+            checked={isOpen}
             onChange={handleToggle}
             aria-expanded={isOpen}
             aria-controls={`collapse-content-${autoId}`}
