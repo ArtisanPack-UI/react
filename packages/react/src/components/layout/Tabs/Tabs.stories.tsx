@@ -5,6 +5,14 @@ const meta: Meta<typeof Tabs> = {
   title: 'Layout/Tabs',
   component: Tabs,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Tabbed content switcher with bordered, lifted, and boxed style variants, multiple sizes, and per-tab disabled state.',
+      },
+    },
+  },
   argTypes: {
     variant: {
       control: 'select',

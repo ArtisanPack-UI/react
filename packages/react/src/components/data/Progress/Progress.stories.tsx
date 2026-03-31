@@ -5,6 +5,14 @@ const meta: Meta<typeof Progress> = {
   title: 'Data Display/Progress',
   component: Progress,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Determinate or indeterminate progress bar with optional label, percentage display, and step-based progression. Supports DaisyUI color variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

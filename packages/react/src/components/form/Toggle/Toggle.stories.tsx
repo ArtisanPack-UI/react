@@ -5,6 +5,14 @@ const meta: Meta<typeof Toggle> = {
   title: 'Form/Toggle',
   component: Toggle,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Toggle switch input with label, hint, error state, DaisyUI color variants, and disabled mode.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

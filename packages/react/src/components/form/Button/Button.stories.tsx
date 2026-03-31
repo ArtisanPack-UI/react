@@ -5,6 +5,14 @@ const meta: Meta<typeof Button> = {
   title: 'Form/Button',
   component: Button,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Versatile button supporting DaisyUI color variants, sizes, loading state, icons, badges, tooltips, and link mode. Fully accessible with keyboard and screen-reader support.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

@@ -7,6 +7,34 @@ const meta: Meta<typeof Modal> = {
   title: 'Layout/Modal',
   component: Modal,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Dialog overlay with title, subtitle, action buttons, persistent mode, glass backdrop, and bottom-sheet variant.',
+      },
+    },
+  },
+  argTypes: {
+    open: {
+      control: 'boolean',
+    },
+    title: {
+      control: 'text',
+    },
+    subtitle: {
+      control: 'text',
+    },
+    persistent: {
+      control: 'boolean',
+    },
+    glass: {
+      control: 'boolean',
+    },
+    bottom: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

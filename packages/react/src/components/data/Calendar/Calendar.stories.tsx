@@ -7,10 +7,37 @@ const meta: Meta<typeof Calendar> = {
   title: 'Data Display/Calendar',
   component: Calendar,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Interactive calendar for date selection and event display. Supports min/max dates, weekend highlighting, custom day rendering, and DaisyUI color variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',
-      options: ['primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info', 'neutral'],
+      options: [
+        undefined,
+        'primary',
+        'secondary',
+        'accent',
+        'success',
+        'warning',
+        'error',
+        'info',
+        'neutral',
+      ],
+    },
+    weekStartsOnSunday: {
+      control: 'boolean',
+    },
+    highlightWeekends: {
+      control: 'boolean',
+    },
+    highlightToday: {
+      control: 'boolean',
     },
   },
 };

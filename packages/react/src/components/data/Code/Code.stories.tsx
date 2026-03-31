@@ -5,6 +5,28 @@ const meta: Meta<typeof Code> = {
   title: 'Data Display/Code',
   component: Code,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Syntax-highlighted code block with optional line numbers, copy-to-clipboard button, language label, and scrollable max height.',
+      },
+    },
+  },
+  argTypes: {
+    language: {
+      control: 'text',
+    },
+    showLineNumbers: {
+      control: 'boolean',
+    },
+    copyable: {
+      control: 'boolean',
+    },
+    maxHeight: {
+      control: 'text',
+    },
+  },
 };
 
 export default meta;

@@ -9,6 +9,14 @@ const meta: Meta<typeof Table> = {
   title: 'Data Display/Table',
   component: Table,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Data table with sortable columns, row selection, custom cell renderers, striped and compact variants, and an empty state fallback.',
+      },
+    },
+  },
 };
 
 export default meta;

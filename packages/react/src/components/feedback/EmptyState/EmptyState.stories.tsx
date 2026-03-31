@@ -6,6 +6,26 @@ const meta: Meta<typeof EmptyState> = {
   title: 'Feedback/EmptyState',
   component: EmptyState,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Placeholder shown when a list, table, or section has no content. Accepts an icon, heading, description, and action slot to guide the user.',
+      },
+    },
+  },
+  argTypes: {
+    heading: {
+      control: 'text',
+    },
+    description: {
+      control: 'text',
+    },
+    headingAs: {
+      control: 'select',
+      options: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'],
+    },
+  },
 };
 
 export default meta;

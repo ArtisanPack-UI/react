@@ -5,6 +5,19 @@ const meta: Meta<typeof Markdown> = {
   title: 'Utility/Markdown',
   component: Markdown,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Renders a Markdown source string as styled HTML using DaisyUI prose classes. Accepts a custom renderMarkdown function for advanced parsing.',
+      },
+    },
+  },
+  argTypes: {
+    source: {
+      control: 'text',
+    },
+  },
 };
 
 export default meta;

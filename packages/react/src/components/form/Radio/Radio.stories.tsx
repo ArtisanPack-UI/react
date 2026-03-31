@@ -11,6 +11,14 @@ const meta: Meta<typeof Radio> = {
   title: 'Form/Radio',
   component: Radio,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Radio button group with vertical, inline, and card layout variants. Supports per-option hints, disabled options, and DaisyUI color theming.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

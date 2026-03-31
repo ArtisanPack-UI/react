@@ -5,6 +5,14 @@ const meta: Meta<typeof Input> = {
   title: 'Form/Input',
   component: Input,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Text input with label, hint, error, clearable value, left/right icons, prefix/suffix add-ons, and inline label layout.',
+      },
+    },
+  },
 };
 
 export default meta;

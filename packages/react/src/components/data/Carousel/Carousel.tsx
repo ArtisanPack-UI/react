@@ -215,6 +215,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           role="group"
           aria-roledescription="slide"
           aria-label={`Slide ${safeIndex + 1} of ${total}`}
+          aria-live={autoplay ? 'off' : 'polite'}
+          aria-atomic="true"
         >
           {renderSlide ? (
             renderSlide(slide, safeIndex)

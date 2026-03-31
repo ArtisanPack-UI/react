@@ -12,6 +12,14 @@ const meta: Meta<typeof Tooltip> = {
   title: 'Utility/Tooltip',
   component: Tooltip,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Hover tooltip overlay with configurable position (top, bottom, left, right), DaisyUI color variants, and always-open pinned mode.',
+      },
+    },
+  },
   argTypes: {
     position: {
       control: 'select',

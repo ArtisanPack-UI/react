@@ -5,6 +5,14 @@ const meta: Meta<typeof Stat> = {
   title: 'Data Display/Stat',
   component: Stat,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Numeric statistic display with optional title, description, change indicator, and icon. Use StatGroup to arrange multiple stats in a row or column.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

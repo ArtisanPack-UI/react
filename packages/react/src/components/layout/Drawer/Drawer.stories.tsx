@@ -7,6 +7,25 @@ const meta: Meta<typeof Drawer> = {
   title: 'Layout/Drawer',
   component: Drawer,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Slide-out drawer panel anchored to the left or right edge of the viewport. Accepts a side slot for navigation or form content.',
+      },
+    },
+  },
+  argTypes: {
+    open: {
+      control: 'boolean',
+    },
+    end: {
+      control: 'boolean',
+    },
+    persistent: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

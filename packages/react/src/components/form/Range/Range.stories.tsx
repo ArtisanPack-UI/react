@@ -5,6 +5,14 @@ const meta: Meta<typeof Range> = {
   title: 'Form/Range',
   component: Range,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Slider range input with label, current value display, hint, error state, custom min/max/step, and DaisyUI color variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

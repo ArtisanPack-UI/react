@@ -5,6 +5,14 @@ const meta: Meta<typeof Breadcrumbs> = {
   title: 'Navigation/Breadcrumbs',
   component: Breadcrumbs,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Navigation breadcrumb trail showing the current page hierarchy. Supports icons per item and automatic truncation when maxItems is exceeded.',
+      },
+    },
+  },
 };
 
 export default meta;

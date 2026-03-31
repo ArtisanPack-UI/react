@@ -6,6 +6,14 @@ const meta: Meta<typeof Pagination> = {
   title: 'Navigation/Pagination',
   component: Pagination,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Page navigation control with previous/next buttons, sibling page links, configurable siblings count, size variants, and disabled state.',
+      },
+    },
+  },
   argTypes: {
     size: {
       control: 'select',

@@ -5,6 +5,14 @@ const meta: Meta<typeof Avatar> = {
   title: 'Data Display/Avatar',
   component: Avatar,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Displays a user avatar with optional image, placeholder initials, online status indicator, and ring highlight. Supports multiple sizes and DaisyUI color variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

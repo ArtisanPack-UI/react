@@ -5,6 +5,14 @@ const meta: Meta<typeof Loading> = {
   title: 'Feedback/Loading',
   component: Loading,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Animated loading indicator with six visual variants (spinner, dots, ring, ball, bars, infinity), multiple sizes, and DaisyUI color theming.',
+      },
+    },
+  },
   argTypes: {
     variant: {
       control: 'select',

@@ -6,6 +6,28 @@ const meta: Meta<typeof Carousel> = {
   title: 'Data Display/Carousel',
   component: Carousel,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Image and content carousel with autoplay, navigation arrows, and slide indicators. Accepts custom slide renderers for full layout control.',
+      },
+    },
+  },
+  argTypes: {
+    autoplay: {
+      control: 'boolean',
+    },
+    interval: {
+      control: 'number',
+    },
+    showIndicators: {
+      control: 'boolean',
+    },
+    showArrows: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

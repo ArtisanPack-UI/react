@@ -6,6 +6,14 @@ const meta: Meta<typeof Dropdown> = {
   title: 'Layout/Dropdown',
   component: Dropdown,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Floating dropdown menu triggered by click or hover. Supports custom trigger elements, end alignment, and DaisyUI dropdown positioning.',
+      },
+    },
+  },
 };
 
 export default meta;

@@ -5,6 +5,14 @@ const meta: Meta<typeof Textarea> = {
   title: 'Form/Textarea',
   component: Textarea,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Multi-line text input with label, hint, error state, inline layout, and disabled mode.',
+      },
+    },
+  },
 };
 
 export default meta;

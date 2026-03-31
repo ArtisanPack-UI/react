@@ -6,7 +6,6 @@ export default defineConfig({
     form: 'src/components/form/index.ts',
     layout: 'src/components/layout/index.ts',
     navigation: 'src/components/navigation/index.ts',
-    display: 'src/components/display/index.ts',
     data: 'src/components/data/index.ts',
     chart: 'src/components/data/Chart/Chart.tsx',
     feedback: 'src/components/feedback/index.ts',

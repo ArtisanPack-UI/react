@@ -10,6 +10,14 @@ const meta: Meta<typeof SpotlightSearch> = {
   title: 'Navigation/SpotlightSearch',
   component: SpotlightSearch,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Command-palette search overlay activated by a keyboard shortcut. Supports grouped items, custom placeholder text, and item selection callbacks.',
+      },
+    },
+  },
 };
 
 export default meta;

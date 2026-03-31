@@ -6,6 +6,29 @@ const meta: Meta<typeof Sidebar> = {
   title: 'Navigation/Sidebar',
   component: Sidebar,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Collapsible sidebar panel for app navigation. Supports left/right positioning, overlay mode, custom width, and controlled open state.',
+      },
+    },
+  },
+  argTypes: {
+    open: {
+      control: 'boolean',
+    },
+    side: {
+      control: 'select',
+      options: ['left', 'right'],
+    },
+    width: {
+      control: 'text',
+    },
+    overlay: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

@@ -15,6 +15,14 @@ const meta: Meta<typeof Card> = {
   title: 'Layout/Card',
   component: Card,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Content container with optional header, footer, figure, glass effect, bordered/compact variants, dropdown menu, and link mode.',
+      },
+    },
+  },
 };
 
 export default meta;

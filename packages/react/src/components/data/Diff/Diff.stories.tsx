@@ -5,6 +5,14 @@ const meta: Meta<typeof Diff> = {
   title: 'Data Display/Diff',
   component: Diff,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Side-by-side or inline text diff viewer for comparing old and new content. Highlights additions and deletions with customizable labels.',
+      },
+    },
+  },
   argTypes: {
     mode: {
       control: 'select',

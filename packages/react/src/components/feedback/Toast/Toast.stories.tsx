@@ -5,6 +5,14 @@ const meta: Meta<typeof ToastProvider> = {
   title: 'Feedback/Toast',
   component: ToastProvider,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Ephemeral notification system with success, error, warning, and info variants. Wrap your app in ToastProvider and call useToast() to trigger toasts from anywhere.',
+      },
+    },
+  },
 };
 
 export default meta;
