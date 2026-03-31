@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "strict": true,
+    "types": ["@testing-library/jest-dom/vitest"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -20,5 +21,9 @@
       "@artisanpack-ui/react-laravel": ["./packages/react-laravel/src"]
     }
   },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/src/**/*.tsx"
+  ],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/tokens",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Shared design tokens, color resolver, and glass helpers for ArtisanPack UI",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -9,10 +9,16 @@
     ".": {
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./css": "./dist/tokens.css",
+    "./tailwind": {
+      "import": "./dist/tailwind-plugin.mjs",
+      "types": "./dist/tailwind-plugin.d.ts"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -20,15 +26,25 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "clsx": "^2.1.0",
-    "tailwind-merge": "^2.6.0",
-    "tsup": "^8.3.0",
-    "typescript": "^5.7.0",
-    "vitest": "^2.1.0"
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "peerDependencies": {
     "clsx": "^2.1.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^3.0.0",
+    "tailwindcss": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "license": "MIT"
 }

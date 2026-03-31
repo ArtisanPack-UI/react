@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/react-laravel",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Inertia.js adapter wrappers for ArtisanPack UI React components",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -9,10 +9,31 @@
     ".": {
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./navigation": {
+      "import": "./dist/navigation.mjs",
+      "types": "./dist/navigation.d.ts"
+    },
+    "./form": {
+      "import": "./dist/form.mjs",
+      "types": "./dist/form.d.ts"
+    },
+    "./layout": {
+      "import": "./dist/layout.mjs",
+      "types": "./dist/layout.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth.mjs",
+      "types": "./dist/auth.d.ts"
+    },
+    "./feedback": {
+      "import": "./dist/feedback.mjs",
+      "types": "./dist/feedback.d.ts"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -23,17 +44,26 @@
     "@artisanpack-ui/react": "*"
   },
   "devDependencies": {
-    "@inertiajs/react": "^2.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tsup": "^8.3.0",
-    "typescript": "^5.7.0",
-    "vitest": "^2.1.0"
+    "@inertiajs/react": "^3.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "peerDependencies": {
-    "@inertiajs/react": "^2.0.0",
+    "@artisanpack-ui/tokens": "*",
+    "@inertiajs/react": "^2.0.0 || ^3.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "license": "MIT"
 }

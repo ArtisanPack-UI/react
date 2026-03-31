@@ -1,0 +1,63 @@
+name: Snapshot Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Snapshot tag (e.g. "canary", "next", "dev")'
+        required: false
+        default: 'snapshot'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    name: Publish Snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate snapshot tag
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if ! echo "$TAG" | grep -qE '^[A-Za-z0-9._-]+$'; then
+            echo "::error::Invalid snapshot tag: must match [A-Za-z0-9._-]+"
+            exit 1
+          fi
+
+      - name: Create snapshot versions
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx changeset version --snapshot "$TAG"
+
+      - name: Publish snapshot to npm
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npx changeset publish --tag "$TAG"
