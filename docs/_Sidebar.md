@@ -1,6 +1,7 @@
-**[[Home]]**
+# [[Home]]
 
 ### Guides
+
 - [[Getting Started]]
 - [[Design Tokens]]
 - [[Theming]]
@@ -9,6 +10,7 @@
 - [[React 18 vs 19 Compatibility]]
 
 ### Components
+
 - [[Component API Reference]]
 - [[Form Components]]
 - [[Layout Components]]
@@ -18,4 +20,5 @@
 - [[Utility Components]]
 
 ### Development
+
 - [[Releasing]]

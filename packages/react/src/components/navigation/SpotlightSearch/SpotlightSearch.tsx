@@ -2,8 +2,9 @@
  * @module SpotlightSearch
  *
  * Command palette / search overlay component following the Cmd+K pattern.
- * Provides fuzzy filtering, grouped results, keyboard navigation (arrow keys, Home, End, Enter),
- * and custom link renderers for React Router or Inertia integration.
+ * Provides word-based substring filtering, grouped results, keyboard navigation
+ * (arrow keys, Home, End, Enter), and custom link renderers for React Router or
+ * Inertia integration.
  */
 
 import {
@@ -62,7 +63,7 @@ export interface SpotlightSearchProps extends Omit<HTMLAttributes<HTMLDivElement
   onSelect?: (item: SpotlightItem) => void;
   /** Placeholder text for the search input field. @defaultValue 'Search...' */
   placeholder?: string;
-  /** Custom filter function to override the default fuzzy matching. */
+  /** Custom filter function to override the default word-based substring matching. */
   filterFn?: (item: SpotlightItem, query: string) => boolean;
   /** Message or element displayed when no results match the query. @defaultValue 'No results found.' */
   emptyMessage?: ReactNode;

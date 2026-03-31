@@ -49,7 +49,7 @@ The `useInertiaForm` hook wraps Inertia's `useForm` and returns field-binding he
 
 ```tsx
 import { useInertiaForm } from '@artisanpack-ui/react-laravel';
-import { Input, Button, Select } from '@artisanpack-ui/react';
+import { Input, Button, Select, Checkbox } from '@artisanpack-ui/react';
 
 function CreateUserPage() {
   const { form, field, checkbox } = useInertiaForm({

@@ -26,7 +26,7 @@ export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, 'tit
   defaultOpen?: boolean;
   /** Callback fired when the open state changes. */
   onOpenChange?: (open: boolean) => void;
-  /** HTML `name` attribute to create a native radio-group accordion (only one open at a time within the same name group). */
+  /** HTML `name` attribute — switches to a radio input so the browser enforces one-open-at-a-time within the same name group. Note: the component's internal state may not reflect sibling closures; use controlled `open` + `onOpenChange` if you need to track state precisely. */
   name?: string;
   /** Add a border around the collapse section. */
   bordered?: boolean;

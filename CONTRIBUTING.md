@@ -49,7 +49,7 @@ cd packages/react && npm test
 
 ## Monorepo Structure
 
-```
+```text
 packages/
 ├── tokens/         # @artisanpack-ui/tokens — Design tokens and utilities
 ├── react/          # @artisanpack-ui/react — React component library
@@ -100,7 +100,8 @@ npm run lint
 ## Adding a New Component
 
 1. Create the component file in the appropriate category under `packages/react/src/components/`:
-   ```
+
+   ```text
    packages/react/src/components/form/MyComponent/MyComponent.tsx
    ```
 
@@ -119,12 +120,14 @@ npm run lint
    ```
 
 4. Add a Storybook story:
-   ```
+
+   ```text
    packages/react/src/components/form/MyComponent/MyComponent.stories.tsx
    ```
 
 5. Add tests:
-   ```
+
+   ```text
    packages/react/src/components/form/MyComponent/__tests__/MyComponent.test.tsx
    ```
 
@@ -181,7 +184,7 @@ This creates a file in `.changeset/` — commit it with your PR.
 
 ## Releasing
 
-See the [Releasing](https://github.com/ArtisanPack-UI/react/wiki/Releasing) wiki page for the full release process, including stable releases, snapshots, and troubleshooting.
+See [docs/Releasing.md](./docs/Releasing.md) for the full release process, including stable releases, snapshots, and troubleshooting.
 
 ## Getting Help
 

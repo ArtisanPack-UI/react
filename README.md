@@ -63,7 +63,7 @@ function App() {
 ### Laravel / Inertia Usage
 
 ```tsx
-import { useInertiaForm, AppLayout } from '@artisanpack-ui/react-laravel';
+import { useInertiaForm, AppLayout, createLayout } from '@artisanpack-ui/react-laravel';
 import { Input, Button } from '@artisanpack-ui/react';
 
 function LoginPage() {

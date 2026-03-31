@@ -24,9 +24,9 @@ export interface PaginationProps extends Omit<HTMLAttributes<HTMLElement>, 'onCh
   siblings?: number;
   /** Size variant for the page buttons (xs, sm, md, lg). */
   size?: Size;
-  /** Custom label for the previous page button. @defaultValue '<<' */
+  /** Custom label for the previous page button. @defaultValue '«' */
   previousLabel?: ReactNode;
-  /** Custom label for the next page button. @defaultValue '>>' */
+  /** Custom label for the next page button. @defaultValue '»' */
   nextLabel?: ReactNode;
   /** Whether to disable all page buttons and prevent interaction. */
   disabled?: boolean;

@@ -21,7 +21,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode;
   /** Icon element rendered after the label text and children. Wrapped with `aria-hidden="true"`. */
   iconRight?: ReactNode;
-  /** When true, disables the button and shows a loading spinner in place of the left icon. */
+  /** When true, shows a loading spinner in place of the left icon. Disables a native `<button>`, but only sets `aria-disabled` on link variants. */
   loading?: boolean;
   /** When provided, renders the button as an `<a>` element pointing to this URL. */
   link?: string;

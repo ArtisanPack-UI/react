@@ -205,7 +205,7 @@ An optional Tailwind CSS plugin that registers tokens as Tailwind theme values:
 
 ```ts
 // tailwind.config.ts (or CSS-based for v4)
-import { artisanpackTokens } from '@artisanpack-ui/tokens/tailwind';
+import { createArtisanPackPlugin } from '@artisanpack-ui/tokens/tailwind';
 ```
 
 ## Shared Types

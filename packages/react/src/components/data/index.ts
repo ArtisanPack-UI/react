@@ -38,3 +38,6 @@ export type { CalendarProps, CalendarEvent } from './Calendar/Calendar';
 
 export { Sparkline } from './Sparkline/Sparkline';
 export type { SparklineProps } from './Sparkline/Sparkline';
+
+export { Chart } from './Chart/Chart';
+export type { ChartProps, ChartSeries, ChartDataPoint, ChartType } from './Chart/Chart';

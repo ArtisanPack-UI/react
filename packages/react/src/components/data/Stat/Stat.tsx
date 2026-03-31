@@ -29,7 +29,7 @@ export interface StatProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'>
   color?: DaisyColor;
   /** Percentage change value. Positive values show green with an up arrow, negative show red with a down arrow. */
   change?: number;
-  /** Additional label appended after the change percentage (e.g., "since last month"). */
+  /** Additional label appended after the change indicator and description (e.g., "since last month"). */
   changeLabel?: string;
   /** Custom action elements displayed in the stat figure area. */
   actions?: ReactNode;

@@ -19,7 +19,7 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   width?: string;
   /** Height of the skeleton as a CSS value (e.g. `"1rem"`, `"40px"`). */
   height?: string;
-  /** When `true`, renders the skeleton as a circle. Uses `width` or `height` for both dimensions. */
+  /** When `true`, renders the skeleton as a circle. If only one of `width`/`height` is set, it is used for both dimensions. When both are set, each is applied independently. */
   circle?: boolean;
 }
 

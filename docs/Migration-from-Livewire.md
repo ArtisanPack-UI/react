@@ -146,7 +146,7 @@ In Livewire, the server holds the component state. In React, you manage state cl
 
 - Use `useState` for local component state
 - Use `useInertiaForm` for form data that submits to Laravel
-- Use Inertia's `usePage()` for shared server data
+- Use Inertia's `usePage()` (imported from `@inertiajs/react`) for shared server data
 
 ### Reactive Updates
 
