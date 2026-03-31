@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/react-laravel",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Inertia.js adapter wrappers for ArtisanPack UI React components",
   "type": "module",
   "main": "./dist/index.mjs",
@@ -32,7 +32,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",

@@ -20,7 +20,6 @@ jobs:
 
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +58,6 @@ jobs:
       - name: Publish snapshot to npm
         env:
           TAG: ${{ github.event.inputs.tag }}
-          NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npx changeset publish --tag "$TAG"
