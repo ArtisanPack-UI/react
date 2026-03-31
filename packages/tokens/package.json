@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/tokens",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Shared design tokens, color resolver, and glass helpers for ArtisanPack UI",
   "type": "module",
   "main": "./dist/index.mjs",
