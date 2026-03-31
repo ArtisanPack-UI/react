@@ -108,23 +108,17 @@ You can also call `form.post()`, `form.put()`, etc. directly on the Inertia form
 Alternatively, use the declarative `InertiaForm` component:
 
 ```tsx
-import { InertiaForm } from '@artisanpack-ui/react-laravel';
+import { useInertiaForm, InertiaForm } from '@artisanpack-ui/react-laravel';
 import { Input, Button } from '@artisanpack-ui/react';
 
 function LoginPage() {
+  const { form, field } = useInertiaForm({ email: '', password: '' });
+
   return (
-    <InertiaForm
-      initialValues={{ email: '', password: '' }}
-      action="/login"
-      method="post"
-    >
-      {({ field, form }) => (
-        <>
-          <Input label="Email" {...field('email')} />
-          <Input label="Password" type="password" {...field('password')} />
-          <Button color="primary" loading={form.processing}>Log In</Button>
-        </>
-      )}
+    <InertiaForm form={form} url="/login" method="post">
+      <Input label="Email" {...field('email')} />
+      <Input label="Password" type="password" {...field('password')} />
+      <Button type="submit" color="primary" loading={form.processing}>Log In</Button>
     </InertiaForm>
   );
 }

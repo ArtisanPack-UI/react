@@ -59,6 +59,6 @@ jobs:
       - name: Publish snapshot to npm
         env:
           TAG: ${{ github.event.inputs.tag }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
         run: |
           npx changeset publish --tag "$TAG"
