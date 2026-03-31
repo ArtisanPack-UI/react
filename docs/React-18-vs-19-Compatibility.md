@@ -36,6 +36,22 @@ The component library does not require React 19 features, but it is fully compat
 - The `ThemeProvider` uses `useSyncExternalStore` (available since React 18) to track OS color scheme changes.
 - No React 18-only APIs are used — upgrading to React 19 requires no changes to ArtisanPack UI code.
 
+## Verified Compatibility
+
+A full code audit confirms that the library uses **no React 19-only APIs**:
+
+| API                                        | Status   |
+| ------------------------------------------ | -------- |
+| `use()`                                    | Not used |
+| `useActionState()`                         | Not used |
+| `useFormStatus()`                          | Not used |
+| `useOptimistic()`                          | Not used |
+| `'use client'` / `'use server'` directives | Not used |
+| `React.cache()`                            | Not used |
+| Async `startTransition`                    | Not used |
+
+All ref-accepting components use `forwardRef`, which works on both React 18 and 19. Named imports (`import { useState } from 'react'`) are used throughout — no legacy `import React` patterns.
+
 ## Testing Across Versions
 
 The CI pipeline tests against both React 18 and React 19 to ensure compatibility. If you encounter a version-specific issue, please [open an issue](https://github.com/ArtisanPack-UI/react/issues).

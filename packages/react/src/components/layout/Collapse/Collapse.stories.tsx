@@ -6,6 +6,14 @@ const meta: Meta<typeof Collapse> = {
   title: 'Layout/Collapse',
   component: Collapse,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Single collapsible section with arrow or plus icon toggle, bordered variant, default-open state, disabled mode, and accordion grouping via shared name.',
+      },
+    },
+  },
 };
 
 export default meta;

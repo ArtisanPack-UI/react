@@ -5,6 +5,14 @@ const meta: Meta<typeof Password> = {
   title: 'Form/Password',
   component: Password,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Password input with visibility toggle button, clearable value, icon slot, error state, and option to hide the toggle entirely.',
+      },
+    },
+  },
 };
 
 export default meta;

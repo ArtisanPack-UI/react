@@ -5,6 +5,25 @@ const meta: Meta<typeof ErrorDisplay> = {
   title: 'Feedback/Error',
   component: ErrorDisplay,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Error display with optional title, message, icon, and retry button for recovering from failures.',
+      },
+    },
+  },
+  argTypes: {
+    title: {
+      control: 'text',
+    },
+    message: {
+      control: 'text',
+    },
+    retryLabel: {
+      control: 'text',
+    },
+  },
 };
 
 export default meta;

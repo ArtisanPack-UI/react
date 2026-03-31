@@ -8,6 +8,7 @@
 - [[Laravel Inertia Integration]]
 - [[Migration from Livewire]]
 - [[React 18 vs 19 Compatibility]]
+- [[Bundle Sizes]]
 
 ## Components
 

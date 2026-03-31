@@ -24,6 +24,14 @@ const meta: Meta<typeof Stack> = {
   title: 'Layout/Stack',
   component: Stack,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Flexbox layout helper for vertical or horizontal stacking with configurable gap, alignment, justification, and wrapping.',
+      },
+    },
+  },
 };
 
 export default meta;

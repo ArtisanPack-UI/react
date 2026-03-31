@@ -5,6 +5,28 @@ const meta: Meta<typeof Editor> = {
   title: 'Form/Editor',
   component: Editor,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Plain textarea-based code/text editor with label, hint, error indicator, and required marker. Suitable for simple multi-line text editing.',
+      },
+    },
+  },
+  argTypes: {
+    label: {
+      control: 'text',
+    },
+    hint: {
+      control: 'text',
+    },
+    error: {
+      control: 'text',
+    },
+    required: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

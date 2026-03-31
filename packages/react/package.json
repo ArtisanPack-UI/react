@@ -22,10 +22,6 @@
       "import": "./dist/navigation.mjs",
       "types": "./dist/navigation.d.ts"
     },
-    "./display": {
-      "import": "./dist/display.mjs",
-      "types": "./dist/display.d.ts"
-    },
     "./data": {
       "import": "./dist/data.mjs",
       "types": "./dist/data.d.ts"
@@ -76,8 +72,12 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "apexcharts": { "optional": true },
-    "react-apexcharts": { "optional": true }
+    "apexcharts": {
+      "optional": true
+    },
+    "react-apexcharts": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public",

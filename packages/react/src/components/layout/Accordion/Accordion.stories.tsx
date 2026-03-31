@@ -6,6 +6,14 @@ const meta: Meta<typeof Accordion> = {
   title: 'Layout/Accordion',
   component: Accordion,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Collapsible section group that expands one or multiple panels at a time. Supports joined borders and default-open indices.',
+      },
+    },
+  },
 };
 
 export default meta;

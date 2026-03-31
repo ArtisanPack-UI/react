@@ -5,6 +5,14 @@ const meta: Meta<typeof Sparkline> = {
   title: 'Data Display/Sparkline',
   component: Sparkline,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Compact inline chart for showing data trends at a glance. Supports line, area, and bar visualization types with DaisyUI color theming.',
+      },
+    },
+  },
   argTypes: {
     type: {
       control: 'select',

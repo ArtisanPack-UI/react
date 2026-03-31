@@ -5,6 +5,43 @@ const meta: Meta<typeof Chart> = {
   title: 'Data Display/Chart',
   component: Chart,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Data visualization component powered by ApexCharts. Supports bar, line, area, donut, pie, radar, radialBar, and polarArea chart types.',
+      },
+    },
+  },
+  argTypes: {
+    type: {
+      control: 'select',
+      options: ['bar', 'line', 'area', 'donut', 'pie', 'radar', 'radialBar', 'polarArea'],
+    },
+    height: {
+      control: 'text',
+    },
+    color: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'secondary',
+        'accent',
+        'success',
+        'warning',
+        'error',
+        'info',
+        'neutral',
+      ],
+    },
+    showLegend: {
+      control: 'boolean',
+    },
+    animated: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

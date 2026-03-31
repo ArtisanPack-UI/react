@@ -7,6 +7,22 @@ const meta: Meta<typeof Drawer> = {
   title: 'Layout/Drawer',
   component: Drawer,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Slide-out drawer panel anchored to the left or right edge of the viewport. Accepts a side slot for navigation or form content.',
+      },
+    },
+  },
+  argTypes: {
+    end: {
+      control: 'boolean',
+    },
+    persistent: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;
@@ -15,12 +31,18 @@ type Story = StoryObj<typeof Drawer>;
 const handleLinkClick = (e: React.MouseEvent) => e.preventDefault();
 
 export const Default: Story = {
-  render: () => {
+  args: {
+    end: false,
+    persistent: false,
+  },
+  render: (args) => {
     const [open, setOpen] = useState(false);
     return (
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
+        end={args.end}
+        persistent={args.persistent}
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
             <li>
@@ -51,13 +73,18 @@ export const Default: Story = {
 };
 
 export const EndSide: Story = {
-  render: () => {
+  args: {
+    end: true,
+    persistent: false,
+  },
+  render: (args) => {
     const [open, setOpen] = useState(false);
     return (
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
-        end
+        end={args.end}
+        persistent={args.persistent}
         side={
           <ul className="menu bg-base-200 min-h-full w-60 p-4">
             <li>

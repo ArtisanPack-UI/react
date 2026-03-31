@@ -5,6 +5,14 @@ const meta: Meta<typeof Badge> = {
   title: 'Data Display/Badge',
   component: Badge,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Inline status descriptor for labeling, categorizing, or counting items. Supports color variants, outline style, and multiple sizes.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

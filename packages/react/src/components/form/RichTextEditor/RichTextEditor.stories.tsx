@@ -5,6 +5,31 @@ const meta: Meta<typeof RichTextEditor> = {
   title: 'Form/RichTextEditor',
   component: RichTextEditor,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'ContentEditable rich-text editor with optional toolbar, label, hint, error, configurable minimum height, and controlled value via onValueChange callback.',
+      },
+    },
+  },
+  argTypes: {
+    label: {
+      control: 'text',
+    },
+    hint: {
+      control: 'text',
+    },
+    error: {
+      control: 'text',
+    },
+    minHeight: {
+      control: 'text',
+    },
+    required: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

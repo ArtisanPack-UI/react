@@ -12,6 +12,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -49,6 +50,27 @@ export interface CarouselProps extends Omit<HTMLAttributes<HTMLDivElement>, 'con
   showArrows?: boolean;
   /** Custom render function for slides, receiving the slide data and its index. */
   renderSlide?: (slide: CarouselSlide, index: number) => ReactNode;
+}
+
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+
+function subscribeReducedMotion(onStoreChange: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
+  const mql = window.matchMedia(reducedMotionQuery);
+  mql.addEventListener('change', onStoreChange);
+  return () => mql.removeEventListener('change', onStoreChange);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(reducedMotionQuery).matches
+  );
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
 }
 
 /**
@@ -96,6 +118,13 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     const total = slides.length;
 
+    const prefersReducedMotion = useSyncExternalStore(
+      subscribeReducedMotion,
+      getReducedMotionSnapshot,
+      getReducedMotionServerSnapshot,
+    );
+    const effectiveAutoplay = autoplay && !prefersReducedMotion;
+
     const goTo = useCallback(
       (index: number) => {
         if (total === 0) return;
@@ -119,13 +148,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const prev = useCallback(() => goTo(safeIndex - 1), [safeIndex, goTo]);
 
     useEffect(() => {
-      if (!autoplay || total <= 1) return;
-
-      const prefersReduced =
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) return;
+      if (!effectiveAutoplay || total <= 1) return;
 
       autoplayRef.current = setInterval(() => {
         setCurrent((c) => (c + 1) % total);
@@ -133,7 +156,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       return () => {
         if (autoplayRef.current) clearInterval(autoplayRef.current);
       };
-    }, [autoplay, interval, total]);
+    }, [effectiveAutoplay, interval, total]);
 
     const isInteractiveTarget = (target: EventTarget): boolean => {
       if (!(target instanceof HTMLElement)) return false;
@@ -215,6 +238,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           role="group"
           aria-roledescription="slide"
           aria-label={`Slide ${safeIndex + 1} of ${total}`}
+          aria-live={effectiveAutoplay ? 'off' : 'polite'}
+          aria-atomic="true"
         >
           {renderSlide ? (
             renderSlide(slide, safeIndex)

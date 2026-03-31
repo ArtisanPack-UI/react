@@ -5,6 +5,14 @@ const meta: Meta<typeof Clipboard> = {
   title: 'Utility/Clipboard',
   component: Clipboard,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Copy-to-clipboard button that copies a provided value and briefly shows a success label. Supports DaisyUI color and size variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

@@ -5,6 +5,14 @@ const meta: Meta<typeof Icon> = {
   title: 'Utility/Icon',
   component: Icon,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'SVG icon wrapper accepting a path string or inline SVG children. Supports size and color variants with an accessible label for screen readers.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

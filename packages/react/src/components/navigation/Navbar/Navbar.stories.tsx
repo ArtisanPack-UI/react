@@ -6,6 +6,19 @@ const meta: Meta<typeof Navbar> = {
   title: 'Navigation/Navbar',
   component: Navbar,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Top navigation bar with start, center, and end slots for brand, links, and actions. Supports a frosted-glass backdrop effect.',
+      },
+    },
+  },
+  argTypes: {
+    glass: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

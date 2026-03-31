@@ -5,6 +5,14 @@ const meta: Meta<typeof DatePicker> = {
   title: 'Form/DatePicker',
   component: DatePicker,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Date and time input supporting date, datetime-local, time, month, and week types. Includes label, hint, error, icon slots, and inline layout.',
+      },
+    },
+  },
   argTypes: {
     dateType: {
       control: 'select',

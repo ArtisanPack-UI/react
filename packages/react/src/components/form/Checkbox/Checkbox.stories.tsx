@@ -5,6 +5,14 @@ const meta: Meta<typeof Checkbox> = {
   title: 'Form/Checkbox',
   component: Checkbox,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Labeled checkbox input with DaisyUI color variants, hint text, error state, right-aligned label option, and card-style variant.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

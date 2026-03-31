@@ -22,6 +22,14 @@ const meta: Meta<typeof Grid> = {
   title: 'Layout/Grid',
   component: Grid,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'CSS Grid wrapper with responsive column counts and configurable row/column gap. Simplifies common grid layouts without manual Tailwind classes.',
+      },
+    },
+  },
 };
 
 export default meta;

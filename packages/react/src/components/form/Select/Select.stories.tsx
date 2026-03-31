@@ -5,6 +5,14 @@ const meta: Meta<typeof Select> = {
   title: 'Form/Select',
   component: Select,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Dropdown select input with label, hint, error state, inline layout, and disabled mode. Accepts an array of option objects with value, label, and optional disabled flag.',
+      },
+    },
+  },
 };
 
 export default meta;

@@ -5,6 +5,14 @@ const meta: Meta<typeof Skeleton> = {
   title: 'Feedback/Skeleton',
   component: Skeleton,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Content placeholder that pulses while data is loading. Supports rectangular and circular shapes with configurable dimensions for building skeleton screens.',
+      },
+    },
+  },
 };
 
 export default meta;

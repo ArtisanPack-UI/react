@@ -5,6 +5,14 @@ const meta: Meta<typeof Divider> = {
   title: 'Layout/Divider',
   component: Divider,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Horizontal or vertical divider line with optional label text and configurable label position. Supports DaisyUI color variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',
@@ -19,6 +27,16 @@ const meta: Meta<typeof Divider> = {
         'info',
         'neutral',
       ],
+    },
+    vertical: {
+      control: 'boolean',
+    },
+    label: {
+      control: 'text',
+    },
+    labelPosition: {
+      control: 'select',
+      options: ['start', 'center', 'end'],
     },
   },
 };

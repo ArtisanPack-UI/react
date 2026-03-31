@@ -5,6 +5,34 @@ const meta: Meta<typeof ColorPicker> = {
   title: 'Form/ColorPicker',
   component: ColorPicker,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Native color input with label, hint, error, clearable value, random color generator, and left/right icon slots.',
+      },
+    },
+  },
+  argTypes: {
+    label: {
+      control: 'text',
+    },
+    hint: {
+      control: 'text',
+    },
+    error: {
+      control: 'text',
+    },
+    clearable: {
+      control: 'boolean',
+    },
+    random: {
+      control: 'boolean',
+    },
+    disabled: {
+      control: 'boolean',
+    },
+  },
 };
 
 export default meta;

@@ -5,6 +5,14 @@ const meta: Meta<typeof File> = {
   title: 'Form/File',
   component: File,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'File upload input with drag-and-drop zone, upload progress indicator, error state, disabled mode, and multi-file support.',
+      },
+    },
+  },
 };
 
 export default meta;

@@ -11,6 +11,14 @@ const meta: Meta<typeof Menu> = {
   title: 'Navigation/Menu',
   component: Menu,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Vertical or horizontal menu with nested sub-items, icons, disabled items, section titles, compact mode, and DaisyUI color/size theming.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

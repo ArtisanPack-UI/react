@@ -5,6 +5,14 @@ const meta: Meta<typeof Alert> = {
   title: 'Feedback/Alert',
   component: Alert,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Contextual feedback banner for success, info, warning, and error messages. Supports an optional dismiss button and custom icon override.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

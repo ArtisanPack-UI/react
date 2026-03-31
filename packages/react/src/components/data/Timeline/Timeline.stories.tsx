@@ -6,6 +6,14 @@ const meta: Meta<typeof Timeline> = {
   title: 'Data Display/Timeline',
   component: Timeline,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Chronological event timeline in vertical or horizontal layout. Items support icons, colored indicators, and a pending-state marker for in-progress events.',
+      },
+    },
+  },
 };
 
 export default meta;

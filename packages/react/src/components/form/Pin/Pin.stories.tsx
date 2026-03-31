@@ -5,6 +5,14 @@ const meta: Meta<typeof Pin> = {
   title: 'Form/Pin',
   component: Pin,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'One-time PIN / verification code input with configurable length, numeric-only mode, hidden characters, DaisyUI color variants, and error state.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

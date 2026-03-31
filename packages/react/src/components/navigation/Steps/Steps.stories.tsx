@@ -5,6 +5,14 @@ const meta: Meta<typeof Steps> = {
   title: 'Navigation/Steps',
   component: Steps,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Step indicator for multi-step workflows in horizontal or vertical layout. Supports per-step colors, custom content, and size variants.',
+      },
+    },
+  },
   argTypes: {
     color: {
       control: 'select',

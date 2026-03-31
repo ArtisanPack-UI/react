@@ -5,6 +5,14 @@ const meta: Meta<typeof Popover> = {
   title: 'Layout/Popover',
   component: Popover,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Floating content panel triggered by hover or click with configurable position, open/close delays, and custom content slot.',
+      },
+    },
+  },
 };
 
 export default meta;
