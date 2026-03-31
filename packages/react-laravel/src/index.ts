@@ -1,3 +1,14 @@
+/**
+ * @artisanpack-ui/react-laravel
+ *
+ * Laravel + Inertia.js integration layer for ArtisanPack UI React components.
+ * Provides navigation components pre-wired with Inertia's client-side router,
+ * form helpers that bind to Inertia's form handling, authentication utilities
+ * reading from shared page props, and flash-message-to-toast bridging.
+ *
+ * @packageDocumentation
+ */
+
 // Navigation
 export { InertiaLink, InertiaMenu, InertiaBreadcrumbs, InertiaPagination } from './navigation';
 export type {

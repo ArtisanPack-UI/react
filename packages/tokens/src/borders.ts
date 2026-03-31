@@ -1,8 +1,9 @@
 /**
- * ArtisanPack UI - Border Tokens
+ * @module borders
  *
- * Border radius values for the design system.
- * Derived from the Livewire component library's design tokens.
+ * Border radius tokens: a general-purpose scale and DaisyUI component-specific values.
+ *
+ * @packageDocumentation
  */
 
 /** Border radius scale */

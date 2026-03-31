@@ -18,7 +18,7 @@ All three packages are **linked** in Changesets config, meaning they are always 
 
 ## Prerequisites
 
-- `NPM_TOKEN` secret must be configured in GitHub repo settings (see issue #26)
+- **Trusted publishers** must be configured on npmjs.com for each package (see [npm docs](https://docs.npmjs.com/trusted-publishers)). Each package needs trusted publisher entries for both `ci.yml` and `snapshot.yml` workflows.
 - The npm organization `@artisanpack-ui` must exist on npmjs.com
 - All packages have `publishConfig.access: "public"` and `publishConfig.provenance: true`
 
@@ -178,8 +178,9 @@ This means if any package gets a minor bump, all three packages are bumped to th
 
 ### Publish fails with auth error
 
-- Verify `NPM_TOKEN` is set in repo secrets (Settings → Secrets and variables → Actions)
-- Verify the token has publish access to the `@artisanpack-ui` scope
+- Verify trusted publishers are configured on npmjs.com for each package
+- Each package needs entries for both `ci.yml` and `snapshot.yml` workflow filenames
+- Ensure the workflow has `id-token: write` permission (required for OIDC)
 
 ### Snapshot version looks wrong
 

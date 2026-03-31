@@ -1,31 +1,59 @@
+/** @module Input */
+
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Input} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `prefix` and `size`).
+ * Provides a comprehensive text input with label, icons, prefix/suffix adornments,
+ * clearable action, and inline label mode.
+ */
 export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix' | 'size'> {
-  /** Input label */
+  /** Text label displayed above the input. Hidden when `inline` is true (shown as floating label instead). */
   label?: string;
-  /** Helper text below the input */
+  /** Helper text displayed below the input. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the input. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** Icon element on the left */
+  /** Icon element rendered to the left of the input text. Wrapped with `aria-hidden="true"`. */
   icon?: ReactNode;
-  /** Icon element on the right */
+  /** Icon element rendered to the right of the input text. Wrapped with `aria-hidden="true"`. */
   iconRight?: ReactNode;
-  /** Text or element prefix inside the input */
+  /** Text or element rendered as a prefix inside the input, before the text area. */
   prefix?: ReactNode;
-  /** Text or element suffix inside the input */
+  /** Text or element rendered as a suffix inside the input, after the text area. */
   suffix?: ReactNode;
-  /** Show clear button */
+  /** When true, shows a clear (X) button inside the input. @defaultValue `false` */
   clearable?: boolean;
-  /** Callback when clear is clicked */
+  /** Callback fired when the clear button is clicked. Use this to reset the input value. */
   onClear?: () => void;
-  /** Display label inline (floating) */
+  /** When true, renders the label as a floating/inline label inside the input wrapper. @defaultValue `false` */
   inline?: boolean;
 }
 
 /**
- * Text input with label, hint, error, icons, prefix/suffix, and clearable support.
+ * A text input component with DaisyUI styling, supporting labels, hint/error text,
+ * left/right icons, prefix/suffix adornments, a clearable action button, and
+ * an inline (floating) label mode. Automatically generates accessible IDs and ARIA attributes.
+ *
+ * @example
+ * ```tsx
+ * <Input label="Email" type="email" placeholder="you@example.com" required />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Input
+ *   label="Price"
+ *   prefix="$"
+ *   suffix="USD"
+ *   clearable
+ *   onClear={() => setValue('')}
+ *   icon={<CurrencyIcon />}
+ * />
+ * ```
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (

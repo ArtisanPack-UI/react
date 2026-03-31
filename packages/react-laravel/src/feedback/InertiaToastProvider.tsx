@@ -10,7 +10,12 @@ function FlashListener() {
   return null;
 }
 
+/**
+ * Props for the {@link InertiaToastProvider} component.
+ * Extends all `ToastProviderProps` from `@artisanpack-ui/react`.
+ */
 export interface InertiaToastProviderProps extends ToastProviderProps {
+  /** Application content that may trigger or display toasts */
   children: ReactNode;
 }
 

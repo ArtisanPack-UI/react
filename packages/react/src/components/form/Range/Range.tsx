@@ -1,15 +1,23 @@
+/** @module Range */
+
 import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Range} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size` and `type`).
+ * Renders a styled range slider with DaisyUI color variants.
+ */
 export interface RangeProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Range label */
+  /** Text label displayed above the range slider. */
   label?: string;
-  /** Helper text below the range */
+  /** Helper text displayed below the slider. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the slider. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant for the range track and thumb. */
   color?: DaisyColor;
 }
 
@@ -24,7 +32,18 @@ const colorMap: Record<string, string> = {
 };
 
 /**
- * Slider/range input with label, hint, and color support.
+ * A range slider input with DaisyUI styling, label, hint/error text, and color variants.
+ * Defaults to a 0-100 range.
+ *
+ * @example
+ * ```tsx
+ * <Range label="Volume" min={0} max={100} value={volume} onChange={handleChange} color="primary" />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Range label="Brightness" hint="Adjust screen brightness" step={5} />
+ * ```
  */
 export const Range = forwardRef<HTMLInputElement, RangeProps>(
   (

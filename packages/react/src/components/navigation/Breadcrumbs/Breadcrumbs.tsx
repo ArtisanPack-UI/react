@@ -1,14 +1,29 @@
+/**
+ * @module Breadcrumbs
+ *
+ * Breadcrumb navigation component that renders an accessible trail of links
+ * showing the user's current location within a site hierarchy. Supports
+ * custom link renderers for integration with React Router, Inertia, or
+ * other routing libraries, and optional item collapsing with ellipsis.
+ */
+
 import { forwardRef, type HTMLAttributes, type ReactNode, type ReactElement } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single item in the breadcrumb trail.
+ */
 export interface BreadcrumbItem {
-  /** Display label */
+  /** Display label for the breadcrumb item. Can be a string or any React node. */
   label: ReactNode;
-  /** URL for the link (omit for current/last item) */
+  /** URL for the link. Omit for the current/last item to render it as plain text. */
   href?: string;
-  /** Icon element */
+  /** Optional icon element displayed before the label. */
   icon?: ReactNode;
-  /** Custom link element (for React Router / Inertia) */
+  /**
+   * Custom link renderer for integration with React Router, Inertia, or other routing libraries.
+   * When provided, this function is called instead of rendering a plain `<a>` tag.
+   */
   renderLink?: (props: {
     className?: string;
     children: ReactNode;
@@ -16,15 +31,36 @@ export interface BreadcrumbItem {
   }) => ReactElement;
 }
 
+/**
+ * Props for the {@link Breadcrumbs} component.
+ */
 export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
-  /** Breadcrumb items (last item is treated as current page) */
+  /** Array of breadcrumb items to display. The last item is treated as the current page. */
   items: BreadcrumbItem[];
-  /** Maximum items to display before collapsing with ellipsis */
+  /**
+   * Maximum number of items to display before collapsing intermediate items with an ellipsis.
+   * When set, the first item and the last `maxItems - 1` items are shown.
+   */
   maxItems?: number;
 }
 
 /**
  * Breadcrumb navigation trail with accessible markup and optional item collapsing.
+ *
+ * Renders a `<nav>` element with `aria-label="Breadcrumbs"` and marks the last
+ * item with `aria-current="page"` for screen readers.
+ *
+ * @example
+ * ```tsx
+ * <Breadcrumbs
+ *   items={[
+ *     { label: 'Home', href: '/' },
+ *     { label: 'Products', href: '/products' },
+ *     { label: 'Widget' },
+ *   ]}
+ *   maxItems={3}
+ * />
+ * ```
  */
 export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
   ({ items, maxItems, className, ...rest }, ref) => {

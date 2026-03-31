@@ -1,3 +1,13 @@
+/**
+ * @module Dropdown
+ *
+ * A trigger-plus-popover menu component built on DaisyUI's dropdown. Provides
+ * full keyboard navigation (ArrowUp/Down, Home, End, Escape, Tab), click-outside
+ * dismissal, hover mode, and controlled/uncontrolled open state.
+ *
+ * @packageDocumentation
+ */
+
 import {
   forwardRef,
   useState,
@@ -14,25 +24,54 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Dropdown} component.
+ */
 export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
-  /** Trigger element (defaults to a button with label) */
+  /** Custom trigger element. When omitted, a default ghost button with `label` text is rendered. */
   trigger?: ReactElement | null;
-  /** Label text for default trigger button */
+  /** Text for the default trigger button when no custom `trigger` is provided. @defaultValue `'Options'` */
   label?: string;
-  /** Open from the right side */
+  /** Align the dropdown menu to the right (end) side of the trigger. */
   end?: boolean;
-  /** Open upwards */
+  /** Open the dropdown menu above the trigger instead of below. */
   top?: boolean;
-  /** Open on hover instead of click */
+  /** Open the menu on hover instead of click. */
   hover?: boolean;
-  /** Whether the dropdown is open (controlled) */
+  /** Whether the dropdown is open (controlled mode). */
   open?: boolean;
-  /** Callback when open state changes */
+  /** Callback fired when the open state changes. */
   onOpenChange?: (open: boolean) => void;
 }
 
 /**
  * Trigger + popover menu with keyboard navigation.
+ *
+ * Renders a DaisyUI dropdown with an accessible `role="menu"` list. Menu
+ * items should use the companion {@link DropdownItem} component to receive
+ * proper `role="menuitem"` semantics and keyboard support.
+ *
+ * @example
+ * ```tsx
+ * <Dropdown label="Actions">
+ *   <DropdownItem onClick={() => console.log('Edit')}>Edit</DropdownItem>
+ *   <DropdownItem onClick={() => console.log('Delete')}>Delete</DropdownItem>
+ * </Dropdown>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Custom trigger with controlled state
+ * const [open, setOpen] = useState(false);
+ *
+ * <Dropdown
+ *   open={open}
+ *   onOpenChange={setOpen}
+ *   trigger={<Button>Menu</Button>}
+ * >
+ *   <DropdownItem onClick={handleEdit}>Edit</DropdownItem>
+ * </Dropdown>
+ * ```
  */
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   (
@@ -277,15 +316,26 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
 Dropdown.displayName = 'Dropdown';
 
+/**
+ * Props for the {@link DropdownItem} component.
+ */
 export interface DropdownItemProps extends Omit<HTMLAttributes<HTMLLIElement>, 'onClick'> {
-  /** Disable this menu item */
+  /** Disable this menu item, preventing interaction and keyboard focus. */
   disabled?: boolean;
-  /** Click handler */
+  /** Click handler fired when the menu item is activated. */
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 /**
- * Individual item within a Dropdown menu.
+ * Individual item within a {@link Dropdown} menu.
+ *
+ * Renders as a `<li>` containing a `<button role="menuitem">` to ensure
+ * proper ARIA semantics and keyboard navigation within the parent menu.
+ *
+ * @example
+ * ```tsx
+ * <DropdownItem onClick={() => alert('Clicked!')}>Save</DropdownItem>
+ * ```
  */
 export const DropdownItem = forwardRef<HTMLLIElement, DropdownItemProps>(
   ({ disabled = false, className, children, onClick, ...rest }, ref) => {

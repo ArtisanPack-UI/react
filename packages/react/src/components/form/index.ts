@@ -1,3 +1,16 @@
+/**
+ * @module form
+ *
+ * Form components for the ArtisanPack UI React component library.
+ * Provides a comprehensive set of form inputs and controls built on DaisyUI
+ * with consistent styling, accessibility, and error handling patterns.
+ *
+ * @example
+ * ```tsx
+ * import { Button, Input, Select, Toggle } from '@artisanpack-ui/react';
+ * ```
+ */
+
 // Form components
 export { Button } from './Button/Button';
 export type { ButtonProps } from './Button/Button';

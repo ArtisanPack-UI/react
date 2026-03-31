@@ -1,24 +1,32 @@
+/** @module Checkbox */
+
 import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Checkbox} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size` and `type`).
+ * Supports both standard and card layout variants.
+ */
 export interface CheckboxProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'size' | 'type'
 > {
-  /** Checkbox label */
+  /** Text label displayed next to the checkbox. Includes a required indicator when `required` is true. */
   label?: string;
-  /** Position label on the right */
+  /** When true, positions the label to the right of the checkbox (reverses flex order). @defaultValue `false` */
   right?: boolean;
-  /** Helper text below the checkbox */
+  /** Helper text displayed below the checkbox. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the checkbox. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant for the checkbox indicator. */
   color?: DaisyColor;
-  /** Display as card variant */
+  /** When true, renders the checkbox inside a bordered card layout with checked-state highlighting. @defaultValue `false` */
   card?: boolean;
-  /** Custom card CSS classes */
+  /** Additional CSS classes applied to the card container when `card` is true. */
   cardClass?: string;
 }
 
@@ -34,7 +42,18 @@ const colorMap: Record<string, string> = {
 };
 
 /**
- * Single checkbox with label, hint, card variant, and color support.
+ * A single checkbox input with label, hint text, error state, DaisyUI color variants,
+ * and an optional card layout. Automatically generates accessible IDs and ARIA attributes.
+ *
+ * @example
+ * ```tsx
+ * <Checkbox label="Accept terms" color="primary" required />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Checkbox label="Premium plan" card hint="Includes all features" />
+ * ```
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (

@@ -69,15 +69,24 @@ export interface LaravelPaginator<T = unknown> {
   links: PaginatorLink[];
 }
 
+/**
+ * Individual link entry from Laravel's paginator `links` array.
+ * Includes previous/next and numbered page links with raw HTML labels.
+ */
 export interface PaginatorLink {
+  /** URL for this page link, or null if the link is not navigable (e.g. current page ellipsis) */
   url: string | null;
+  /** HTML label for the link (e.g. "&laquo; Previous", "1", "Next &raquo;") */
   label: string;
+  /** Whether this link represents the currently active page */
   active: boolean;
 }
 
 /**
- * Props for components that accept children.
+ * Base props interface for components that accept React children.
+ * Used as a mixin type for components requiring a `children` prop.
  */
 export interface ChildrenProps {
+  /** React node(s) to render as the component's content */
   children: ReactNode;
 }

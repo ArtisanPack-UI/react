@@ -1,17 +1,30 @@
+/**
+ * @module Divider
+ *
+ * A visual separator for content sections, supporting horizontal and vertical
+ * orientations, DaisyUI color variants, and an optional inline label.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/** Allowed positions for the divider label text. */
 export type LabelPosition = 'start' | 'center' | 'end';
 
+/**
+ * Props for the {@link Divider} component.
+ */
 export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
-  /** Render as vertical divider */
+  /** Render as a vertical divider instead of horizontal. */
   vertical?: boolean;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant applied to the divider line. */
   color?: DaisyColor;
-  /** Text or content to display in the divider */
+  /** Text to display inline within the divider. */
   label?: string;
-  /** Position of the label */
+  /** Position of the label along the divider. @defaultValue `'center'` */
   labelPosition?: LabelPosition;
 }
 
@@ -34,6 +47,24 @@ const positionMap: Record<LabelPosition, string> = {
 
 /**
  * Visual separator for content sections with optional label.
+ *
+ * Renders a DaisyUI `divider` element with `role="separator"` and proper
+ * `aria-orientation`. Pass `label` or `children` to display inline text.
+ *
+ * @example
+ * ```tsx
+ * <Divider />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Divider label="OR" color="primary" />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Divider vertical />
+ * ```
  */
 export const Divider = forwardRef<HTMLDivElement, DividerProps>(
   (

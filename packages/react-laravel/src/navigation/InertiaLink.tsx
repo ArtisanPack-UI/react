@@ -23,6 +23,10 @@ const sizeMap: Record<Size, string> = {
   lg: 'btn-lg',
 };
 
+/**
+ * Props for the {@link InertiaLink} component.
+ * Extends all Inertia `Link` props with optional DaisyUI button styling.
+ */
 export interface InertiaLinkProps extends Omit<ComponentProps<typeof Link>, 'size'> {
   /** Render as a DaisyUI button (default: false renders as a plain link) */
   asButton?: boolean;
@@ -41,6 +45,27 @@ export interface InertiaLinkProps extends Omit<ComponentProps<typeof Link>, 'siz
 /**
  * Inertia-powered link with optional DaisyUI button styling.
  * Wraps Inertia's `<Link>` for client-side navigation with all visit options.
+ *
+ * Supports loading states, left/right icons, and all standard Inertia Link props
+ * such as `method`, `preserveScroll`, `preserveState`, and `only`.
+ *
+ * @see {@link InertiaLinkProps} for available props
+ *
+ * @example
+ * ```tsx
+ * // Plain link
+ * <InertiaLink href="/dashboard">Dashboard</InertiaLink>
+ *
+ * // Button-styled link with color and size
+ * <InertiaLink href="/users/create" asButton color="primary" size="sm">
+ *   New User
+ * </InertiaLink>
+ *
+ * // With icons and loading state
+ * <InertiaLink href="/settings" asButton icon={<GearIcon />} loading={isNavigating}>
+ *   Settings
+ * </InertiaLink>
+ * ```
  */
 export const InertiaLink = forwardRef<HTMLAnchorElement, InertiaLinkProps>(
   (

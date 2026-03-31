@@ -2,6 +2,13 @@ import { forwardRef, useMemo, type ReactElement } from 'react';
 import { Link } from '@inertiajs/react';
 import { Menu, type MenuProps, type MenuItemType } from '@artisanpack-ui/react';
 
+/**
+ * Menu item descriptor with Inertia `href` support.
+ * Extends the base `MenuItemType` but replaces `renderLink` with a simple `href` string
+ * that is automatically wired to Inertia's `<Link>` for client-side navigation.
+ *
+ * @see {@link InertiaMenuProps}
+ */
 export interface InertiaMenuItemType extends Omit<MenuItemType, 'renderLink' | 'children'> {
   /** Inertia route URL for this menu item */
   href?: string;
@@ -9,6 +16,11 @@ export interface InertiaMenuItemType extends Omit<MenuItemType, 'renderLink' | '
   children?: InertiaMenuItemType[];
 }
 
+/**
+ * Props for the {@link InertiaMenu} component.
+ * Extends the base `MenuProps` but accepts {@link InertiaMenuItemType} items
+ * with Inertia `href` instead of `renderLink`.
+ */
 export interface InertiaMenuProps extends Omit<MenuProps, 'items'> {
   /** Menu items with Inertia href support */
   items: InertiaMenuItemType[];
@@ -48,6 +60,22 @@ function toMenuItems(items: InertiaMenuItemType[]): MenuItemType[] {
 /**
  * Menu pre-wired with Inertia's `<Link>` for client-side navigation.
  * Accepts `href` on each menu item instead of requiring `renderLink`.
+ *
+ * @see {@link InertiaMenuItemType} for the item descriptor shape
+ *
+ * @example
+ * ```tsx
+ * <InertiaMenu
+ *   items={[
+ *     { label: 'Dashboard', href: '/dashboard', icon: <HomeIcon /> },
+ *     { label: 'Users', href: '/users' },
+ *     { label: 'Settings', href: '/settings', children: [
+ *       { label: 'Profile', href: '/settings/profile' },
+ *       { label: 'Security', href: '/settings/security' },
+ *     ]},
+ *   ]}
+ * />
+ * ```
  */
 export const InertiaMenu = forwardRef<HTMLUListElement, InertiaMenuProps>(
   ({ items, ...rest }, ref) => {

@@ -1,12 +1,25 @@
+/**
+ * @module ThemeToggle
+ *
+ * A button that cycles through color scheme modes (light, dark, system).
+ * Displays an icon representing the current mode and updates the theme
+ * context on click. Must be used within a {@link ThemeProvider}.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type ButtonHTMLAttributes, type MouseEvent } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 import { useTheme, type ColorScheme } from '../../../hooks/use-theme';
 
+/**
+ * Props for the {@link ThemeToggle} component.
+ */
 export interface ThemeToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'size'> {
-  /** Button size */
+  /** Button size preset. Defaults to `"md"`. */
   size?: Size;
-  /** Which modes to cycle through (defaults to all three) */
+  /** Ordered list of color scheme modes to cycle through. Defaults to `['light', 'dark', 'system']`. */
   modes?: ColorScheme[];
 }
 
@@ -39,8 +52,22 @@ const modeNameMap: Record<ColorScheme, string> = {
 };
 
 /**
- * Theme toggle button that cycles through light/dark/system modes.
- * Must be used within a ThemeProvider.
+ * Theme toggle button that cycles through light, dark, and system modes.
+ *
+ * Displays a sun icon for light mode, a moon icon for dark mode, and a
+ * monitor icon for system mode. The `aria-label` announces the next
+ * mode that will be activated on click.
+ *
+ * Must be used within a {@link ThemeProvider}.
+ *
+ * @example
+ * ```tsx
+ * // Default: cycles through light -> dark -> system
+ * <ThemeToggle />
+ *
+ * // Only toggle between light and dark
+ * <ThemeToggle modes={['light', 'dark']} size="sm" />
+ * ```
  */
 export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(
   (

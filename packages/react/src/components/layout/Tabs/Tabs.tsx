@@ -1,3 +1,13 @@
+/**
+ * @module Tabs
+ *
+ * A tabbed interface component with accessible keyboard navigation
+ * (Arrow keys, Home, End), vertical layout support, DaisyUI styling
+ * variants, and controlled/uncontrolled active tab management.
+ *
+ * @packageDocumentation
+ */
+
 import {
   forwardRef,
   useEffect,
@@ -11,43 +21,49 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Describes a single tab within the {@link Tabs} component.
+ */
 export interface TabItem {
-  /** Unique tab name/key */
+  /** Unique identifier for this tab, used as the key for `activeTab` / `onChange`. */
   name: string;
-  /** Tab label */
+  /** Label content displayed in the tab button. */
   label: ReactNode;
-  /** Tab panel content */
+  /** Content rendered in the tab panel when this tab is active. */
   content: ReactNode;
-  /** Disable this tab */
+  /** Whether this tab is disabled and cannot be selected. */
   disabled?: boolean;
-  /** Icon to show in the tab */
+  /** Optional icon displayed before the label in the tab button. */
   icon?: ReactNode;
 }
 
+/**
+ * Props for the {@link Tabs} component.
+ */
 export interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  /** Tab items to render. Should be memoized (e.g. useMemo) to avoid unnecessary re-syncs of internal state. */
+  /** Array of tab definitions to render. Should be memoized (e.g. `useMemo`) to avoid unnecessary re-syncs of internal state. */
   tabs: TabItem[];
-  /** Currently active tab name (controlled) */
+  /** Currently active tab name (controlled mode). */
   activeTab?: string;
-  /** Default active tab name (uncontrolled) */
+  /** Tab name that is active on first render (uncontrolled mode). */
   defaultTab?: string;
-  /** Callback when active tab changes */
+  /** Callback fired when the active tab changes, receiving the new tab's `name`. */
   onChange?: (tabName: string) => void;
-  /** Tab visual variant */
+  /** DaisyUI visual variant for the tab list. @defaultValue `'bordered'` */
   variant?: 'bordered' | 'lifted' | 'boxed';
-  /** Tab size */
+  /** Size of the tab buttons. */
   size?: Size;
-  /** Vertical tab orientation (tabs on left, content on right) */
+  /** Render tabs vertically with the tab list on the left and content on the right. */
   vertical?: boolean;
-  /** Vertical tabs on the right side (content on left, tabs on right) */
+  /** Render tabs vertically with the tab list on the right and content on the left. */
   verticalRight?: boolean;
-  /** DaisyUI color for active tab */
+  /** DaisyUI color applied to the active tab indicator. */
   color?: DaisyColor;
-  /** Custom CSS class for the tab list container */
+  /** Additional CSS class for the tab list container (`role="tablist"`). */
   tabListClassName?: string;
-  /** Custom CSS class for each tab panel */
+  /** Additional CSS class for the active tab panel. */
   panelClassName?: string;
-  /** Custom CSS class for the active tab */
+  /** Additional CSS class applied to the active tab button. */
   activeTabClassName?: string;
 }
 
@@ -77,12 +93,18 @@ const colorMap: Record<DaisyColor, string> = {
   neutral: 'tab-neutral',
 };
 
-/** Returns the name of the first non-disabled tab, or empty string */
+/**
+ * Returns the name of the first non-disabled tab, or an empty string
+ * if all tabs are disabled.
+ */
 function firstSelectableTab(tabs: TabItem[]): string {
   return tabs.find((t) => !t.disabled)?.name ?? '';
 }
 
-/** Checks if a tab name exists and is not disabled */
+/**
+ * Checks whether a tab with the given `name` exists in the list and is
+ * not disabled.
+ */
 function isSelectableTab(tabs: TabItem[], name: string | undefined): boolean {
   if (!name) return false;
   const tab = tabs.find((t) => t.name === name);
@@ -90,7 +112,38 @@ function isSelectableTab(tabs: TabItem[], name: string | undefined): boolean {
 }
 
 /**
- * Tabbed interface with accessible keyboard navigation, vertical layout, and styling options.
+ * Tabbed interface with accessible keyboard navigation, vertical layout,
+ * and DaisyUI styling options.
+ *
+ * Implements WAI-ARIA Tabs pattern with `role="tablist"`, `role="tab"`,
+ * and `role="tabpanel"`. Keyboard navigation uses Arrow keys for
+ * adjacent tabs and Home/End for first/last. Automatically falls back
+ * to the first selectable tab when the active tab becomes invalid.
+ *
+ * @example
+ * ```tsx
+ * const tabs = [
+ *   { name: 'overview', label: 'Overview', content: <Overview /> },
+ *   { name: 'details', label: 'Details', content: <Details /> },
+ *   { name: 'settings', label: 'Settings', content: <Settings /> },
+ * ];
+ *
+ * <Tabs tabs={tabs} defaultTab="overview" variant="lifted" />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Controlled vertical tabs
+ * const [active, setActive] = useState('tab1');
+ *
+ * <Tabs
+ *   tabs={myTabs}
+ *   activeTab={active}
+ *   onChange={setActive}
+ *   vertical
+ *   color="primary"
+ * />
+ * ```
  */
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   (
@@ -241,7 +294,10 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
           id={`tabpanel-${autoId}-${activeIndex}`}
           aria-labelledby={`tab-${autoId}-${activeIndex}`}
           tabIndex={0}
-          className={cn(isVertical ? 'flex-1 pl-4' : 'p-4', panelClassName)}
+          className={cn(
+            isVertical ? (verticalRight ? 'flex-1 pr-4' : 'flex-1 pl-4') : 'p-4',
+            panelClassName,
+          )}
         >
           {activeTabItem.content}
         </div>

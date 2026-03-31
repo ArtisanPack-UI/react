@@ -1,3 +1,14 @@
+/**
+ * @module Tooltip
+ *
+ * Wraps a trigger element with a DaisyUI tooltip that appears on
+ * hover and focus. Supports configurable position, color, and forced
+ * open state. Proper ARIA attributes (`aria-describedby`, `role="tooltip"`)
+ * are applied automatically.
+ *
+ * @packageDocumentation
+ */
+
 import {
   cloneElement,
   createElement,
@@ -13,18 +24,24 @@ import {
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Position of the tooltip relative to the trigger element.
+ */
 type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
 
+/**
+ * Props for the {@link Tooltip} component.
+ */
 export interface TooltipProps extends HTMLAttributes<HTMLDivElement> {
-  /** Tooltip text */
+  /** The text content displayed in the tooltip. */
   tip: string;
-  /** Position of the tooltip */
+  /** Position of the tooltip relative to the trigger. Defaults to `"top"`. */
   position?: TooltipPosition;
-  /** Color variant */
+  /** DaisyUI color variant for the tooltip background. */
   color?: DaisyColor;
-  /** Whether the tooltip is always open */
+  /** When `true`, the tooltip is always visible regardless of hover/focus state. */
   open?: boolean;
-  /** The trigger element (single child or fragment) */
+  /** The trigger element. Accepts a single child, a Fragment, or plain text. */
   children: ReactNode;
 }
 
@@ -47,8 +64,18 @@ const positionMap: Record<TooltipPosition, string> = {
 };
 
 /**
- * Tooltip wrapper that shows contextual information on hover/focus.
- * Uses DaisyUI's tooltip component with proper ARIA attributes.
+ * Tooltip wrapper that shows contextual information on hover and focus.
+ *
+ * Wraps the trigger child with a DaisyUI `.tooltip` container and
+ * injects `aria-describedby` on the trigger pointing to a hidden
+ * `role="tooltip"` element for accessibility.
+ *
+ * @example
+ * ```tsx
+ * <Tooltip tip="Delete this item" position="bottom" color="error">
+ *   <button>Delete</button>
+ * </Tooltip>
+ * ```
  */
 export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
   ({ tip, position = 'top', color, open, id, className, children, ...rest }, ref) => {

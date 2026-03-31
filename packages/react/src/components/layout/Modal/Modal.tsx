@@ -1,3 +1,13 @@
+/**
+ * @module Modal
+ *
+ * A dialog overlay component built on the native `<dialog>` element and
+ * DaisyUI's modal styles. Supports focus management, Escape key dismiss,
+ * backdrop click-to-close, glass morphism, and bottom-sheet positioning.
+ *
+ * @packageDocumentation
+ */
+
 import {
   forwardRef,
   useEffect,
@@ -10,27 +20,53 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Modal} component.
+ */
 export interface ModalProps extends Omit<HTMLAttributes<HTMLDialogElement>, 'title'> {
-  /** Whether the modal is open */
+  /** Whether the modal dialog is visible. */
   open: boolean;
-  /** Callback to close the modal */
+  /** Callback fired when the modal should close (Escape, backdrop click, close button). */
   onClose: () => void;
-  /** Modal title */
+  /** Title content displayed at the top of the modal. Renders as `<h3>` for strings. */
   title?: ReactNode;
-  /** Modal subtitle */
+  /** Subtitle text displayed below the title. */
   subtitle?: string;
-  /** Actions slot (buttons in footer) */
+  /** Actions slot rendered in the modal footer (typically buttons). */
   actions?: ReactNode;
-  /** Prevent closing via escape key or backdrop click */
+  /** Prevent closing via Escape key, backdrop click, and hide the close button. */
   persistent?: boolean;
-  /** Glass morphism effect */
+  /** Apply a glass morphism (frosted-glass) effect to the modal box. */
   glass?: boolean;
-  /** Position modal at bottom (mobile sheet style) */
+  /** Position the modal at the bottom of the viewport (mobile sheet style). */
   bottom?: boolean;
 }
 
 /**
- * Dialog overlay with focus trapping, keyboard dismiss, and backdrop click.
+ * Dialog overlay with focus management, keyboard dismiss, and backdrop click.
+ *
+ * Uses the native `<dialog>` element's `showModal()` / `close()` methods
+ * for proper stacking context and focus trapping. Focus is restored to the
+ * previously active element when the modal closes.
+ *
+ * @example
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <Modal
+ *   open={open}
+ *   onClose={() => setOpen(false)}
+ *   title="Confirm"
+ *   actions={
+ *     <>
+ *       <Button onClick={() => setOpen(false)}>Cancel</Button>
+ *       <Button color="primary" onClick={handleConfirm}>OK</Button>
+ *     </>
+ *   }
+ * >
+ *   <p>Are you sure you want to proceed?</p>
+ * </Modal>
+ * ```
  */
 export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   (

@@ -1,3 +1,12 @@
+/**
+ * @module SpotlightSearch
+ *
+ * Command palette / search overlay component following the Cmd+K pattern.
+ * Provides word-based substring filtering, grouped results, keyboard navigation
+ * (arrow keys, Home, End, Enter), and custom link renderers for React Router or
+ * Inertia integration.
+ */
+
 import {
   forwardRef,
   useState,
@@ -13,20 +22,26 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a searchable item displayed in the spotlight results list.
+ */
 export interface SpotlightItem {
-  /** Unique key */
+  /** Unique key used for identification and rendering. */
   key: string;
-  /** Display label */
+  /** Primary display label used for search matching and display. */
   label: string;
-  /** Optional description */
+  /** Optional secondary text displayed below the label. Also used for search matching. */
   description?: string;
-  /** Icon element */
+  /** Optional icon element rendered before the label. */
   icon?: ReactNode;
-  /** Group name for categorization */
+  /** Group name for categorizing items under section headings in the results list. */
   group?: string;
-  /** Keywords for search matching (in addition to label) */
+  /** Additional keywords used for search matching beyond the label and description. */
   keywords?: string[];
-  /** Custom link element (for React Router / Inertia) */
+  /**
+   * Custom link renderer for integration with React Router, Inertia, or other routing libraries.
+   * When provided, replaces the default clickable `<li>` element.
+   */
   renderLink?: (props: {
     className: string;
     children: ReactNode;
@@ -34,29 +49,37 @@ export interface SpotlightItem {
   }) => ReactElement;
 }
 
+/**
+ * Props for the {@link SpotlightSearch} component.
+ */
 export interface SpotlightSearchProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onSelect'> {
-  /** Whether the spotlight is open */
+  /** Whether the spotlight overlay is open (controlled). */
   open: boolean;
-  /** Callback to close the spotlight */
+  /** Callback fired to close the spotlight (e.g., on Escape or backdrop click). */
   onClose: () => void;
-  /** Available items to search through */
+  /** Array of items available for searching and selection. */
   items: SpotlightItem[];
-  /** Callback when an item is selected */
+  /** Callback fired when the user selects an item from the results. */
   onSelect?: (item: SpotlightItem) => void;
-  /** Placeholder text for the search input */
+  /** Placeholder text for the search input field. @defaultValue 'Search…' */
   placeholder?: string;
-  /** Custom filter function */
+  /** Custom filter function to override the default word-based substring matching. */
   filterFn?: (item: SpotlightItem, query: string) => boolean;
-  /** Empty state message */
+  /** Message or element displayed when no results match the query. @defaultValue 'No results found.' */
   emptyMessage?: ReactNode;
-  /** Register the Cmd+K / Ctrl+K keyboard shortcut */
+  /** Whether to register the Cmd+K / Ctrl+K global keyboard shortcut. @defaultValue true */
   shortcut?: boolean;
-  /** Maximum items to show */
+  /** Maximum number of filtered items to display. @defaultValue 20 */
   maxResults?: number;
 }
 
 /**
- * Default fuzzy search: matches if query words appear in label, description, or keywords.
+ * Default word-based substring filter. Matches if every whitespace-separated
+ * query word appears as a substring within the item's label, description, or keywords.
+ *
+ * @param item - The spotlight item to test.
+ * @param query - The user's search query string.
+ * @returns `true` if the item matches the query.
  */
 function defaultFilter(item: SpotlightItem, query: string): boolean {
   const q = query.toLowerCase().trim();
@@ -71,7 +94,26 @@ function defaultFilter(item: SpotlightItem, query: string): boolean {
 }
 
 /**
- * Command palette / search overlay with Cmd+K pattern, keyboard navigation, and item filtering.
+ * Command palette / search overlay with Cmd+K shortcut, keyboard navigation, and item filtering.
+ *
+ * Renders a modal dialog with a search input and a grouped, scrollable results list.
+ * Supports full keyboard navigation, custom filtering, and item grouping.
+ *
+ * @example
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <SpotlightSearch
+ *   open={open}
+ *   onClose={() => setOpen(false)}
+ *   items={[
+ *     { key: 'home', label: 'Go to Home', group: 'Pages' },
+ *     { key: 'settings', label: 'Open Settings', group: 'Actions' },
+ *   ]}
+ *   onSelect={(item) => navigate(item.key)}
+ *   shortcut
+ * />
+ * ```
  */
 export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
   (

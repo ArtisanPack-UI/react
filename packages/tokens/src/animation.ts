@@ -1,8 +1,10 @@
 /**
- * ArtisanPack UI - Animation Tokens
+ * @module animation
  *
- * Duration values and easing functions for transitions and animations.
- * Derived from the Livewire component library's design tokens.
+ * Animation tokens: duration values, standard and expressive easing functions,
+ * DaisyUI component animation settings, and transition property lists.
+ *
+ * @packageDocumentation
  */
 
 /** Duration values in milliseconds */

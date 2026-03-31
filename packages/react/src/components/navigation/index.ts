@@ -1,3 +1,11 @@
+/**
+ * @module navigation
+ *
+ * Navigation component exports for the ArtisanPack UI React library.
+ * Includes menus, breadcrumbs, pagination, steps, navbar, sidebar,
+ * and spotlight search components.
+ */
+
 // Navigation components
 export { Menu } from './Menu/Menu';
 export type { MenuProps, MenuItemType } from './Menu/Menu';

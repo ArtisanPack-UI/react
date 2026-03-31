@@ -1,32 +1,52 @@
+/** @module DatePicker */
+
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link DatePicker} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size`, `type`, and `prefix`).
+ * Uses native HTML date inputs for cross-browser date selection.
+ */
 export interface DatePickerProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'size' | 'type' | 'prefix'
 > {
-  /** DatePicker label */
+  /** Text label displayed above the date picker. Hidden when `inline` is true (shown as floating label instead). */
   label?: string;
-  /** Helper text below the date picker */
+  /** Helper text displayed below the date picker. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the picker. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** Icon element on the left */
+  /** Icon element rendered to the left of the input. */
   icon?: ReactNode;
-  /** Icon element on the right */
+  /** Icon element rendered to the right of the input. */
   iconRight?: ReactNode;
-  /** Display label inline (floating) */
+  /** When true, renders the label as a floating/inline label inside the input wrapper. @defaultValue `false` */
   inline?: boolean;
-  /** Input type: date, datetime-local, time, month, week */
+  /** The native HTML input type for date/time selection. @defaultValue `'date'` */
   dateType?: 'date' | 'datetime-local' | 'time' | 'month' | 'week';
 }
 
 /**
- * Date selection component using native HTML date inputs.
+ * A date/time selection component using native HTML date inputs with DaisyUI styling.
+ * Supports multiple date types (date, datetime-local, time, month, week), optional icons,
+ * and inline (floating) label display.
  *
  * For advanced date picking (calendar popups, range selection), integrate
  * a third-party library like react-datepicker or react-day-picker and
  * use this component's styling as a base.
+ *
+ * @example
+ * ```tsx
+ * <DatePicker label="Start Date" dateType="date" required />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <DatePicker label="Meeting Time" dateType="datetime-local" inline icon={<CalendarIcon />} />
+ * ```
  */
 export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
   (

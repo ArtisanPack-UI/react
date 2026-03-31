@@ -1,16 +1,36 @@
+/**
+ * @module Sparkline
+ *
+ * Lightweight inline sparkline chart component rendered as an SVG.
+ * Supports line, area, and bar chart types with configurable dimensions,
+ * DaisyUI color integration, smooth curves, and hover tooltips.
+ */
+
 import { forwardRef, useMemo, useState, useRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Sparkline} component.
+ */
 export interface SparklineProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
+  /** Array of numeric data points to plot. */
   data: number[];
+  /** Chart type: line draws a stroke path, area fills below it, bar renders vertical bars. @defaultValue 'line' */
   type?: 'line' | 'area' | 'bar';
+  /** Height of the SVG in pixels. @defaultValue 40 */
   height?: number;
+  /** Width of the SVG in pixels. Defaults to `data.length * 8` if not provided. */
   width?: number;
+  /** DaisyUI color name or CSS color string for the chart. @defaultValue 'primary' */
   color?: DaisyColor | string;
+  /** Stroke width for line/area charts in pixels. @defaultValue 2 */
   strokeWidth?: number;
+  /** Whether to use smooth Catmull-Rom curves instead of straight line segments. @defaultValue true */
   curve?: boolean;
+  /** Fill opacity for area charts (0 to 1). @defaultValue 0.3 */
   fillOpacity?: number;
+  /** Whether to show a tooltip on hover displaying the data point value. @defaultValue true */
   showTooltip?: boolean;
 }
 
@@ -29,6 +49,19 @@ function resolveColor(color: string): string {
   return daisyColorToVar[color] ?? color;
 }
 
+/**
+ * Lightweight inline sparkline chart rendered as an SVG element.
+ *
+ * Resolves DaisyUI color names to CSS custom properties. Uses Catmull-Rom
+ * splines for smooth curves (when `curve` is true) and shows a hover
+ * tooltip with the data point value.
+ *
+ * @example
+ * ```tsx
+ * <Sparkline data={[5, 10, 15, 8, 12]} type="area" color="success" height={32} />
+ * <Sparkline data={[3, 7, 2, 9, 4]} type="bar" color="info" />
+ * ```
+ */
 export const Sparkline = forwardRef<HTMLDivElement, SparklineProps>(
   (
     {

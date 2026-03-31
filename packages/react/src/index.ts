@@ -1,3 +1,12 @@
+/**
+ * @module @artisanpack-ui/react
+ *
+ * The main entry point for the ArtisanPack UI React component library.
+ * Re-exports all components, hooks, providers, and shared types.
+ *
+ * @packageDocumentation
+ */
+
 // Components
 export * from './components/form';
 export * from './components/layout';

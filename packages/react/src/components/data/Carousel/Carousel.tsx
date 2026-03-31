@@ -1,3 +1,11 @@
+/**
+ * @module Carousel
+ *
+ * Image/content carousel component with autoplay, keyboard navigation (arrow keys, Home, End),
+ * touch swipe support, navigation arrows, and dot indicators. Supports custom slide rendering
+ * and respects the `prefers-reduced-motion` media query for autoplay.
+ */
+
 import {
   forwardRef,
   useCallback,
@@ -9,23 +17,60 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single slide in the carousel.
+ */
 export interface CarouselSlide {
+  /** URL of the slide image. */
   image?: string;
+  /** Alt text for the slide image. */
   alt?: string;
+  /** Title text displayed over the slide image in a gradient overlay. */
   title?: ReactNode;
+  /** Description text displayed below the title in the gradient overlay. */
   description?: ReactNode;
+  /** Arbitrary content to render as the slide. When provided, `image`, `title`, and `description` are ignored. */
   content?: ReactNode;
 }
 
+/**
+ * Props for the {@link Carousel} component.
+ */
 export interface CarouselProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
+  /** Array of slides to display. */
   slides: CarouselSlide[];
+  /** Whether to automatically advance slides at the given interval. @defaultValue false */
   autoplay?: boolean;
+  /** Autoplay interval in milliseconds. @defaultValue 3000 */
   interval?: number;
+  /** Whether to show dot indicators at the bottom. @defaultValue true */
   showIndicators?: boolean;
+  /** Whether to show left/right arrow buttons. @defaultValue true */
   showArrows?: boolean;
+  /** Custom render function for slides, receiving the slide data and its index. */
   renderSlide?: (slide: CarouselSlide, index: number) => ReactNode;
 }
 
+/**
+ * Image/content carousel with autoplay, keyboard navigation, and touch swipe support.
+ *
+ * Renders an accessible `role="region"` with `aria-roledescription="carousel"`.
+ * Each slide is wrapped in a `role="group"` with `aria-roledescription="slide"`.
+ * Autoplay is disabled when the user prefers reduced motion.
+ *
+ * @example
+ * ```tsx
+ * <Carousel
+ *   slides={[
+ *     { image: '/slide1.jpg', alt: 'Slide 1', title: 'Welcome' },
+ *     { image: '/slide2.jpg', alt: 'Slide 2', title: 'Features' },
+ *     { content: <div>Custom slide content</div> },
+ *   ]}
+ *   autoplay
+ *   interval={5000}
+ * />
+ * ```
+ */
 export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
   (
     {

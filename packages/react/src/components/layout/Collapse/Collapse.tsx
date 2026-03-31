@@ -1,27 +1,63 @@
+/**
+ * @module Collapse
+ *
+ * An expandable/collapsible content section built on DaisyUI's collapse
+ * component. Supports controlled and uncontrolled open state, arrow or
+ * plus indicator icons. The `name` prop switches to a radio input for
+ * semantic grouping but does not coordinate sibling state — use
+ * {@link Accordion} or a parent with controlled `open` + `onOpenChange`
+ * for exclusive one-open-at-a-time behaviour.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, useId, useState, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Collapse} component.
+ */
 export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
-  /** Heading content for the collapse trigger */
+  /** Heading content displayed as the clickable trigger. */
   title: ReactNode;
-  /** Icon style for the collapse indicator */
+  /** Style of the open/close indicator icon. @defaultValue `'arrow'` */
   icon?: 'arrow' | 'plus' | 'none';
-  /** Whether the collapse is open (controlled) */
+  /** Whether the panel is open (controlled mode). */
   open?: boolean;
-  /** Default open state (uncontrolled) */
+  /** Initial open state when used in uncontrolled mode. @defaultValue `false` */
   defaultOpen?: boolean;
-  /** Callback when open state changes */
+  /** Callback fired when the open state changes. */
   onOpenChange?: (open: boolean) => void;
-  /** Name attribute for radio-group accordion behavior */
+  /** HTML `name` attribute — switches to a radio input for semantic grouping. Does not auto-coordinate siblings; use {@link Accordion} or controlled `open` + `onOpenChange` for exclusive open behaviour. */
   name?: string;
-  /** Add bottom border */
+  /** Add a border around the collapse section. */
   bordered?: boolean;
-  /** Disable interaction */
+  /** Disable interaction, preventing the user from toggling the panel. */
   disabled?: boolean;
 }
 
 /**
  * Expandable/collapsible content section.
+ *
+ * Uses a hidden checkbox (or radio input when `name` is set) to drive the
+ * DaisyUI collapse behaviour. Provides proper ARIA attributes for
+ * accessibility (`aria-expanded`, `aria-controls`, `aria-labelledby`).
+ *
+ * @example
+ * ```tsx
+ * <Collapse title="Click to expand">
+ *   <p>Hidden content revealed on toggle.</p>
+ * </Collapse>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Controlled usage
+ * const [open, setOpen] = useState(false);
+ * <Collapse title="Details" open={open} onOpenChange={setOpen}>
+ *   <p>Controlled panel content.</p>
+ * </Collapse>
+ * ```
  */
 export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
   (

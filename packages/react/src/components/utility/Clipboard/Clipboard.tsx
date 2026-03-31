@@ -1,21 +1,35 @@
+/**
+ * @module Clipboard
+ *
+ * A copy-to-clipboard button that uses the Clipboard API to write text
+ * to the user's clipboard and provides visual success feedback. The
+ * button transitions between idle and "copied" states with configurable
+ * labels and duration.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Clipboard} component.
+ */
 export interface ClipboardProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
-  /** The text to copy to clipboard */
+  /** The text string to copy to the clipboard when clicked. */
   text: string;
-  /** Button label when idle */
+  /** Button label displayed in the idle state. Defaults to `"Copy"`. */
   label?: string;
-  /** Button label after a successful copy */
+  /** Button label displayed after a successful copy. Defaults to `"Copied!"`. */
   successLabel?: string;
-  /** Duration in ms to show the success state */
+  /** Duration in milliseconds to show the success state before reverting. Defaults to `2000`. */
   successDuration?: number;
-  /** Button color */
+  /** DaisyUI color variant or `"ghost"` for the button. Defaults to `"ghost"`. */
   color?: DaisyColor | 'ghost';
-  /** Button size */
+  /** Button size. Defaults to `"sm"`. */
   size?: Size;
-  /** Callback fired after a successful copy */
+  /** Callback fired after a successful clipboard write. */
   onCopy?: () => void;
 }
 
@@ -46,7 +60,24 @@ const checkIconPath =
   'M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z';
 
 /**
- * Copy-to-clipboard button with success feedback.
+ * Copy-to-clipboard button with visual success feedback.
+ *
+ * Displays a copy icon in the idle state and a checkmark icon after a
+ * successful copy. Gracefully handles environments where the Clipboard
+ * API is unavailable.
+ *
+ * @example
+ * ```tsx
+ * <Clipboard text="npm install @artisanpack-ui/react" />
+ *
+ * <Clipboard
+ *   text={codeSnippet}
+ *   label="Copy code"
+ *   successLabel="Copied to clipboard!"
+ *   color="primary"
+ *   onCopy={() => analytics.track('code_copied')}
+ * />
+ * ```
  */
 export const Clipboard = forwardRef<HTMLButtonElement, ClipboardProps>(
   (

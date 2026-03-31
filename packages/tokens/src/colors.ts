@@ -1,8 +1,11 @@
 /**
- * ArtisanPack UI - Color Tokens
+ * @module colors
  *
  * DaisyUI theme color palette and semantic color definitions.
- * Values derived from the Livewire component library's DaisyUI/Tailwind configuration.
+ * Provides light/dark mode color values, CSS custom property mappings,
+ * and the {@link DaisyColor} type used across all ArtisanPack UI components.
+ *
+ * @packageDocumentation
  */
 
 /** DaisyUI semantic theme colors (light mode defaults) */

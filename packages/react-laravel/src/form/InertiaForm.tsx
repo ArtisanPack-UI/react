@@ -2,11 +2,20 @@ import { useCallback, type FormEvent, type ReactNode } from 'react';
 import type { InertiaFormProps } from '@inertiajs/react';
 import { FormContextProvider } from './FormContext';
 
+/** Generic form data constraint used across form utilities. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormDataRecord = Record<string, any>;
 
+/** HTTP methods supported by Inertia form submissions. */
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
+/**
+ * Props for the {@link InertiaForm} component.
+ *
+ * @typeParam TForm - The form data shape (e.g. `{ name: string; email: string }`)
+ *
+ * @see {@link useInertiaForm} for creating the form instance
+ */
 export interface InertiaFormComponentProps<TForm extends FormDataRecord> {
   /** Inertia form instance from useForm() or useInertiaForm() */
   form: InertiaFormProps<TForm>;

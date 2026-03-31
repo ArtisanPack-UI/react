@@ -1,24 +1,57 @@
+/**
+ * @module Diff
+ *
+ * Text diff viewer component that compares two strings line-by-line using an
+ * LCS (Longest Common Subsequence) algorithm. Supports inline and side-by-side
+ * display modes with colored highlighting for added, removed, and unchanged lines.
+ */
+
 import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Diff} component.
+ */
 export interface DiffProps extends HTMLAttributes<HTMLDivElement> {
+  /** The original text content to compare. */
   oldContent: string;
+  /** The modified text content to compare against the original. */
   newContent: string;
+  /** Label for the original content column. @defaultValue 'Original' */
   oldLabel?: string;
+  /** Label for the modified content column. @defaultValue 'Modified' */
   newLabel?: string;
+  /** Display mode: 'inline' shows a single unified view, 'side-by-side' shows two columns. @defaultValue 'inline' */
   mode?: 'side-by-side' | 'inline';
 }
 
+/**
+ * Represents a single line in the computed diff output.
+ * @internal
+ */
 interface DiffLine {
+  /** Whether this line was added, removed, or unchanged. */
   type: 'same' | 'added' | 'removed';
+  /** The text content of this line. */
   content: string;
+  /** Line number in the original content (undefined for added lines). */
   oldLineNum?: number;
+  /** Line number in the modified content (undefined for removed lines). */
   newLineNum?: number;
 }
 
+/**
+ * Computes a line-by-line diff between two text strings using an LCS approach.
+ *
+ * @param oldText - The original text.
+ * @param newText - The modified text.
+ * @returns Array of diff lines with type indicators and line numbers.
+ */
 function computeDiff(oldText: string, newText: string): DiffLine[] {
-  const oldLines = oldText.split('\n');
-  const newLines = newText.split('\n');
+  const normalizedOld = oldText.replace(/\r\n?/g, '\n');
+  const normalizedNew = newText.replace(/\r\n?/g, '\n');
+  const oldLines = normalizedOld === '' ? [] : normalizedOld.split('\n');
+  const newLines = normalizedNew === '' ? [] : normalizedNew.split('\n');
   const result: DiffLine[] = [];
 
   let oldIdx = 0;
@@ -68,6 +101,13 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
   return result;
 }
 
+/**
+ * Computes the Longest Common Subsequence of two string arrays using dynamic programming.
+ *
+ * @param a - First array of strings.
+ * @param b - Second array of strings.
+ * @returns The longest common subsequence as an array of strings.
+ */
 function computeLCS(a: string[], b: string[]): string[] {
   const m = a.length;
   const n = b.length;
@@ -88,7 +128,7 @@ function computeLCS(a: string[], b: string[]): string[] {
   let j = n;
   while (i > 0 && j > 0) {
     if (a[i - 1] === b[j - 1]) {
-      result.unshift(a[i - 1]);
+      result.push(a[i - 1]);
       i--;
       j--;
     } else if (dp[i - 1][j] > dp[i][j - 1]) {
@@ -98,21 +138,40 @@ function computeLCS(a: string[], b: string[]): string[] {
     }
   }
 
+  result.reverse();
   return result;
 }
 
-const lineTypeClasses: Record<string, string> = {
+const lineTypeClasses: Record<DiffLine['type'], string> = {
   added: 'bg-success/20 text-success-content',
   removed: 'bg-error/20 text-error-content',
   same: '',
 };
 
-const linePrefix: Record<string, string> = {
+const linePrefix: Record<DiffLine['type'], string> = {
   added: '+',
   removed: '-',
   same: ' ',
 };
 
+/**
+ * Text diff viewer with inline or side-by-side display modes.
+ *
+ * Computes a line-by-line diff using LCS and renders added lines in green,
+ * removed lines in red, and unchanged lines without highlighting.
+ * Both modes show line numbers and +/- prefix indicators.
+ *
+ * @example
+ * ```tsx
+ * <Diff
+ *   oldContent="Hello\nWorld"
+ *   newContent="Hello\nReact\nWorld"
+ *   mode="side-by-side"
+ *   oldLabel="Before"
+ *   newLabel="After"
+ * />
+ * ```
+ */
 export const Diff = forwardRef<HTMLDivElement, DiffProps>(
   (
     {

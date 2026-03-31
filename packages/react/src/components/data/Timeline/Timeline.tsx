@@ -1,21 +1,46 @@
+/**
+ * @module Timeline
+ *
+ * Timeline component for displaying a chronological sequence of events.
+ * Built on DaisyUI's timeline classes with support for vertical/horizontal
+ * orientation, compact mode, colored indicators, custom icons, and pending states.
+ */
+
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Represents a single item in the timeline.
+ */
 export interface TimelineItemData {
+  /** Unique identifier for the timeline item. Falls back to array index if not provided. */
   id?: string | number;
+  /** Primary title text for the event. */
   title: ReactNode;
+  /** Optional subtitle displayed below the title (e.g., a date or category). */
   subtitle?: ReactNode;
+  /** Optional description body text displayed below the subtitle. */
   description?: ReactNode;
+  /** Custom icon element displayed in the timeline circle. Defaults to a checkmark SVG. */
   icon?: ReactNode;
+  /** DaisyUI color for the timeline circle and connecting lines. @defaultValue 'primary' */
   color?: DaisyColor;
+  /** Whether this item is in a pending/incomplete state (rendered with reduced opacity). */
   pending?: boolean;
 }
 
+/**
+ * Props for the {@link Timeline} component.
+ */
 export interface TimelineProps extends HTMLAttributes<HTMLUListElement> {
+  /** Array of timeline items to display in order. */
   items: TimelineItemData[];
+  /** Whether to render the timeline vertically. @defaultValue true */
   vertical?: boolean;
+  /** Whether to use compact mode (DaisyUI timeline-compact). @defaultValue false */
   compact?: boolean;
+  /** Whether to snap icons to the timeline line (DaisyUI timeline-snap-icon). @defaultValue false */
   snap?: boolean;
 }
 
@@ -41,6 +66,25 @@ const hrColorMap: Record<DaisyColor, string> = {
   neutral: 'bg-neutral',
 };
 
+/**
+ * Timeline component for displaying a chronological sequence of events.
+ *
+ * Renders a DaisyUI-styled `<ul>` with colored circles, connecting lines,
+ * and event content for each item. Pending items are displayed with reduced
+ * opacity and no color.
+ *
+ * @example
+ * ```tsx
+ * <Timeline
+ *   items={[
+ *     { title: 'Order Placed', subtitle: 'Mar 1', color: 'success' },
+ *     { title: 'Shipped', subtitle: 'Mar 3', color: 'info' },
+ *     { title: 'Delivered', subtitle: 'Pending', pending: true },
+ *   ]}
+ *   vertical
+ * />
+ * ```
+ */
 export const Timeline = forwardRef<HTMLUListElement, TimelineProps>(
   ({ items, vertical = true, compact = false, snap = false, className, ...rest }, ref) => {
     return (

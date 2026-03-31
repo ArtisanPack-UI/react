@@ -1,25 +1,41 @@
+/**
+ * @module Grid
+ *
+ * A CSS Grid layout wrapper with type-safe responsive column counts (1--12)
+ * and gap sizing. Maps props to Tailwind CSS `grid-cols-*` and `gap-*`
+ * utility classes with breakpoint variants.
+ *
+ * @packageDocumentation
+ */
+
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/** Allowed column count values (1 through 12, matching Tailwind's grid-cols). */
 export type ColCount = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
+/** Allowed gap size values corresponding to Tailwind's spacing scale. */
 export type GapSize = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16;
 
+/**
+ * Props for the {@link Grid} component.
+ */
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {
-  /** Number of columns (1-12) */
+  /** Base number of columns (applies at all screen sizes). */
   cols?: ColCount;
-  /** Number of columns on sm breakpoint */
+  /** Number of columns at the `sm` breakpoint. */
   colsSm?: ColCount;
-  /** Number of columns on md breakpoint */
+  /** Number of columns at the `md` breakpoint. */
   colsMd?: ColCount;
-  /** Number of columns on lg breakpoint */
+  /** Number of columns at the `lg` breakpoint. */
   colsLg?: ColCount;
-  /** Number of columns on xl breakpoint */
+  /** Number of columns at the `xl` breakpoint. */
   colsXl?: ColCount;
-  /** Gap between grid items */
+  /** Uniform gap between grid items. Overridden by `gapX`/`gapY` when specified. @defaultValue `4` */
   gap?: GapSize;
-  /** Column gap (overrides gap for columns) */
+  /** Column (horizontal) gap. Overrides `gap` for the x-axis. */
   gapX?: GapSize;
-  /** Row gap (overrides gap for rows) */
+  /** Row (vertical) gap. Overrides `gap` for the y-axis. */
   gapY?: GapSize;
 }
 
@@ -142,6 +158,19 @@ const gapYMap: Record<GapSize, string> = {
 
 /**
  * CSS Grid layout wrapper with responsive column support.
+ *
+ * Provides a declarative API for Tailwind's CSS Grid utilities. Column
+ * counts can be set per breakpoint, and gap sizes support independent
+ * x/y overrides.
+ *
+ * @example
+ * ```tsx
+ * <Grid cols={1} colsMd={2} colsLg={3} gap={6}>
+ *   <div>Item 1</div>
+ *   <div>Item 2</div>
+ *   <div>Item 3</div>
+ * </Grid>
+ * ```
  */
 export const Grid = forwardRef<HTMLDivElement, GridProps>(
   (

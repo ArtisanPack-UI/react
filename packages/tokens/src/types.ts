@@ -1,7 +1,11 @@
 /**
- * ArtisanPack UI - Shared Types
+ * @module types
  *
  * Framework-agnostic type definitions shared across all ArtisanPack UI packages.
+ * Includes component size scale, glass/color/form-field prop interfaces, and
+ * a permissive CSS properties type.
+ *
+ * @packageDocumentation
  */
 
 import type { DaisyColor } from './colors';

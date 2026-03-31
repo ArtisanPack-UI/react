@@ -1,23 +1,34 @@
+/**
+ * @module Pagination
+ *
+ * Page navigation component that renders numbered page buttons with previous/next controls.
+ * Automatically collapses distant pages into ellipsis indicators and supports
+ * configurable sibling count, button sizing, and disabled state.
+ */
+
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { Size } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Pagination} component.
+ */
 export interface PaginationProps extends Omit<HTMLAttributes<HTMLElement>, 'onChange'> {
-  /** Current page (1-indexed) */
+  /** Current active page number (1-indexed). */
   currentPage: number;
-  /** Total number of pages */
+  /** Total number of pages available. */
   totalPages: number;
-  /** Callback when page changes */
+  /** Callback fired when the user navigates to a different page. Receives the new page number. */
   onChange?: (page: number) => void;
-  /** Number of sibling pages to show on each side of current */
+  /** Number of sibling page buttons to show on each side of the current page. @defaultValue 1 */
   siblings?: number;
-  /** Button size */
+  /** Size variant for the page buttons (xs, sm, md, lg). */
   size?: Size;
-  /** Previous button label */
+  /** Custom label for the previous page button. @defaultValue '«' */
   previousLabel?: ReactNode;
-  /** Next button label */
+  /** Custom label for the next page button. @defaultValue '»' */
   nextLabel?: ReactNode;
-  /** Disable all interaction */
+  /** Whether to disable all page buttons and prevent interaction. */
   disabled?: boolean;
 }
 
@@ -29,7 +40,12 @@ const sizeMap: Record<Size, string> = {
 };
 
 /**
- * Generate the array of page numbers/ellipses to display.
+ * Generates the array of page numbers and ellipsis placeholders to display.
+ *
+ * @param current - The current active page number.
+ * @param total - The total number of pages.
+ * @param siblings - Number of sibling pages to show on each side of the current page.
+ * @returns An array of page numbers and `'ellipsis'` placeholders.
  */
 function getPageRange(current: number, total: number, siblings: number): (number | 'ellipsis')[] {
   if (total <= 0) return [];
@@ -63,6 +79,20 @@ function getPageRange(current: number, total: number, siblings: number): (number
 
 /**
  * Page navigation with numbered pages, prev/next buttons, and ellipsis collapsing.
+ *
+ * Renders a `<nav>` element with `aria-label="Pagination"` containing a DaisyUI join group
+ * of page buttons. Safely clamps the current page and disables out-of-range navigation.
+ *
+ * @example
+ * ```tsx
+ * <Pagination
+ *   currentPage={3}
+ *   totalPages={10}
+ *   siblings={2}
+ *   onChange={(page) => console.log('Navigate to page:', page)}
+ *   size="sm"
+ * />
+ * ```
  */
 export const Pagination = forwardRef<HTMLElement, PaginationProps>(
   (

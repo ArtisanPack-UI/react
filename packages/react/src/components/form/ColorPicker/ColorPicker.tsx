@@ -1,3 +1,5 @@
+/** @module ColorPicker */
+
 import {
   forwardRef,
   useCallback,
@@ -9,29 +11,36 @@ import {
 } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link ColorPicker} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size`, `type`, and `prefix`).
+ * Combines a native color input with a hex value display, optional icons,
+ * and action buttons for clearing and generating random colors.
+ */
 export interface ColorPickerProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'size' | 'type' | 'prefix'
 > {
-  /** ColorPicker label */
+  /** Text label displayed above the color picker. */
   label?: string;
-  /** Helper text below the color picker */
+  /** Helper text displayed below the color picker. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the picker. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** Icon element on the left */
+  /** Icon element rendered to the left of the hex value display. */
   icon?: ReactNode;
-  /** Icon element on the right */
+  /** Icon element rendered to the right of the action buttons. */
   iconRight?: ReactNode;
-  /** Show clear button */
+  /** When true, shows a clear button that resets the color to `defaultValue` or `#000000`. @defaultValue `false` */
   clearable?: boolean;
-  /** Callback when clear is clicked */
+  /** Callback fired when the clear button is clicked. */
   onClear?: () => void;
-  /** Show random color button */
+  /** When true, shows a button to generate a random hex color. @defaultValue `false` */
   random?: boolean;
-  /** Callback when random color is generated */
+  /** Callback fired when a random color is generated, receiving the new hex string. */
   onRandomColor?: (color: string) => void;
-  /** Custom icon for the random button */
+  /** Custom icon element for the random color button. Defaults to a refresh/shuffle SVG. */
   randomIcon?: ReactNode;
 }
 
@@ -45,7 +54,19 @@ function generateRandomHex(): string {
 }
 
 /**
- * Color selection component with hex input, clearable, and random color support.
+ * A color picker that combines a native `<input type="color">` swatch with a hex value display.
+ * Supports controlled and uncontrolled usage, optional clear and random color buttons,
+ * and icon adornments. Fires native `input` events for form compatibility.
+ *
+ * @example
+ * ```tsx
+ * <ColorPicker label="Brand Color" value="#3b82f6" onChange={handleChange} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <ColorPicker label="Theme" random clearable onRandomColor={(c) => console.log(c)} />
+ * ```
  */
 export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
   (

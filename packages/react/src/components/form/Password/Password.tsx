@@ -1,29 +1,38 @@
+/** @module Password */
+
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Password} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `type`, `size`, and `prefix`).
+ * Provides a password input with built-in visibility toggle, clearable action,
+ * and customizable toggle icons.
+ */
 export interface PasswordProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'type' | 'size' | 'prefix'
 > {
-  /** Password label */
+  /** Text label displayed above the password input. Hidden when `inline` is true. */
   label?: string;
-  /** Helper text below the password input */
+  /** Helper text displayed below the input. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the input. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** Icon element on the left */
+  /** Icon element rendered to the left of the input text. */
   icon?: ReactNode;
-  /** Display label inline (floating) */
+  /** When true, renders the label as a floating/inline label inside the input wrapper. @defaultValue `false` */
   inline?: boolean;
-  /** Show clear button */
+  /** When true, shows a clear (X) button inside the input. @defaultValue `false` */
   clearable?: boolean;
-  /** Callback when clear is clicked */
+  /** Callback fired when the clear button is clicked. */
   onClear?: () => void;
-  /** Hide the visibility toggle */
+  /** When true, hides the password visibility toggle button. @defaultValue `false` */
   hideToggle?: boolean;
-  /** Icon to show when password is hidden */
+  /** Custom icon shown when the password is hidden (masked). Defaults to an eye-slash SVG. */
   hiddenIcon?: ReactNode;
-  /** Icon to show when password is visible */
+  /** Custom icon shown when the password is visible (unmasked). Defaults to an eye SVG. */
   visibleIcon?: ReactNode;
 }
 
@@ -49,7 +58,25 @@ const EyeSlashIcon = () => (
 );
 
 /**
- * Password input with visibility toggle, clearable, and icon support.
+ * A password input with a built-in visibility toggle that switches between masked and
+ * plain text display. Includes optional clear button, left icon, and customizable
+ * toggle icons. The `type` attribute is managed internally and cannot be overridden.
+ *
+ * @example
+ * ```tsx
+ * <Password label="Password" placeholder="Enter password" required />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Password
+ *   label="API Key"
+ *   icon={<KeyIcon />}
+ *   clearable
+ *   onClear={() => setValue('')}
+ *   hideToggle
+ * />
+ * ```
  */
 export const Password = forwardRef<HTMLInputElement, PasswordProps>(
   (

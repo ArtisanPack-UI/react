@@ -1,17 +1,25 @@
+/** @module Toggle */
+
 import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { cn } from '@artisanpack-ui/tokens';
 import type { DaisyColor } from '@artisanpack-ui/tokens';
 
+/**
+ * Props for the {@link Toggle} component.
+ *
+ * Extends native `<input>` HTML attributes (excluding `size` and `type`).
+ * Renders a switch/toggle using a styled checkbox with `role="switch"`.
+ */
 export interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Toggle label */
+  /** Text label displayed next to the toggle switch. Includes a required indicator when `required` is true. */
   label?: string;
-  /** Position label on the right */
+  /** When true, positions the label to the right of the toggle (reverses flex order). @defaultValue `false` */
   right?: boolean;
-  /** Helper text below the toggle */
+  /** Helper text displayed below the toggle. Hidden when `error` is present. */
   hint?: string;
-  /** Error message */
+  /** Error message displayed below the toggle. Replaces `hint` when present and adds `aria-invalid`. */
   error?: string;
-  /** DaisyUI color variant */
+  /** DaisyUI color variant for the toggle track and thumb. */
   color?: DaisyColor;
 }
 
@@ -27,7 +35,18 @@ const colorMap: Record<string, string> = {
 };
 
 /**
- * Switch/toggle component with label, hint, and color support.
+ * A switch/toggle component rendered as a styled checkbox with `role="switch"` for
+ * accessibility. Supports label positioning, DaisyUI color variants, and hint/error text.
+ *
+ * @example
+ * ```tsx
+ * <Toggle label="Enable notifications" color="success" />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <Toggle label="Dark mode" right hint="Toggle dark mode theme" />
+ * ```
  */
 export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
   (
