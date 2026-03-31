@@ -26,7 +26,8 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * Skeleton placeholder for content that is still loading.
  *
- * The element is hidden from assistive technologies via `aria-hidden`.
+ * The element is hidden from assistive technologies via `aria-hidden` by default.
+ * This can be overridden by passing `aria-hidden={false}` through props.
  *
  * @example
  * ```tsx

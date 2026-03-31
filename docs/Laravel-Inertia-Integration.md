@@ -15,13 +15,13 @@ Use `AppLayout` and `createLayout` to set up a persistent layout for your Inerti
 ```tsx
 // layouts/AppLayout.tsx
 import { AppLayout } from '@artisanpack-ui/react-laravel';
-import { Navbar, Sidebar } from '@artisanpack-ui/react';
+import { Navbar } from '@artisanpack-ui/react';
 
 export default function Layout({ children }) {
   return (
     <AppLayout
-      navbar={<Navbar brand="My App" />}
-      sidebar={<Sidebar items={[...]} />}
+      title="My App"
+      header={<Navbar start={<span className="text-xl font-bold">My App</span>} />}
     >
       {children}
     </AppLayout>

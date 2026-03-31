@@ -48,8 +48,8 @@ interface DiffLine {
  * @returns Array of diff lines with type indicators and line numbers.
  */
 function computeDiff(oldText: string, newText: string): DiffLine[] {
-  const oldLines = oldText.split('\n');
-  const newLines = newText.split('\n');
+  const oldLines = oldText === '' ? [] : oldText.split('\n');
+  const newLines = newText === '' ? [] : newText.split('\n');
   const result: DiffLine[] = [];
 
   let oldIdx = 0;
@@ -140,13 +140,13 @@ function computeLCS(a: string[], b: string[]): string[] {
   return result;
 }
 
-const lineTypeClasses: Record<string, string> = {
+const lineTypeClasses: Record<DiffLine['type'], string> = {
   added: 'bg-success/20 text-success-content',
   removed: 'bg-error/20 text-error-content',
   same: '',
 };
 
-const linePrefix: Record<string, string> = {
+const linePrefix: Record<DiffLine['type'], string> = {
   added: '+',
   removed: '-',
   same: ' ',

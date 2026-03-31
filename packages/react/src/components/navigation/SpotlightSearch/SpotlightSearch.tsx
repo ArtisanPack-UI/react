@@ -61,7 +61,7 @@ export interface SpotlightSearchProps extends Omit<HTMLAttributes<HTMLDivElement
   items: SpotlightItem[];
   /** Callback fired when the user selects an item from the results. */
   onSelect?: (item: SpotlightItem) => void;
-  /** Placeholder text for the search input field. @defaultValue 'Search...' */
+  /** Placeholder text for the search input field. @defaultValue 'Search…' */
   placeholder?: string;
   /** Custom filter function to override the default word-based substring matching. */
   filterFn?: (item: SpotlightItem, query: string) => boolean;

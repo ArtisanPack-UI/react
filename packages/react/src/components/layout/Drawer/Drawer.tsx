@@ -128,9 +128,12 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       if (!open) return;
 
       const handleKeyDown = (e: globalThis.KeyboardEvent) => {
-        if (e.defaultPrevented) return;
-
-        if (e.key === 'Escape' && !persistent && panelRef.current?.contains(document.activeElement)) {
+        if (
+          e.key === 'Escape' &&
+          !e.defaultPrevented &&
+          !persistent &&
+          panelRef.current?.contains(document.activeElement)
+        ) {
           onClose();
           return;
         }

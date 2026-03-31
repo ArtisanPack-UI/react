@@ -294,7 +294,10 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
           id={`tabpanel-${autoId}-${activeIndex}`}
           aria-labelledby={`tab-${autoId}-${activeIndex}`}
           tabIndex={0}
-          className={cn(isVertical ? (verticalRight ? 'flex-1 pr-4' : 'flex-1 pl-4') : 'p-4', panelClassName)}
+          className={cn(
+            isVertical ? (verticalRight ? 'flex-1 pr-4' : 'flex-1 pl-4') : 'p-4',
+            panelClassName,
+          )}
         >
           {activeTabItem.content}
         </div>

@@ -1,6 +1,6 @@
 # [[Home]]
 
-### Guides
+## Guides
 
 - [[Getting Started]]
 - [[Design Tokens]]
@@ -9,7 +9,7 @@
 - [[Migration from Livewire]]
 - [[React 18 vs 19 Compatibility]]
 
-### Components
+## Components
 
 - [[Component API Reference]]
 - [[Form Components]]
@@ -19,6 +19,6 @@
 - [[Feedback Components]]
 - [[Utility Components]]
 
-### Development
+## Development
 
 - [[Releasing]]
