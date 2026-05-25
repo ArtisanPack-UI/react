@@ -8,6 +8,18 @@ describe('Editor', () => {
     expect(screen.getByText('Code')).toBeInTheDocument();
   });
 
+  it('does not wrap a single textarea in a fieldset/legend', () => {
+    const { container } = render(<Editor label="Code" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the textarea via htmlFor/id', () => {
+    render(<Editor id="snippet" label="Code" />);
+    const textarea = screen.getByLabelText('Code');
+    expect(textarea).toHaveAttribute('id', 'snippet');
+  });
+
   it('renders textarea', () => {
     render(<Editor label="Code" />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();

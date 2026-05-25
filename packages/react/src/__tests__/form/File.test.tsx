@@ -8,6 +8,18 @@ describe('File', () => {
     expect(screen.getByText('Upload')).toBeInTheDocument();
   });
 
+  it('does not wrap a single file input in a fieldset/legend', () => {
+    const { container } = render(<File label="Upload" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('does not wrap a drag-drop file input in a fieldset/legend', () => {
+    const { container } = render(<File label="Upload" withDragDrop />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
   it('renders file input', () => {
     const { container } = render(<File label="Upload" />);
     const input = container.querySelector('input[type="file"]');

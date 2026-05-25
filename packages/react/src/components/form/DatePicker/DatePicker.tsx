@@ -71,55 +71,76 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
     const errorId = error ? `${id}-error` : undefined;
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
-    const hasAdornments = icon || iconRight || inline;
+    const hasAdornments = icon || iconRight;
+
+    const commonInputProps = {
+      ref,
+      id,
+      type: dateType,
+      'aria-invalid': error ? true : undefined,
+      'aria-describedby': describedBy,
+      'aria-required': required || undefined,
+      required,
+      // In inline mode, a single-space placeholder triggers :placeholder-shown so daisyUI's
+      // floating-label CSS positions/animates the label correctly without showing visible text.
+      placeholder: rest.placeholder ?? (inline && label ? ' ' : undefined),
+      ...rest,
+    } as const;
+
+    const dateInput = hasAdornments ? (
+      <span className={cn('input w-full', error && 'input-error', className)}>
+        {icon && (
+          <span className="opacity-50" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        <input className="grow" style={{ height: 'auto' }} {...commonInputProps} />
+        {iconRight && (
+          <span className="opacity-50" aria-hidden="true">
+            {iconRight}
+          </span>
+        )}
+      </span>
+    ) : (
+      <input
+        className={cn('input w-full', error && 'input-error', className)}
+        {...commonInputProps}
+      />
+    );
+
+    if (inline && label) {
+      return (
+        <div className="fieldset w-full">
+          <label htmlFor={id} className="floating-label w-full">
+            <span>
+              {label}
+              {required && <span className="text-error ml-1">*</span>}
+            </span>
+            {dateInput}
+          </label>
+          {hint && !error && (
+            <p id={hintId} className="fieldset-label">
+              {hint}
+            </p>
+          )}
+          {error && (
+            <p id={errorId} className="fieldset-label text-error" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+      );
+    }
 
     return (
-      <fieldset className="fieldset">
-        {label && !inline && (
-          <legend className="fieldset-legend">
+      <div className="fieldset w-full">
+        {label && (
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
-        )}
-        {hasAdornments ? (
-          <label className={cn('input w-full', error && 'input-error', className)} htmlFor={id}>
-            {icon && (
-              <span className="opacity-50" aria-hidden="true">
-                {icon}
-              </span>
-            )}
-            <input
-              ref={ref}
-              id={id}
-              type={dateType}
-              className="grow"
-              style={{ height: 'auto' }}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={describedBy}
-              aria-required={required || undefined}
-              required={required}
-              {...rest}
-            />
-            {inline && label && <span className="label">{label}</span>}
-            {iconRight && (
-              <span className="opacity-50" aria-hidden="true">
-                {iconRight}
-              </span>
-            )}
           </label>
-        ) : (
-          <input
-            ref={ref}
-            id={id}
-            type={dateType}
-            className={cn('input w-full', error && 'input-error', className)}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy}
-            aria-required={required || undefined}
-            required={required}
-            {...rest}
-          />
         )}
+        {dateInput}
         {hint && !error && (
           <p id={hintId} className="fieldset-label">
             {hint}
@@ -130,7 +151,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

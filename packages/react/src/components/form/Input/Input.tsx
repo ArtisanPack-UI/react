@@ -29,14 +29,20 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   clearable?: boolean;
   /** Callback fired when the clear button is clicked. Use this to reset the input value. */
   onClear?: () => void;
-  /** When true, renders the label as a floating/inline label inside the input wrapper. @defaultValue `false` */
+  /** When true, renders the label as a floating label using daisyUI's `floating-label` pattern. @defaultValue `false` */
   inline?: boolean;
 }
 
 /**
- * A text input component with DaisyUI styling, supporting labels, hint/error text,
+ * A text input component with daisyUI v5 styling, supporting labels, hint/error text,
  * left/right icons, prefix/suffix adornments, a clearable action button, and
- * an inline (floating) label mode. Automatically generates accessible IDs and ARIA attributes.
+ * a floating label mode. Automatically generates accessible IDs and ARIA attributes.
+ *
+ * Renders the canonical accessible pattern for a single labeled input: a `<label htmlFor>`
+ * paired with the `<input id>`. The visible label and helper text use daisyUI v5's
+ * `.fieldset`, `.fieldset-legend`, and `.fieldset-label` utility classes on plain
+ * elements — `<fieldset>`/`<legend>` HTML elements are reserved for groups of related
+ * controls (e.g. radio/checkbox groups) and are intentionally not used here.
  *
  * @example
  * ```tsx
@@ -81,67 +87,95 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const errorId = error ? `${id}-error` : undefined;
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
+    const inputBox = (
+      <span
+        className={cn(
+          'input',
+          'w-full',
+          (icon || iconRight || prefix || suffix || clearable) && 'input-bordered',
+          error && 'input-error',
+          className,
+        )}
+      >
+        {icon && (
+          <span className="opacity-50" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        {prefix && (
+          <span className="opacity-50" aria-hidden="true">
+            {prefix}
+          </span>
+        )}
+        <input
+          ref={ref}
+          id={id}
+          className="grow"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          aria-required={required || undefined}
+          required={required}
+          // In inline mode, a single-space placeholder triggers :placeholder-shown so daisyUI's
+          // floating-label CSS positions/animates the label correctly without showing visible text.
+          placeholder={rest.placeholder ?? (inline && label ? ' ' : undefined)}
+          {...rest}
+        />
+        {suffix && (
+          <span className="opacity-50" aria-hidden="true">
+            {suffix}
+          </span>
+        )}
+        {clearable && (
+          <button
+            type="button"
+            className="opacity-50 hover:opacity-100 cursor-pointer"
+            onClick={onClear}
+            aria-label="Clear input"
+          >
+            ✕
+          </button>
+        )}
+        {iconRight && (
+          <span className="opacity-50" aria-hidden="true">
+            {iconRight}
+          </span>
+        )}
+      </span>
+    );
+
+    if (inline && label) {
+      return (
+        <div className="fieldset w-full">
+          <label htmlFor={id} className="floating-label w-full">
+            <span>
+              {label}
+              {required && <span className="text-error ml-1">*</span>}
+            </span>
+            {inputBox}
+          </label>
+          {hint && !error && (
+            <p id={hintId} className="fieldset-label">
+              {hint}
+            </p>
+          )}
+          {error && (
+            <p id={errorId} className="fieldset-label text-error" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+      );
+    }
+
     return (
-      <fieldset className="fieldset">
-        {label && !inline && (
-          <legend className="fieldset-legend">
+      <div className="fieldset w-full">
+        {label && (
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
-        <label
-          className={cn(
-            'input',
-            'w-full',
-            (icon || iconRight || prefix || suffix || clearable) && 'input-bordered',
-            error && 'input-error',
-            className,
-          )}
-          htmlFor={id}
-        >
-          {icon && (
-            <span className="opacity-50" aria-hidden="true">
-              {icon}
-            </span>
-          )}
-          {prefix && (
-            <span className="opacity-50" aria-hidden="true">
-              {prefix}
-            </span>
-          )}
-          <input
-            ref={ref}
-            id={id}
-            className="grow"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy}
-            aria-required={required || undefined}
-            required={required}
-            {...rest}
-          />
-          {inline && label && <span className="label">{label}</span>}
-          {suffix && (
-            <span className="opacity-50" aria-hidden="true">
-              {suffix}
-            </span>
-          )}
-          {clearable && (
-            <button
-              type="button"
-              className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={onClear}
-              aria-label="Clear input"
-              tabIndex={-1}
-            >
-              ✕
-            </button>
-          )}
-          {iconRight && (
-            <span className="opacity-50" aria-hidden="true">
-              {iconRight}
-            </span>
-          )}
-        </label>
+        {inputBox}
         {hint && !error && (
           <p id={hintId} className="fieldset-label">
             {hint}
@@ -152,7 +186,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );
