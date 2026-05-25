@@ -129,12 +129,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
 
     if (withDragDrop) {
       return (
-        <fieldset className="fieldset">
+        <div className="fieldset w-full">
           {label && (
-            <legend className="fieldset-legend">
+            <label htmlFor={id} className="fieldset-legend">
               {label}
               {required && <span className="text-error ml-1">*</span>}
-            </legend>
+            </label>
           )}
           <div
             className={cn(
@@ -188,17 +188,17 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
               {error}
             </p>
           )}
-        </fieldset>
+        </div>
       );
     }
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && (
-          <legend className="fieldset-legend">
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
         <input
           ref={setRefs}
@@ -229,7 +229,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

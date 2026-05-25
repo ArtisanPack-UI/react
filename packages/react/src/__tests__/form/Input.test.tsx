@@ -8,6 +8,34 @@ describe('Input', () => {
     expect(screen.getByText('Name')).toBeInTheDocument();
   });
 
+  it('does not wrap a single input in a fieldset/legend', () => {
+    const { container } = render(<Input label="Email" type="email" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the input via htmlFor/id', () => {
+    render(<Input label="Email" type="email" />);
+    const input = screen.getByLabelText('Email');
+    expect(input).toBeInstanceOf(HTMLInputElement);
+    expect(input).toHaveAttribute('id');
+    expect(input.id).toBeTruthy();
+  });
+
+  it('renders the visible label with the daisyUI v5 fieldset-legend class', () => {
+    render(<Input id="email" label="Email" type="email" />);
+    const labelEl = screen.getByText('Email').closest('label');
+    expect(labelEl).toBeInTheDocument();
+    expect(labelEl).toHaveClass('fieldset-legend');
+    expect(labelEl).toHaveAttribute('for', 'email');
+  });
+
+  it('uses an explicit caller-provided id', () => {
+    render(<Input id="user-email" label="Email" />);
+    const input = screen.getByLabelText('Email');
+    expect(input).toHaveAttribute('id', 'user-email');
+  });
+
   it('renders hint text', () => {
     render(<Input label="Email" hint="We will never share your email" />);
     expect(screen.getByText('We will never share your email')).toBeInTheDocument();
@@ -28,6 +56,18 @@ describe('Input', () => {
   it('sets aria-invalid when error is present', () => {
     render(<Input label="Email" error="Required" />);
     expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('wires aria-describedby to the hint when present', () => {
+    render(<Input id="phone" label="Phone" hint="Numbers only" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('aria-describedby', 'phone-hint');
+  });
+
+  it('wires aria-describedby to the error when present', () => {
+    render(<Input id="phone" label="Phone" error="Required" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('aria-describedby', 'phone-error');
   });
 
   it('shows required indicator', () => {
@@ -54,9 +94,29 @@ describe('Input', () => {
     expect(onClear).toHaveBeenCalledOnce();
   });
 
-  it('renders inline label', () => {
-    render(<Input label="Floating" inline />);
-    expect(screen.getByText('Floating')).toHaveClass('label');
+  it('renders inline label as a floating label associated with the input', () => {
+    const { container } = render(<Input id="city" label="City" inline />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+    const wrapper = container.querySelector('label.floating-label');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveAttribute('for', 'city');
+    const input = screen.getByLabelText('City');
+    expect(input).toHaveAttribute('id', 'city');
+    expect(wrapper?.contains(input)).toBe(true);
+    expect(input).toHaveAttribute('placeholder', ' ');
+  });
+
+  it('does not inject a single-space placeholder in non-inline mode', () => {
+    render(<Input id="city" label="City" />);
+    const input = screen.getByLabelText('City');
+    expect(input).not.toHaveAttribute('placeholder');
+  });
+
+  it('preserves a caller-provided placeholder in inline mode', () => {
+    render(<Input id="city" label="City" inline placeholder="Type a city" />);
+    const input = screen.getByLabelText('City');
+    expect(input).toHaveAttribute('placeholder', 'Type a city');
   });
 
   it('forwards ref', () => {

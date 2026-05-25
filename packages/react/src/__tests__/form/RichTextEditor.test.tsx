@@ -8,6 +8,19 @@ describe('RichTextEditor', () => {
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
 
+  it('does not wrap the editor in a fieldset/legend', () => {
+    const { container } = render(<RichTextEditor label="Content" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the contenteditable region via aria-labelledby', () => {
+    render(<RichTextEditor id="content-editor" label="Content" />);
+    const editor = screen.getByLabelText('Content');
+    expect(editor).toHaveAttribute('id', 'content-editor');
+    expect(editor).toHaveAttribute('aria-labelledby', 'content-editor-label');
+  });
+
   it('renders contentEditable area', () => {
     render(<RichTextEditor label="Content" />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();

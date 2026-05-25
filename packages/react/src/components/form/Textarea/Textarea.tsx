@@ -47,12 +47,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && !inline && (
-          <legend className="fieldset-legend">
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
         <textarea
           ref={ref}
@@ -85,7 +85,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

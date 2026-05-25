@@ -8,6 +8,19 @@ describe('Textarea', () => {
     expect(screen.getByText('Description')).toBeInTheDocument();
   });
 
+  it('does not wrap a single textarea in a fieldset/legend', () => {
+    const { container } = render(<Textarea label="Description" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the textarea via htmlFor/id', () => {
+    render(<Textarea id="bio" label="Bio" />);
+    const textarea = screen.getByLabelText('Bio');
+    expect(textarea).toBeInstanceOf(HTMLTextAreaElement);
+    expect(textarea).toHaveAttribute('id', 'bio');
+  });
+
   it('renders hint', () => {
     render(<Textarea label="Bio" hint="Max 500 characters" />);
     expect(screen.getByText('Max 500 characters')).toBeInTheDocument();

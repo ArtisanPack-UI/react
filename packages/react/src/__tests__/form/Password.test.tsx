@@ -8,6 +8,18 @@ describe('Password', () => {
     expect(screen.getByText('Password')).toBeInTheDocument();
   });
 
+  it('does not wrap a single input in a fieldset/legend', () => {
+    const { container } = render(<Password label="Password" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the input via htmlFor/id', () => {
+    render(<Password id="user-pw" label="Password" />);
+    const input = screen.getByLabelText('Password');
+    expect(input).toHaveAttribute('id', 'user-pw');
+  });
+
   it('renders as password type by default', () => {
     const { container } = render(<Password label="Password" />);
     const input = container.querySelector('input');

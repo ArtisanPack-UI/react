@@ -56,12 +56,12 @@ export const Range = forwardRef<HTMLInputElement, RangeProps>(
     const errorId = error ? `${id}-error` : undefined;
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && (
-          <legend className="fieldset-legend">
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
         <input
           ref={ref}
@@ -86,7 +86,7 @@ export const Range = forwardRef<HTMLInputElement, RangeProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

@@ -106,55 +106,85 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
 
     const [visible, setVisible] = useState(false);
 
+    const passwordBox = (
+      <span className={cn('input w-full', error && 'input-error', className)}>
+        {icon && (
+          <span className="opacity-50" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        <input
+          ref={ref}
+          id={id}
+          type={visible ? 'text' : 'password'}
+          className="grow"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          aria-required={required || undefined}
+          required={required}
+          // In inline mode, a single-space placeholder triggers :placeholder-shown so daisyUI's
+          // floating-label CSS positions/animates the label correctly without showing visible text.
+          placeholder={rest.placeholder ?? (inline && label ? ' ' : undefined)}
+          {...rest}
+        />
+        {clearable && (
+          <button
+            type="button"
+            className="opacity-50 hover:opacity-100 cursor-pointer"
+            onClick={onClear}
+            aria-label="Clear password"
+            tabIndex={-1}
+          >
+            ✕
+          </button>
+        )}
+        {!hideToggle && (
+          <button
+            type="button"
+            className="opacity-50 hover:opacity-100 cursor-pointer"
+            onClick={() => setVisible((v) => !v)}
+            aria-label={visible ? 'Hide password' : 'Show password'}
+            tabIndex={-1}
+          >
+            {visible ? (visibleIcon ?? <EyeIcon />) : (hiddenIcon ?? <EyeSlashIcon />)}
+          </button>
+        )}
+      </span>
+    );
+
+    if (inline && label) {
+      return (
+        <div className="fieldset w-full">
+          <label htmlFor={id} className="floating-label w-full">
+            <span>
+              {label}
+              {required && <span className="text-error ml-1">*</span>}
+            </span>
+            {passwordBox}
+          </label>
+          {hint && !error && (
+            <p id={hintId} className="fieldset-label">
+              {hint}
+            </p>
+          )}
+          {error && (
+            <p id={errorId} className="fieldset-label text-error" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+      );
+    }
+
     return (
-      <fieldset className="fieldset">
-        {label && !inline && (
-          <legend className="fieldset-legend">
+      <div className="fieldset w-full">
+        {label && (
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
-        <label className={cn('input w-full', error && 'input-error', className)} htmlFor={id}>
-          {icon && (
-            <span className="opacity-50" aria-hidden="true">
-              {icon}
-            </span>
-          )}
-          <input
-            ref={ref}
-            id={id}
-            type={visible ? 'text' : 'password'}
-            className="grow"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy}
-            aria-required={required || undefined}
-            required={required}
-            {...rest}
-          />
-          {inline && label && <span className="label">{label}</span>}
-          {clearable && (
-            <button
-              type="button"
-              className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={onClear}
-              aria-label="Clear password"
-              tabIndex={-1}
-            >
-              ✕
-            </button>
-          )}
-          {!hideToggle && (
-            <button
-              type="button"
-              className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={() => setVisible((v) => !v)}
-              aria-label={visible ? 'Hide password' : 'Show password'}
-              tabIndex={-1}
-            >
-              {visible ? (visibleIcon ?? <EyeIcon />) : (hiddenIcon ?? <EyeSlashIcon />)}
-            </button>
-          )}
-        </label>
+        {passwordBox}
         {hint && !error && (
           <p id={hintId} className="fieldset-label">
             {hint}
@@ -165,7 +195,7 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

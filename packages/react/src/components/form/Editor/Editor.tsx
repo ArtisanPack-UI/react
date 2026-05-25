@@ -44,14 +44,12 @@ export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && (
-          <legend className="fieldset-legend">
-            <label htmlFor={id}>
-              {label}
-              {required && <span className="text-error ml-1">*</span>}
-            </label>
-          </legend>
+          <label htmlFor={id} className="fieldset-legend">
+            {label}
+            {required && <span className="text-error ml-1">*</span>}
+          </label>
         )}
         <textarea
           ref={ref}
@@ -74,7 +72,7 @@ export const Editor = forwardRef<HTMLTextAreaElement, EditorProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

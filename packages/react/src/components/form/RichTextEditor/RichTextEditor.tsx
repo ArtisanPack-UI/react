@@ -117,13 +117,15 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
       }
     }, [value]);
 
+    const labelId = label ? `${id}-label` : undefined;
+
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && (
-          <legend className="fieldset-legend">
+          <span id={labelId} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </span>
         )}
         <div
           className={cn('border rounded-lg overflow-hidden', error && 'border-error', className)}
@@ -137,7 +139,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
             contentEditable
             role="textbox"
             aria-multiline="true"
-            aria-label={label}
+            aria-labelledby={labelId}
             aria-invalid={error ? true : undefined}
             aria-describedby={describedBy}
             className="p-4 outline-none prose max-w-none"
@@ -160,7 +162,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );
