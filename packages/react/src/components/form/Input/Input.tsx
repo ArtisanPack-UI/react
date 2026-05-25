@@ -92,7 +92,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           'input',
           'w-full',
-          (icon || iconRight || prefix || suffix || clearable) && 'input-bordered',
           error && 'input-error',
           className,
         )}
