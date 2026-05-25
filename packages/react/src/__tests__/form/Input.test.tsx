@@ -94,6 +94,11 @@ describe('Input', () => {
     expect(onClear).toHaveBeenCalledOnce();
   });
 
+  it('keeps the clear button keyboard-focusable', () => {
+    render(<Input label="Search" clearable onClear={() => {}} />);
+    expect(screen.getByLabelText('Clear input')).not.toHaveAttribute('tabindex', '-1');
+  });
+
   it('renders inline label as a floating label associated with the input', () => {
     const { container } = render(<Input id="city" label="City" inline />);
     expect(container.querySelector('fieldset')).not.toBeInTheDocument();

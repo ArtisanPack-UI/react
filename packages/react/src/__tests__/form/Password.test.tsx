@@ -45,6 +45,16 @@ describe('Password', () => {
     expect(screen.queryByLabelText('Show password')).not.toBeInTheDocument();
   });
 
+  it('keeps the visibility toggle keyboard-focusable', () => {
+    render(<Password label="Password" />);
+    expect(screen.getByLabelText('Show password')).not.toHaveAttribute('tabindex', '-1');
+  });
+
+  it('keeps the clear button keyboard-focusable', () => {
+    render(<Password label="Password" clearable onClear={() => {}} />);
+    expect(screen.getByLabelText('Clear password')).not.toHaveAttribute('tabindex', '-1');
+  });
+
   it('renders error', () => {
     render(<Password label="Password" error="Too short" />);
     expect(screen.getByText('Too short')).toBeInTheDocument();

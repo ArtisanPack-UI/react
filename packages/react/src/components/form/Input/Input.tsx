@@ -131,7 +131,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="opacity-50 hover:opacity-100 cursor-pointer"
             onClick={onClear}
             aria-label="Clear input"
-            tabIndex={-1}
           >
             ✕
           </button>

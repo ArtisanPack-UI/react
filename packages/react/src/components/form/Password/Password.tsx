@@ -133,7 +133,6 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
             className="opacity-50 hover:opacity-100 cursor-pointer"
             onClick={onClear}
             aria-label="Clear password"
-            tabIndex={-1}
           >
             ✕
           </button>
@@ -144,7 +143,6 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
             className="opacity-50 hover:opacity-100 cursor-pointer"
             onClick={() => setVisible((v) => !v)}
             aria-label={visible ? 'Hide password' : 'Show password'}
-            tabIndex={-1}
           >
             {visible ? (visibleIcon ?? <EyeIcon />) : (hiddenIcon ?? <EyeSlashIcon />)}
           </button>
