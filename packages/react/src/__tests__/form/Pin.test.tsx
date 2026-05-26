@@ -9,6 +9,13 @@ describe('Pin', () => {
     expect(inputs).toHaveLength(4);
   });
 
+  it('does not wrap inputs in a fieldset/legend', () => {
+    const { container } = render(<Pin length={4} />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+    expect(screen.getByRole('group')).toHaveAttribute('aria-label', 'PIN input');
+  });
+
   it('renders 6 inputs', () => {
     render(<Pin length={6} />);
     const inputs = screen.getAllByRole('textbox');

@@ -33,7 +33,7 @@ export interface NavbarProps extends HTMLAttributes<HTMLElement> {
  * ```tsx
  * <Navbar
  *   start={<a className="text-xl font-bold">MyApp</a>}
- *   center={<input type="text" placeholder="Search..." className="input input-bordered" />}
+ *   center={<input type="text" placeholder="Search..." className="input" />}
  *   end={<button className="btn btn-primary">Login</button>}
  *   glass
  * />

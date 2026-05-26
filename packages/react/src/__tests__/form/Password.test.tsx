@@ -8,6 +8,18 @@ describe('Password', () => {
     expect(screen.getByText('Password')).toBeInTheDocument();
   });
 
+  it('does not wrap a single input in a fieldset/legend', () => {
+    const { container } = render(<Password label="Password" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the input via htmlFor/id', () => {
+    render(<Password id="user-pw" label="Password" />);
+    const input = screen.getByLabelText('Password');
+    expect(input).toHaveAttribute('id', 'user-pw');
+  });
+
   it('renders as password type by default', () => {
     const { container } = render(<Password label="Password" />);
     const input = container.querySelector('input');
@@ -31,6 +43,16 @@ describe('Password', () => {
   it('hides toggle when hideToggle is true', () => {
     render(<Password label="Password" hideToggle />);
     expect(screen.queryByLabelText('Show password')).not.toBeInTheDocument();
+  });
+
+  it('keeps the visibility toggle keyboard-focusable', () => {
+    render(<Password label="Password" />);
+    expect(screen.getByLabelText('Show password')).not.toHaveAttribute('tabindex', '-1');
+  });
+
+  it('keeps the clear button keyboard-focusable', () => {
+    render(<Password label="Password" clearable onClear={() => {}} />);
+    expect(screen.getByLabelText('Clear password')).not.toHaveAttribute('tabindex', '-1');
   });
 
   it('renders error', () => {

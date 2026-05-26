@@ -146,8 +146,9 @@ export const Card = forwardRef<HTMLDivElement | HTMLAnchorElement, CardProps>(
       'card',
       'bg-base-100',
       !noShadow && 'shadow-xl',
-      bordered && 'card-bordered',
-      compact && 'card-compact',
+      bordered && 'card-border',
+      // daisyUI 5 removed card-compact; card-sm is the closest replacement for "reduced padding".
+      compact && 'card-sm',
       glass && 'glass',
       isHorizontal && 'card-side',
       className,

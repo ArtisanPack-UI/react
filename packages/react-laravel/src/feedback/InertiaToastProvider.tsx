@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ToastProvider, type ToastProviderProps } from '@artisanpack-ui/react';
+import { ToastProvider, type ToastProviderProps } from '@artisanpack-ui/react/feedback';
 import { useFlashMessages } from './useFlashMessages';
 
 /**

@@ -8,6 +8,12 @@ describe('ColorPicker', () => {
     expect(screen.getByText('Brand Color')).toBeInTheDocument();
   });
 
+  it('does not wrap a single color input in a fieldset/legend', () => {
+    const { container } = render(<ColorPicker label="Brand Color" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
   it('renders color input', () => {
     render(<ColorPicker label="Color" />);
     const input = screen.getByLabelText('Color');

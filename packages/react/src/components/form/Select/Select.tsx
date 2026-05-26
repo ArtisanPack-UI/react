@@ -99,14 +99,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && !inline && (
-          <legend className="fieldset-legend">
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
-        <label className={cn('select', 'w-full', error && 'select-error', className)} htmlFor={id}>
+        <span className={cn('select', 'w-full', error && 'select-error', className)}>
           {icon && (
             <span className="opacity-50" aria-hidden="true">
               {icon}
@@ -143,7 +143,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               {iconRight}
             </span>
           )}
-        </label>
+        </span>
         {inline && label && (
           <label className="fieldset-label" htmlFor={id}>
             {label}
@@ -159,7 +159,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

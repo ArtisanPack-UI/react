@@ -14,6 +14,19 @@ describe('Select', () => {
     expect(screen.getByText('Country')).toBeInTheDocument();
   });
 
+  it('does not wrap a single select in a fieldset/legend', () => {
+    const { container } = render(<Select label="Country" options={options} />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the select via htmlFor/id', () => {
+    render(<Select id="country" label="Country" options={options} />);
+    const select = screen.getByLabelText('Country');
+    expect(select).toBeInstanceOf(HTMLSelectElement);
+    expect(select).toHaveAttribute('id', 'country');
+  });
+
   it('renders options', () => {
     render(<Select label="Country" options={options} />);
     expect(screen.getByText('Option 1')).toBeInTheDocument();
