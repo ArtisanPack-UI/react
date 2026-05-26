@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useMemo } from 'react';
 import { router } from '@inertiajs/react';
-import { Pagination, type PaginationProps } from '@artisanpack-ui/react';
+import { Pagination, type PaginationProps } from '@artisanpack-ui/react/navigation';
 import type { LaravelPaginator } from '../types';
 
 /**

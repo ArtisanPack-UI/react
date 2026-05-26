@@ -12,7 +12,7 @@ vi.mock('@inertiajs/react', () => ({
   usePage: () => mockUsePage(),
 }));
 
-vi.mock('@artisanpack-ui/react', () => ({
+vi.mock('@artisanpack-ui/react/feedback', () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="toast-provider">{children}</div>
   ),

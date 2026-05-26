@@ -1,6 +1,6 @@
 import { forwardRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
-import { Breadcrumbs, type BreadcrumbsProps, type BreadcrumbItem } from '@artisanpack-ui/react';
+import { Breadcrumbs, type BreadcrumbsProps, type BreadcrumbItem } from '@artisanpack-ui/react/navigation';
 
 /**
  * Breadcrumb item descriptor with Inertia `href` support.
