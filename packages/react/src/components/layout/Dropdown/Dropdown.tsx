@@ -256,10 +256,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           'aria-controls': menuId,
         };
 
-        // In controlled mode the consumer owns open state and presumably toggles it in
-        // their own onClick. Layering the library's toggle on top would double-fire
-        // onOpenChange with a stale `isOpen` closure — see #37. We still capture the
-        // triggerRef and forward keydown for accessibility (ArrowDown/Escape).
+        // In controlled mode the consumer owns open state. Layering the library's
+        // click/keydown toggle on top would double-fire onOpenChange with a stale
+        // closure — see #37. We still capture the triggerRef so focus restoration
+        // on close works, but defer all toggle behavior (including ArrowDown/Escape)
+        // to the consumer's own handlers.
         if (isControlled) {
           cloneProps.onClick = (e: React.MouseEvent) => {
             triggerRef.current = e.currentTarget as HTMLElement;
@@ -268,9 +269,6 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           cloneProps.onKeyDown = (e: KeyboardEvent) => {
             triggerRef.current = e.currentTarget as HTMLElement;
             originalOnKeyDown?.(e);
-            if (!e.defaultPrevented && (e.key === 'Escape' || e.key === 'ArrowDown')) {
-              handleTriggerKeyDown(e);
-            }
           };
         } else {
           cloneProps.onClick = (e: React.MouseEvent) => {

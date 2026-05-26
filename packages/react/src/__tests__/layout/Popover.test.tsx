@@ -213,4 +213,35 @@ describe('Popover', () => {
     fireEvent.click(screen.getByText('Toggle'));
     expect(container.firstChild).not.toHaveClass('dropdown-open');
   });
+
+  it('does not call onOpenChange from the wrapInFocusable button on a Fragment trigger in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover
+        triggerMode="click"
+        open={false}
+        onOpenChange={onOpenChange}
+        trigger={
+          <>
+            <span>Outer</span>
+          </>
+        }
+      >
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Outer'));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('does not call onOpenChange from the fallback button on a string trigger in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover triggerMode="click" open={false} onOpenChange={onOpenChange} trigger="Click me">
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Click me'));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
 });

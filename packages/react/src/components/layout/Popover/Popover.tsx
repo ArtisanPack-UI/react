@@ -269,13 +269,18 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const wrapInFocusable = (content: ReactNode): ReactElement => {
       if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state. Don't bind library
+        // toggle handlers — see #37. The consumer's own children inside the Fragment
+        // are responsible for triggering the toggle through their own onClick.
+        const clickHandlers = isControlled
+          ? {}
+          : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
           <button
             type="button"
             aria-expanded={isOpen}
             aria-controls={contentId}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
+            {...clickHandlers}
           >
             {content}
           </button>
@@ -327,13 +332,19 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
       // Fallback: non-element trigger (string, etc.)
       if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state — skip library toggle
+        // handlers to avoid double-firing onOpenChange (#37). Non-element triggers
+        // (string, number, etc.) in controlled mode rely on the consumer to drive open
+        // state through external means since they have no DOM hook for onClick.
+        const clickHandlers = isControlled
+          ? {}
+          : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
           <button
             type="button"
             aria-expanded={isOpen}
             aria-controls={contentId}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
+            {...clickHandlers}
           >
             {trigger}
           </button>
