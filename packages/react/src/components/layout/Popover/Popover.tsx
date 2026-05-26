@@ -276,12 +276,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
           ? {}
           : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
-          <button
-            type="button"
-            aria-expanded={isOpen}
-            aria-controls={contentId}
-            {...clickHandlers}
-          >
+          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
             {content}
           </button>
         );
@@ -340,12 +335,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
           ? {}
           : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
-          <button
-            type="button"
-            aria-expanded={isOpen}
-            aria-controls={contentId}
-            {...clickHandlers}
-          >
+          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
             {trigger}
           </button>
         );
