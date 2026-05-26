@@ -18,6 +18,13 @@
     "paths": {
       "@artisanpack-ui/tokens": ["./packages/tokens/src"],
       "@artisanpack-ui/react": ["./packages/react/src"],
+      "@artisanpack-ui/react/form": ["./packages/react/src/components/form"],
+      "@artisanpack-ui/react/layout": ["./packages/react/src/components/layout"],
+      "@artisanpack-ui/react/navigation": ["./packages/react/src/components/navigation"],
+      "@artisanpack-ui/react/data": ["./packages/react/src/components/data"],
+      "@artisanpack-ui/react/chart": ["./packages/react/src/components/data/Chart/Chart"],
+      "@artisanpack-ui/react/feedback": ["./packages/react/src/components/feedback"],
+      "@artisanpack-ui/react/utility": ["./packages/react/src/components/utility"],
       "@artisanpack-ui/react-laravel": ["./packages/react-laravel/src"]
     }
   },
