@@ -61,13 +61,15 @@ export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // Custom trigger with controlled state
+ * // Custom trigger with controlled state. In controlled mode the consumer
+ * // owns the toggle, so the trigger must wire its own onClick (the library
+ * // no longer layers a handler on top, to avoid double-firing onOpenChange).
  * const [open, setOpen] = useState(false);
  *
  * <Dropdown
  *   open={open}
  *   onOpenChange={setOpen}
- *   trigger={<Button>Menu</Button>}
+ *   trigger={<Button onClick={() => setOpen((v) => !v)}>Menu</Button>}
  * >
  *   <DropdownItem onClick={handleEdit}>Edit</DropdownItem>
  * </Dropdown>
