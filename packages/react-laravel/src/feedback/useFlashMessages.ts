@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
-import { useToast, type ToastAPI } from '@artisanpack-ui/react';
+import { useToast, type ToastAPI } from '@artisanpack-ui/react/feedback';
 import type { FlashMessages, SharedPageProps } from '../types';
 
 /**
