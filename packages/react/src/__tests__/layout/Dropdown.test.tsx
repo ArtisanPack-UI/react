@@ -138,6 +138,44 @@ describe('Dropdown', () => {
     );
     expect(ref).toHaveBeenCalled();
   });
+
+  it('does not call onOpenChange from a library-injected click handler in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Dropdown open={false} onOpenChange={onOpenChange} trigger={<button>Menu</button>}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>,
+    );
+    fireEvent.click(screen.getByText('Menu'));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('still forwards the original onClick on a controlled trigger', () => {
+    const consumerClick = vi.fn();
+    render(
+      <Dropdown
+        open={false}
+        onOpenChange={() => {}}
+        trigger={<button onClick={consumerClick}>Menu</button>}
+      >
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>,
+    );
+    fireEvent.click(screen.getByText('Menu'));
+    expect(consumerClick).toHaveBeenCalledOnce();
+  });
+
+  it('toggles via the library handler in uncontrolled mode with a custom trigger', () => {
+    const { container } = render(
+      <Dropdown trigger={<button>Menu</button>}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>,
+    );
+    fireEvent.click(screen.getByText('Menu'));
+    expect(container.firstChild).toHaveClass('dropdown-open');
+    fireEvent.click(screen.getByText('Menu'));
+    expect(container.firstChild).not.toHaveClass('dropdown-open');
+  });
 });
 
 describe('DropdownItem', () => {

@@ -124,6 +124,15 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    // Track the latest open state in a ref so `setOpen` and toggle callbacks can read it
+    // without listing it as a dep. Without this, `setOpen` rebuilds on every toggle and the
+    // click-outside/Escape effects re-attach document listeners — fatal in editor-heavy hosts
+    // like Tiptap where document events are already under heavy load (#37).
+    const isOpenRef = useRef(isOpen);
+    useEffect(() => {
+      isOpenRef.current = isOpen;
+    }, [isOpen]);
+
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
         containerRef.current = node;
@@ -138,14 +147,13 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const setOpen = useCallback(
       (next: boolean) => {
-        const current = isControlled ? open : internalOpen;
-        if (next === current) return;
+        if (next === isOpenRef.current) return;
         if (!isControlled) {
           setInternalOpen(next);
         }
         onOpenChange?.(next);
       },
-      [isControlled, open, internalOpen, onOpenChange],
+      [isControlled, onOpenChange],
     );
 
     const clearTimers = () => {
@@ -231,14 +239,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const handleClick = () => {
       if (triggerMode !== 'click') return;
-      setOpen(!isOpen);
+      setOpen(!isOpenRef.current);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (triggerMode !== 'click') return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        setOpen(!isOpen);
+        setOpen(!isOpenRef.current);
       }
     };
 
@@ -298,7 +306,10 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
           props.tabIndex = 0;
         }
 
-        if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state and presumably toggles it
+        // in their own onClick. Layering the library's toggle on top would double-fire
+        // onOpenChange with a stale `isOpen` closure — see #37.
+        if (triggerMode === 'click' && !isControlled) {
           const origClick = triggerEl.props.onClick as ((...a: unknown[]) => void) | undefined;
           const origKeyDown = triggerEl.props.onKeyDown as ((...a: unknown[]) => void) | undefined;
           props.onClick = (...args: unknown[]) => {
