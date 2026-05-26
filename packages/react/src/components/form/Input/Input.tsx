@@ -88,14 +88,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
     const inputBox = (
-      <span
-        className={cn(
-          'input',
-          'w-full',
-          error && 'input-error',
-          className,
-        )}
-      >
+      <span className={cn('input', 'w-full', error && 'input-error', className)}>
         {icon && (
           <span className="opacity-50" aria-hidden="true">
             {icon}
