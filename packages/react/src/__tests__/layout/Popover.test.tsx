@@ -167,4 +167,81 @@ describe('Popover', () => {
     );
     expect(ref).toHaveBeenCalled();
   });
+
+  it('does not call onOpenChange from a library-injected click handler in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover
+        triggerMode="click"
+        open={false}
+        onOpenChange={onOpenChange}
+        trigger={<button>Toggle</button>}
+      >
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Toggle'));
+    // In controlled mode the consumer owns the toggle. The library must not layer
+    // its own setOpen on top, which would fire onOpenChange a second time.
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('still forwards the original onClick on a controlled trigger', () => {
+    const consumerClick = vi.fn();
+    render(
+      <Popover
+        triggerMode="click"
+        open={false}
+        onOpenChange={() => {}}
+        trigger={<button onClick={consumerClick}>Toggle</button>}
+      >
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Toggle'));
+    expect(consumerClick).toHaveBeenCalledOnce();
+  });
+
+  it('toggles via the library handler in uncontrolled click mode', () => {
+    const { container } = render(
+      <Popover triggerMode="click" trigger={<button>Toggle</button>}>
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Toggle'));
+    expect(container.firstChild).toHaveClass('dropdown-open');
+    fireEvent.click(screen.getByText('Toggle'));
+    expect(container.firstChild).not.toHaveClass('dropdown-open');
+  });
+
+  it('does not call onOpenChange from the wrapInFocusable button on a Fragment trigger in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover
+        triggerMode="click"
+        open={false}
+        onOpenChange={onOpenChange}
+        trigger={
+          <>
+            <span>Outer</span>
+          </>
+        }
+      >
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Outer'));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('does not call onOpenChange from the fallback button on a string trigger in controlled mode (#37)', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Popover triggerMode="click" open={false} onOpenChange={onOpenChange} trigger="Click me">
+        Content
+      </Popover>,
+    );
+    fireEvent.click(screen.getByText('Click me'));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
 });

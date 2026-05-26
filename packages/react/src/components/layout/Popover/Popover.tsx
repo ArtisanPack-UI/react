@@ -124,6 +124,15 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    // Track the latest open state in a ref so `setOpen` and toggle callbacks can read it
+    // without listing it as a dep. Without this, `setOpen` rebuilds on every toggle and the
+    // click-outside/Escape effects re-attach document listeners — fatal in editor-heavy hosts
+    // like Tiptap where document events are already under heavy load (#37).
+    const isOpenRef = useRef(isOpen);
+    useEffect(() => {
+      isOpenRef.current = isOpen;
+    }, [isOpen]);
+
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
         containerRef.current = node;
@@ -138,14 +147,13 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const setOpen = useCallback(
       (next: boolean) => {
-        const current = isControlled ? open : internalOpen;
-        if (next === current) return;
+        if (next === isOpenRef.current) return;
         if (!isControlled) {
           setInternalOpen(next);
         }
         onOpenChange?.(next);
       },
-      [isControlled, open, internalOpen, onOpenChange],
+      [isControlled, onOpenChange],
     );
 
     const clearTimers = () => {
@@ -231,14 +239,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const handleClick = () => {
       if (triggerMode !== 'click') return;
-      setOpen(!isOpen);
+      setOpen(!isOpenRef.current);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (triggerMode !== 'click') return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        setOpen(!isOpen);
+        setOpen(!isOpenRef.current);
       }
     };
 
@@ -261,14 +269,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
     const wrapInFocusable = (content: ReactNode): ReactElement => {
       if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state. Don't bind library
+        // toggle handlers — see #37. The consumer's own children inside the Fragment
+        // are responsible for triggering the toggle through their own onClick.
+        const clickHandlers = isControlled
+          ? {}
+          : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
-          <button
-            type="button"
-            aria-expanded={isOpen}
-            aria-controls={contentId}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-          >
+          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
             {content}
           </button>
         );
@@ -298,7 +306,10 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
           props.tabIndex = 0;
         }
 
-        if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state and presumably toggles it
+        // in their own onClick. Layering the library's toggle on top would double-fire
+        // onOpenChange with a stale `isOpen` closure — see #37.
+        if (triggerMode === 'click' && !isControlled) {
           const origClick = triggerEl.props.onClick as ((...a: unknown[]) => void) | undefined;
           const origKeyDown = triggerEl.props.onKeyDown as ((...a: unknown[]) => void) | undefined;
           props.onClick = (...args: unknown[]) => {
@@ -316,14 +327,15 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
 
       // Fallback: non-element trigger (string, etc.)
       if (triggerMode === 'click') {
+        // In controlled click mode the consumer owns open state — skip library toggle
+        // handlers to avoid double-firing onOpenChange (#37). Non-element triggers
+        // (string, number, etc.) in controlled mode rely on the consumer to drive open
+        // state through external means since they have no DOM hook for onClick.
+        const clickHandlers = isControlled
+          ? {}
+          : { onClick: handleClick, onKeyDown: handleKeyDown };
         return (
-          <button
-            type="button"
-            aria-expanded={isOpen}
-            aria-controls={contentId}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-          >
+          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
             {trigger}
           </button>
         );
