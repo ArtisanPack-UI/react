@@ -77,9 +77,9 @@ const sizeMap: Record<Size, string> = {
 type Variant = NonNullable<TabsProps['variant']>;
 
 const variantMap: Record<Variant, string> = {
-  bordered: 'tabs-bordered',
-  lifted: 'tabs-lifted',
-  boxed: 'tabs-boxed',
+  bordered: 'tabs-border',
+  lifted: 'tabs-lift',
+  boxed: 'tabs-box',
 };
 
 const colorMap: Record<DaisyColor, string> = {
