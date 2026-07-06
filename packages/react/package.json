@@ -37,6 +37,10 @@
     "./utility": {
       "import": "./dist/utility.mjs",
       "types": "./dist/utility.d.ts"
+    },
+    "./ai": {
+      "import": "./dist/ai.mjs",
+      "types": "./dist/ai.d.ts"
     }
   },
   "files": [
