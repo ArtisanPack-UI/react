@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-07-06
+
+### Added
+
+- **`@artisanpack-ui/react` — new `ai/` subpath** ([ArtisanPack-UI/ai#17](https://github.com/ArtisanPack-UI/ai/issues/17), [#45](https://github.com/ArtisanPack-UI/react/pull/45)). Drop-in React components + hooks that consume the `artisanpack-ui/ai` JSON API without pulling in Livewire:
+  - `SettingsPage` — provider credentials + per-feature model/instructions overrides backed by `GET/PUT /settings` with an inline `test-connection` probe. Handles Sanctum 422 validation errors and clears the typed key + last probe result on provider switch.
+  - `UsageDashboard` — totals, per-feature breakdown, and daily buckets from `GET /usage`. Optional `refreshInterval` prop enables polling for live updates; sequence-guarded so out-of-order responses can't clobber fresher ones.
+  - `FeatureToggles` — optimistic per-feature enable/disable list backed by `GET /features` + `POST /features/{key}/toggle`, with rollback + error surfacing on API failure.
+  - `createAiApiClient` — small `fetch` wrapper with `AiApiError` for 422 handling; omits `Content-Type` on GET so strict reverse-proxies don't 415.
+  - `useStreamingText` — hook that consumes a `fetch` response body as a UTF-8 text stream via the Streams API + `AbortController`, for long-running agent-output surfaces.
+  - Storybook stories for each component backed by an in-memory mock client.
+  - Full Vitest coverage (19 new tests).
+
 ## [1.0.1] - 2026-05-25
 
 ### Fixed

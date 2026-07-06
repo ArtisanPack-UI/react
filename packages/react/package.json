@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "80+ React UI components for the ArtisanPack UI ecosystem, styled with DaisyUI and Tailwind CSS",
   "type": "module",
   "main": "./dist/index.mjs",
