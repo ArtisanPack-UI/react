@@ -198,9 +198,7 @@ export function SettingsPage({
         <div
           role="status"
           aria-live="polite"
-          className={
-            Object.keys(errors).length > 0 ? 'alert alert-error' : 'alert alert-success'
-          }
+          className={Object.keys(errors).length > 0 ? 'alert alert-error' : 'alert alert-success'}
         >
           <span>{status}</span>
         </div>
@@ -251,9 +249,7 @@ export function SettingsPage({
         ) : null}
 
         <label className="form-control flex flex-col gap-1">
-          <span className="label-text">
-            Base URL {isOllama ? '(required)' : '(optional)'}
-          </span>
+          <span className="label-text">Base URL {isOllama ? '(required)' : '(optional)'}</span>
           <input
             type="url"
             className="input input-bordered"
@@ -296,9 +292,7 @@ export function SettingsPage({
           {testResult ? (
             <span
               role="status"
-              className={
-                testResult.result === 'ok' ? 'text-sm text-success' : 'text-sm text-error'
-              }
+              className={testResult.result === 'ok' ? 'text-sm text-success' : 'text-sm text-error'}
             >
               {testResult.message ?? (testResult.result === 'ok' ? 'OK' : 'Failed')}
             </span>
@@ -312,10 +306,7 @@ export function SettingsPage({
           {form.overrides.map((override) => {
             const current = overrideByKey.get(override.feature_key) ?? override;
             return (
-              <div
-                key={override.feature_key}
-                className="rounded-box border border-base-300 p-3"
-              >
+              <div key={override.feature_key} className="rounded-box border border-base-300 p-3">
                 <div className="text-sm font-medium">
                   {override.package} · {override.feature_key}
                 </div>

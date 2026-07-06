@@ -98,8 +98,13 @@ export interface AiValidationError {
 export interface AiApiClient {
   getSettings(): Promise<AiSettingsResponse>;
   updateSettings(body: AiSettingsUpdate): Promise<AiSettingsResponse>;
-  testConnection(body: Omit<AiSettingsUpdate, 'feature_overrides'>): Promise<AiConnectionTestResult>;
+  testConnection(
+    body: Omit<AiSettingsUpdate, 'feature_overrides'>,
+  ): Promise<AiConnectionTestResult>;
   getFeatures(): Promise<{ features: AiFeature[] }>;
-  toggleFeature(key: string, enabled?: boolean): Promise<{ feature: Pick<AiFeature, 'key' | 'package' | 'enabled'> }>;
+  toggleFeature(
+    key: string,
+    enabled?: boolean,
+  ): Promise<{ feature: Pick<AiFeature, 'key' | 'package' | 'enabled'> }>;
   getUsage(params?: { from?: string; to?: string }): Promise<AiUsageResponse>;
 }

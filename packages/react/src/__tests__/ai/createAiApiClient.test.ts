@@ -13,7 +13,15 @@ describe('createAiApiClient', () => {
     const fetchImpl = mockFetch((url) => {
       expect(url).toBe('/api/artisanpack-ai/settings');
       return new Response(
-        JSON.stringify({ credentials: { provider: 'openai', api_key_present: false, base_url: null, default_model: null }, feature_overrides: [] }),
+        JSON.stringify({
+          credentials: {
+            provider: 'openai',
+            api_key_present: false,
+            base_url: null,
+            default_model: null,
+          },
+          feature_overrides: [],
+        }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     });
@@ -38,11 +46,15 @@ describe('createAiApiClient', () => {
   });
 
   it('rejects non-2xx responses with AiApiError including the parsed body', async () => {
-    const fetchImpl = mockFetch(() =>
-      new Response(JSON.stringify({ message: 'Validation failed.', errors: { api_key: ['Required.'] } }), {
-        status: 422,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    const fetchImpl = mockFetch(
+      () =>
+        new Response(
+          JSON.stringify({ message: 'Validation failed.', errors: { api_key: ['Required.'] } }),
+          {
+            status: 422,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
     );
 
     const client = createAiApiClient({ baseUrl: '/api/artisanpack-ai', fetchImpl });
@@ -64,9 +76,12 @@ describe('createAiApiClient', () => {
     const fetchImpl = mockFetch((url, init) => {
       expect(url).toBe('/api/artisanpack-ai/features/summarize.post/toggle');
       expect(init?.method).toBe('POST');
-      return new Response(JSON.stringify({ feature: { key: 'summarize.post', package: 'core', enabled: true } }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ feature: { key: 'summarize.post', package: 'core', enabled: true } }),
+        {
+          status: 200,
+        },
+      );
     });
 
     const client = createAiApiClient({ baseUrl: '/api/artisanpack-ai', fetchImpl });

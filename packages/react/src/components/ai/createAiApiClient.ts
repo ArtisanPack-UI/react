@@ -56,7 +56,9 @@ export function createAiApiClient(options: CreateAiApiClientOptions): AiApiClien
     const search = query
       ? '?' +
         new URLSearchParams(
-          Object.entries(query).flatMap(([k, v]) => (v == null ? [] : [[k, v] as [string, string]])),
+          Object.entries(query).flatMap(([k, v]) =>
+            v == null ? [] : [[k, v] as [string, string]],
+          ),
         ).toString()
       : '';
     const response = await doFetch(`${trimmedBase}${path}${search}`, {

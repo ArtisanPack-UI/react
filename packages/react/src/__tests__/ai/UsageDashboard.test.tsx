@@ -14,10 +14,24 @@ const usage: AiUsageResponse = {
     cost: 0.42,
   },
   by_feature: [
-    { feature_key: 'summarize', requests: 8, input_tokens: 800, output_tokens: 300, total_tokens: 1100, cost: 0.3 },
+    {
+      feature_key: 'summarize',
+      requests: 8,
+      input_tokens: 800,
+      output_tokens: 300,
+      total_tokens: 1100,
+      cost: 0.3,
+    },
   ],
   daily: [
-    { period: '2026-07-01', requests: 5, input_tokens: 500, output_tokens: 250, total_tokens: 750, cost: 0.21 },
+    {
+      period: '2026-07-01',
+      requests: 5,
+      input_tokens: 500,
+      output_tokens: 250,
+      total_tokens: 750,
+      cost: 0.21,
+    },
   ],
 };
 

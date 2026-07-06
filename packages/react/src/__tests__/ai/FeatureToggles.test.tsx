@@ -5,7 +5,13 @@ import { createMockClient } from './testClient';
 import type { AiFeature } from '../../components/ai/types';
 
 const features: AiFeature[] = [
-  { key: 'summarize', package: 'core', label: 'Summarize', description: 'Short summaries', enabled: true },
+  {
+    key: 'summarize',
+    package: 'core',
+    label: 'Summarize',
+    description: 'Short summaries',
+    enabled: true,
+  },
   { key: 'chat', package: 'core', label: 'Chat', description: null, enabled: false },
 ];
 
@@ -27,7 +33,9 @@ describe('FeatureToggles', () => {
   });
 
   it('flips a toggle via POST /features/{key}/toggle and fires onToggle', async () => {
-    const toggle = vi.fn().mockResolvedValue({ feature: { key: 'chat', package: 'core', enabled: true } });
+    const toggle = vi
+      .fn()
+      .mockResolvedValue({ feature: { key: 'chat', package: 'core', enabled: true } });
     const client = createMockClient({
       getFeatures: vi.fn().mockResolvedValue({ features }),
       toggleFeature: toggle,
@@ -42,7 +50,9 @@ describe('FeatureToggles', () => {
     });
 
     expect(toggle).toHaveBeenCalledWith('chat', true);
-    await waitFor(() => expect(onToggle).toHaveBeenCalledWith({ key: 'chat', package: 'core', enabled: true }));
+    await waitFor(() =>
+      expect(onToggle).toHaveBeenCalledWith({ key: 'chat', package: 'core', enabled: true }),
+    );
   });
 
   it('rolls the switch back and surfaces the error when the API rejects', async () => {

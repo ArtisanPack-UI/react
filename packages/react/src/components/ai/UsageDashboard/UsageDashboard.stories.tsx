@@ -27,6 +27,10 @@ export const Default: Story = {
 export const Live: Story = {
   name: 'Live (polling)',
   render: () => (
-    <UsageDashboard client={createStorybookMockClient()} refreshInterval={5000} heading="AI Usage" />
+    <UsageDashboard
+      client={createStorybookMockClient()}
+      refreshInterval={5000}
+      heading="AI Usage"
+    />
   ),
 };

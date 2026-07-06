@@ -71,7 +71,6 @@ export function useStreamingText(): UseStreamingTextResult {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       // Read until the stream closes; append decoded chunks to accumulated text.
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;

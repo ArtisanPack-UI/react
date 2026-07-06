@@ -57,13 +57,15 @@ describe('SettingsPage', () => {
   it('renders per-field validation errors returned from a 422', async () => {
     const client = createMockClient({
       getSettings: vi.fn().mockResolvedValue(baseResponse),
-      updateSettings: vi.fn().mockRejectedValue(
-        new AiApiError(
-          422,
-          { message: 'Validation failed.', errors: { api_key: ['An API key is required.'] } },
-          'Validation failed.',
+      updateSettings: vi
+        .fn()
+        .mockRejectedValue(
+          new AiApiError(
+            422,
+            { message: 'Validation failed.', errors: { api_key: ['An API key is required.'] } },
+            'Validation failed.',
+          ),
         ),
-      ),
     });
 
     render(<SettingsPage client={client} />);

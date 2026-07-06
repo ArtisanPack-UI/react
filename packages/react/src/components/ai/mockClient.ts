@@ -23,24 +23,70 @@ export function createStorybookMockClient(): AiApiClient {
   };
 
   let features: AiFeature[] = [
-    { key: 'summarize', package: 'core', label: 'Summarize', description: 'AI-generated summaries', enabled: true },
-    { key: 'chat', package: 'core', label: 'Chat', description: 'Assistant chat surface', enabled: false },
+    {
+      key: 'summarize',
+      package: 'core',
+      label: 'Summarize',
+      description: 'AI-generated summaries',
+      enabled: true,
+    },
+    {
+      key: 'chat',
+      package: 'core',
+      label: 'Chat',
+      description: 'Assistant chat surface',
+      enabled: false,
+    },
   ];
 
   const usage: AiUsageResponse = {
     range: { from: '2026-07-01T00:00:00+00:00', to: '2026-07-31T23:59:59+00:00' },
-    totals: { requests: 42, input_tokens: 12_000, output_tokens: 4_800, total_tokens: 16_800, cost: 1.24 },
+    totals: {
+      requests: 42,
+      input_tokens: 12_000,
+      output_tokens: 4_800,
+      total_tokens: 16_800,
+      cost: 1.24,
+    },
     by_feature: [
-      { feature_key: 'summarize', requests: 30, input_tokens: 9_000, output_tokens: 3_000, total_tokens: 12_000, cost: 0.9 },
-      { feature_key: 'chat', requests: 12, input_tokens: 3_000, output_tokens: 1_800, total_tokens: 4_800, cost: 0.34 },
+      {
+        feature_key: 'summarize',
+        requests: 30,
+        input_tokens: 9_000,
+        output_tokens: 3_000,
+        total_tokens: 12_000,
+        cost: 0.9,
+      },
+      {
+        feature_key: 'chat',
+        requests: 12,
+        input_tokens: 3_000,
+        output_tokens: 1_800,
+        total_tokens: 4_800,
+        cost: 0.34,
+      },
     ],
     daily: [
-      { period: '2026-07-04', requests: 20, input_tokens: 6_000, output_tokens: 2_000, total_tokens: 8_000, cost: 0.6 },
-      { period: '2026-07-05', requests: 22, input_tokens: 6_000, output_tokens: 2_800, total_tokens: 8_800, cost: 0.64 },
+      {
+        period: '2026-07-04',
+        requests: 20,
+        input_tokens: 6_000,
+        output_tokens: 2_000,
+        total_tokens: 8_000,
+        cost: 0.6,
+      },
+      {
+        period: '2026-07-05',
+        requests: 22,
+        input_tokens: 6_000,
+        output_tokens: 2_800,
+        total_tokens: 8_800,
+        cost: 0.64,
+      },
     ],
   };
 
-  const delay = <T,>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 200));
+  const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 200));
 
   return {
     getSettings: () => delay(settings),
@@ -55,7 +101,9 @@ export function createStorybookMockClient(): AiApiClient {
         feature_overrides:
           body.feature_overrides?.map((row) => ({
             feature_key: row.feature_key,
-            package: settings.feature_overrides.find((o) => o.feature_key === row.feature_key)?.package ?? 'core',
+            package:
+              settings.feature_overrides.find((o) => o.feature_key === row.feature_key)?.package ??
+              'core',
             model: row.model ?? null,
             instructions: row.instructions ?? null,
           })) ?? settings.feature_overrides,
@@ -63,12 +111,20 @@ export function createStorybookMockClient(): AiApiClient {
       return delay(settings);
     },
     testConnection: (body) =>
-      delay({ result: 'ok' as const, message: `Connected to ${body.provider}`, provider: body.provider }),
+      delay({
+        result: 'ok' as const,
+        message: `Connected to ${body.provider}`,
+        provider: body.provider,
+      }),
     getFeatures: () => delay({ features }),
     toggleFeature: (key, enabled) => {
-      features = features.map((f) => (f.key === key ? { ...f, enabled: enabled ?? !f.enabled } : f));
+      features = features.map((f) =>
+        f.key === key ? { ...f, enabled: enabled ?? !f.enabled } : f,
+      );
       const updated = features.find((f) => f.key === key)!;
-      return delay({ feature: { key: updated.key, package: updated.package, enabled: updated.enabled } });
+      return delay({
+        feature: { key: updated.key, package: updated.package, enabled: updated.enabled },
+      });
     },
     getUsage: () => delay(usage),
   };
