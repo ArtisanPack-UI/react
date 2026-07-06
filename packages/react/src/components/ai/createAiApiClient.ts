@@ -53,19 +53,23 @@ export function createAiApiClient(options: CreateAiApiClientOptions): AiApiClien
     init: RequestInit = {},
     query?: Record<string, string | undefined>,
   ): Promise<T> {
-    const search = query
-      ? '?' +
-        new URLSearchParams(
+    const searchParams = query
+      ? new URLSearchParams(
           Object.entries(query).flatMap(([k, v]) =>
             v == null ? [] : [[k, v] as [string, string]],
           ),
         ).toString()
       : '';
+    const search = searchParams === '' ? '' : `?${searchParams}`;
+    // Only advertise a JSON request body on methods that actually carry one —
+    // strict reverse-proxies and Sanctum form-request configs reject GET/DELETE
+    // requests that ship a Content-Type without a body.
+    const hasBody = init.body != null;
     const response = await doFetch(`${trimmedBase}${path}${search}`, {
       ...init,
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
         ...extraHeaders,
         ...init.headers,
       },

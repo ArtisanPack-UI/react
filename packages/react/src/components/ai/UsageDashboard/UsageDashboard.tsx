@@ -52,20 +52,22 @@ export function UsageDashboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const cancelledRef = useRef(false);
+  const requestSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++requestSeqRef.current;
     try {
       const response = await client.getUsage({ from, to });
-      if (!cancelledRef.current) {
-        setUsage(response);
-        setError(null);
-      }
+      // Discard responses that lost the race to a newer request — otherwise
+      // a slow-poll response can clobber a fresher one under high latency.
+      if (cancelledRef.current || seq !== requestSeqRef.current) return;
+      setUsage(response);
+      setError(null);
     } catch (err) {
-      if (!cancelledRef.current) {
-        setError((err as Error).message);
-      }
+      if (cancelledRef.current || seq !== requestSeqRef.current) return;
+      setError((err as Error).message);
     } finally {
-      if (!cancelledRef.current) {
+      if (!cancelledRef.current && seq === requestSeqRef.current) {
         setLoading(false);
       }
     }

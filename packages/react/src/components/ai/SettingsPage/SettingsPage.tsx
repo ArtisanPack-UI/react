@@ -1,6 +1,6 @@
 /** @module ai/SettingsPage */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {
   AiApiClient,
   AiConnectionTestResult,
@@ -81,6 +81,7 @@ export function SettingsPage({
   const [testing, setTesting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<string | null>(null);
+  const [statusVariant, setStatusVariant] = useState<'success' | 'error'>('success');
   const [testResult, setTestResult] = useState<AiConnectionTestResult | null>(null);
 
   useEffect(() => {
@@ -94,7 +95,9 @@ export function SettingsPage({
         setForm(toFormState(response));
       })
       .catch((err: Error) => {
-        if (!cancelled) setStatus(err.message);
+        if (cancelled) return;
+        setStatus(err.message);
+        setStatusVariant('error');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -107,13 +110,12 @@ export function SettingsPage({
   const apiKeyPresent = initial?.credentials.api_key_present ?? false;
   const isOllama = form.provider === 'ollama';
 
-  const overrideByKey = useMemo(() => {
-    const map = new Map<string, AiFeatureOverride>();
-    for (const override of form.overrides) {
-      map.set(override.feature_key, override);
-    }
-    return map;
-  }, [form.overrides]);
+  const handleProviderChange = useCallback((provider: string) => {
+    // Reset the typed key + last probe result so we don't silently ship
+    // an OpenAI key to an Ollama base URL (or the other way around).
+    setForm((prev) => ({ ...prev, provider, api_key: '' }));
+    setTestResult(null);
+  }, []);
 
   const updateOverride = useCallback(
     (key: string, patch: Partial<Pick<AiFeatureOverride, 'model' | 'instructions'>>) => {
@@ -138,7 +140,9 @@ export function SettingsPage({
         setInitial(response);
         setForm(toFormState(response));
         setStatus('Settings saved.');
+        setStatusVariant('success');
       } catch (err) {
+        setStatusVariant('error');
         if (err instanceof AiApiError && err.status === 422) {
           const body = err.body as { errors?: FormErrors; message?: string };
           setErrors(body?.errors ?? {});
@@ -196,9 +200,9 @@ export function SettingsPage({
 
       {status ? (
         <div
-          role="status"
+          role={statusVariant === 'error' ? 'alert' : 'status'}
           aria-live="polite"
-          className={Object.keys(errors).length > 0 ? 'alert alert-error' : 'alert alert-success'}
+          className={statusVariant === 'error' ? 'alert alert-error' : 'alert alert-success'}
         >
           <span>{status}</span>
         </div>
@@ -212,7 +216,7 @@ export function SettingsPage({
           <select
             className="select select-bordered"
             value={form.provider}
-            onChange={(e) => setForm((prev) => ({ ...prev, provider: e.target.value }))}
+            onChange={(e) => handleProviderChange(e.target.value)}
           >
             {providers.map((provider) => (
               <option key={provider} value={provider}>
@@ -303,43 +307,40 @@ export function SettingsPage({
       {form.overrides.length > 0 ? (
         <fieldset className="flex flex-col gap-3">
           <legend className="text-base font-medium">Per-feature overrides</legend>
-          {form.overrides.map((override) => {
-            const current = overrideByKey.get(override.feature_key) ?? override;
-            return (
-              <div key={override.feature_key} className="rounded-box border border-base-300 p-3">
-                <div className="text-sm font-medium">
-                  {override.package} · {override.feature_key}
-                </div>
-                <label className="form-control mt-2 flex flex-col gap-1">
-                  <span className="label-text">Model</span>
-                  <input
-                    type="text"
-                    className="input input-bordered input-sm"
-                    value={current.model ?? ''}
-                    onChange={(e) =>
-                      updateOverride(override.feature_key, {
-                        model: e.target.value === '' ? null : e.target.value,
-                      })
-                    }
-                    placeholder="inherit default"
-                  />
-                </label>
-                <label className="form-control mt-2 flex flex-col gap-1">
-                  <span className="label-text">Instructions</span>
-                  <textarea
-                    className="textarea textarea-bordered"
-                    rows={3}
-                    value={current.instructions ?? ''}
-                    onChange={(e) =>
-                      updateOverride(override.feature_key, {
-                        instructions: e.target.value === '' ? null : e.target.value,
-                      })
-                    }
-                  />
-                </label>
+          {form.overrides.map((override) => (
+            <div key={override.feature_key} className="rounded-box border border-base-300 p-3">
+              <div className="text-sm font-medium">
+                {override.package} · {override.feature_key}
               </div>
-            );
-          })}
+              <label className="form-control mt-2 flex flex-col gap-1">
+                <span className="label-text">Model</span>
+                <input
+                  type="text"
+                  className="input input-bordered input-sm"
+                  value={override.model ?? ''}
+                  onChange={(e) =>
+                    updateOverride(override.feature_key, {
+                      model: e.target.value === '' ? null : e.target.value,
+                    })
+                  }
+                  placeholder="inherit default"
+                />
+              </label>
+              <label className="form-control mt-2 flex flex-col gap-1">
+                <span className="label-text">Instructions</span>
+                <textarea
+                  className="textarea textarea-bordered"
+                  rows={3}
+                  value={override.instructions ?? ''}
+                  onChange={(e) =>
+                    updateOverride(override.feature_key, {
+                      instructions: e.target.value === '' ? null : e.target.value,
+                    })
+                  }
+                />
+              </label>
+            </div>
+          ))}
         </fieldset>
       ) : null}
 

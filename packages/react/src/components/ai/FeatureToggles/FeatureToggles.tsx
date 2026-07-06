@@ -49,6 +49,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
       );
       try {
         const response = await client.toggleFeature(feature.key, target);
+        setError(null);
         onToggle?.(response.feature);
       } catch (err) {
         // Roll back on failure.
@@ -69,34 +70,45 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
     [client, onToggle],
   );
 
+  const headingNode = heading ? <h2 className="text-lg font-semibold">{heading}</h2> : null;
+
   if (error && !features) {
     return (
-      <div role="alert" className="alert alert-error">
-        <span>{error}</span>
+      <div className="flex flex-col gap-3">
+        {headingNode}
+        <div role="alert" className="alert alert-error">
+          <span>{error}</span>
+        </div>
       </div>
     );
   }
 
   if (!features) {
     return (
-      <div className="flex items-center gap-2" role="status" aria-live="polite">
-        <span className="loading loading-spinner loading-sm" aria-hidden="true" />
-        <span>Loading features…</span>
+      <div className="flex flex-col gap-3">
+        {headingNode}
+        <div className="flex items-center gap-2" role="status" aria-live="polite">
+          <span className="loading loading-spinner loading-sm" aria-hidden="true" />
+          <span>Loading features…</span>
+        </div>
       </div>
     );
   }
 
   if (features.length === 0) {
     return (
-      <div className="text-sm text-base-content/70" role="status">
-        No AI features registered.
+      <div className="flex flex-col gap-3">
+        {headingNode}
+        <div className="text-sm text-base-content/70" role="status">
+          No AI features registered.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3" data-testid="ai-feature-toggles">
-      {heading ? <h2 className="text-lg font-semibold">{heading}</h2> : null}
+      {headingNode}
       {error ? (
         <div role="alert" className="alert alert-error">
           <span>{error}</span>

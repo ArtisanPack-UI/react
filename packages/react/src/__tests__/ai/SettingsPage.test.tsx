@@ -95,4 +95,59 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByText('Connected')).toBeInTheDocument();
   });
+
+  it('clears the typed api_key and last probe result when switching providers', async () => {
+    const testConnection = vi
+      .fn()
+      .mockResolvedValue({ result: 'ok', message: 'Connected', provider: 'openai' });
+    const client = createMockClient({
+      getSettings: vi.fn().mockResolvedValue(baseResponse),
+      testConnection,
+    });
+
+    render(<SettingsPage client={client} />);
+    await screen.findByDisplayValue('gpt-4o-mini');
+
+    const apiKeyInput = screen.getByPlaceholderText('••••••••') as HTMLInputElement;
+    fireEvent.change(apiKeyInput, { target: { value: 'sk-secret' } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Test connection/ }));
+    });
+    await screen.findByText('Connected');
+
+    const providerSelect = screen.getByRole('combobox') as HTMLSelectElement;
+    fireEvent.change(providerSelect, { target: { value: 'ollama' } });
+
+    // API key field is hidden for Ollama; probe result is cleared.
+    expect(screen.queryByPlaceholderText('••••••••')).not.toBeInTheDocument();
+    expect(screen.queryByText('Connected')).not.toBeInTheDocument();
+
+    // Re-probe should not ship the stale OpenAI key to the ollama base URL.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Test connection/ }));
+    });
+    const lastCall = testConnection.mock.calls.at(-1)?.[0];
+    expect(lastCall.provider).toBe('ollama');
+    expect(lastCall.api_key).toBeNull();
+  });
+
+  it('renders a network error inside an error alert, not a success alert', async () => {
+    const client = createMockClient({
+      getSettings: vi.fn().mockResolvedValue(baseResponse),
+      updateSettings: vi.fn().mockRejectedValue(new Error('Network down')),
+    });
+
+    render(<SettingsPage client={client} />);
+    await screen.findByDisplayValue('gpt-4o-mini');
+
+    await act(async () => {
+      fireEvent.submit(screen.getByTestId('ai-settings-page'));
+    });
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Network down');
+    expect(alert).toHaveClass('alert-error');
+    expect(alert).not.toHaveClass('alert-success');
+  });
 });
