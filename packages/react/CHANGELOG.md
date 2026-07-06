@@ -1,5 +1,15 @@
 # @artisanpack-ui/react
 
+## 1.0.2
+
+### Minor Changes
+
+- [#45](https://github.com/ArtisanPack-UI/react/pull/45) Add a new `ai/` subpath ([ArtisanPack-UI/ai#17](https://github.com/ArtisanPack-UI/ai/issues/17)) — drop-in React components + hooks that consume the `artisanpack-ui/ai` JSON API. Ships `SettingsPage` (GET/PUT `/settings` + `test-connection` probe, provider-switch clears the typed key), `UsageDashboard` (GET `/usage` with sequence-guarded polling via `refreshInterval`), `FeatureToggles` (optimistic POST `/features/{key}/toggle` with rollback on failure), `createAiApiClient` (small fetch wrapper with `AiApiError` for 422 handling; skips `Content-Type` on GET), and `useStreamingText` (hook that reads a `fetch` response body as a UTF-8 text stream via the Streams API + `AbortController`). Storybook stories for every component and full Vitest coverage (19 new tests).
+
+### Updated dependencies
+
+- `@artisanpack-ui/tokens@1.0.2`
+
 ## 1.0.1
 
 ### Patch Changes

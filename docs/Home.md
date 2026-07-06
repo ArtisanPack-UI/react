@@ -28,6 +28,7 @@ A comprehensive React UI component ecosystem for building modern web application
 - [[Data Display Components]] — Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
 - [[Feedback Components]] — Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
 - [[Utility Components]] — Icon, ThemeToggle, Tooltip, Clipboard, Markdown
+- [[AI Components]] — SettingsPage, UsageDashboard, FeatureToggles, `createAiApiClient`, `useStreamingText` (`@artisanpack-ui/react/ai` subpath)
 
 ## Development
 

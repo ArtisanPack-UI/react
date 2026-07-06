@@ -1,5 +1,16 @@
 # @artisanpack-ui/react-laravel
 
+## 1.0.2
+
+### Patch Changes
+
+- Linked version bump alongside `@artisanpack-ui/react@1.0.2` and `@artisanpack-ui/tokens@1.0.2`. No source changes in this adapter package.
+
+### Updated dependencies
+
+- `@artisanpack-ui/react@1.0.2`
+- `@artisanpack-ui/tokens@1.0.2`
+
 ## 1.0.1
 
 ### Patch Changes
