@@ -129,16 +129,15 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
     }, [onRandomColor]);
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         {label && (
-          <legend className="fieldset-legend">
+          <label htmlFor={id} className="fieldset-legend">
             {label}
             {required && <span className="text-error ml-1">*</span>}
-          </legend>
+          </label>
         )}
-        <label
+        <span
           className={cn('input w-full', error && 'input-error', className)}
-          htmlFor={id}
           style={{ paddingInlineStart: 0, overflow: 'hidden' }}
         >
           <input
@@ -221,7 +220,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               {iconRight}
             </span>
           )}
-        </label>
+        </span>
         {hint && !error && (
           <p id={hintId} className="fieldset-label">
             {hint}
@@ -232,7 +231,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

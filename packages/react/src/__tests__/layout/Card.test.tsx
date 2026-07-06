@@ -57,14 +57,14 @@ describe('Card', () => {
     expect(container.firstChild).not.toHaveClass('shadow-xl');
   });
 
-  it('applies bordered class', () => {
+  it('applies bordered class (daisyUI v5 card-border)', () => {
     const { container } = render(<Card bordered>Content</Card>);
-    expect(container.firstChild).toHaveClass('card-bordered');
+    expect(container.firstChild).toHaveClass('card-border');
   });
 
-  it('applies compact class', () => {
+  it('applies compact class (daisyUI v5 card-sm)', () => {
     const { container } = render(<Card compact>Content</Card>);
-    expect(container.firstChild).toHaveClass('card-compact');
+    expect(container.firstChild).toHaveClass('card-sm');
   });
 
   it('applies glass effect', () => {

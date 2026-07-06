@@ -8,6 +8,18 @@ describe('Range', () => {
     expect(screen.getByText('Volume')).toBeInTheDocument();
   });
 
+  it('does not wrap a single slider in a fieldset/legend', () => {
+    const { container } = render(<Range label="Volume" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the slider via htmlFor/id', () => {
+    render(<Range id="vol" label="Volume" />);
+    const slider = screen.getByLabelText('Volume');
+    expect(slider).toHaveAttribute('id', 'vol');
+  });
+
   it('renders as range input', () => {
     render(<Range label="Volume" />);
     expect(screen.getByRole('slider')).toBeInTheDocument();

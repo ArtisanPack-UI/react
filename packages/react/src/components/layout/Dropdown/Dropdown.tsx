@@ -61,13 +61,15 @@ export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // Custom trigger with controlled state
+ * // Custom trigger with controlled state. In controlled mode the consumer
+ * // owns the toggle, so the trigger must wire its own onClick (the library
+ * // no longer layers a handler on top, to avoid double-firing onOpenChange).
  * const [open, setOpen] = useState(false);
  *
  * <Dropdown
  *   open={open}
  *   onOpenChange={setOpen}
- *   trigger={<Button>Menu</Button>}
+ *   trigger={<Button onClick={() => setOpen((v) => !v)}>Menu</Button>}
  * >
  *   <DropdownItem onClick={handleEdit}>Edit</DropdownItem>
  * </Dropdown>
@@ -100,6 +102,15 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const menuRef = useRef<HTMLUListElement>(null);
     const focusedIndex = useRef(-1);
 
+    // Track the latest open state in a ref so `setOpen` and toggle callbacks can read it
+    // without listing it as a dep. Without this, `setOpen` rebuilds on every toggle and the
+    // click-outside effect re-attaches document listeners — fatal in editor-heavy hosts
+    // like Tiptap where document events are already under heavy load (#37).
+    const isOpenRef = useRef(isOpen);
+    useEffect(() => {
+      isOpenRef.current = isOpen;
+    }, [isOpen]);
+
     const setRefs = useCallback(
       (node: HTMLDivElement | null) => {
         containerRef.current = node;
@@ -114,8 +125,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const setOpen = useCallback(
       (next: boolean) => {
-        const current = isControlled ? open : internalOpen;
-        if (next === current) return;
+        if (next === isOpenRef.current) return;
         if (!isControlled) {
           setInternalOpen(next);
         }
@@ -124,7 +134,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           focusedIndex.current = -1;
         }
       },
-      [isControlled, open, internalOpen, onOpenChange],
+      [isControlled, onOpenChange],
     );
 
     const closeFocusTrigger = useCallback(() => {
@@ -217,7 +227,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     };
 
     const handleTriggerClick = () => {
-      setOpen(!isOpen);
+      setOpen(!isOpenRef.current);
     };
 
     const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -232,7 +242,6 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
 
     const menuId = `dropdown-menu-${autoId}`;
 
-    /* eslint-disable react-hooks/refs -- ref writes happen in event handlers, not during render */
     const renderTrigger = () => {
       if (trigger) {
         const triggerEl = trigger as ReactElement<Record<string, unknown>>;
@@ -243,25 +252,44 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           | ((...args: unknown[]) => void)
           | undefined;
 
-        return cloneElement(triggerEl, {
+        const cloneProps: Record<string, unknown> = {
           'aria-haspopup': 'true' as const,
           'aria-expanded': isOpen,
           'aria-controls': menuId,
-          onClick: (e: React.MouseEvent) => {
+        };
+
+        // In controlled mode the consumer owns open state. Layering the library's
+        // click/keydown toggle on top would double-fire onOpenChange with a stale
+        // closure — see #37. We still capture the triggerRef so focus restoration
+        // on close works, but defer all toggle behavior (including ArrowDown/Escape)
+        // to the consumer's own handlers.
+        if (isControlled) {
+          cloneProps.onClick = (e: React.MouseEvent) => {
+            triggerRef.current = e.currentTarget as HTMLElement;
+            (originalOnClick as ((e: React.MouseEvent) => void) | undefined)?.(e);
+          };
+          cloneProps.onKeyDown = (e: KeyboardEvent) => {
+            triggerRef.current = e.currentTarget as HTMLElement;
+            originalOnKeyDown?.(e);
+          };
+        } else {
+          cloneProps.onClick = (e: React.MouseEvent) => {
             triggerRef.current = e.currentTarget as HTMLElement;
             (originalOnClick as ((e: React.MouseEvent) => void) | undefined)?.(e);
             if (!e.defaultPrevented) {
               handleTriggerClick();
             }
-          },
-          onKeyDown: (e: KeyboardEvent) => {
+          };
+          cloneProps.onKeyDown = (e: KeyboardEvent) => {
             triggerRef.current = e.currentTarget as HTMLElement;
             originalOnKeyDown?.(e);
             if (!e.defaultPrevented) {
               handleTriggerKeyDown(e);
             }
-          },
-        });
+          };
+        }
+
+        return cloneElement(triggerEl, cloneProps);
       }
 
       return (
@@ -298,7 +326,6 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         {...rest}
       >
         {renderTrigger()}
-        {/* eslint-enable react-hooks/refs */}
         <ul
           ref={menuRef}
           id={menuId}

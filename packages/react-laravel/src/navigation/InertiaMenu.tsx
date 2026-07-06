@@ -1,6 +1,6 @@
 import { forwardRef, useMemo, type ReactElement } from 'react';
 import { Link } from '@inertiajs/react';
-import { Menu, type MenuProps, type MenuItemType } from '@artisanpack-ui/react';
+import { Menu, type MenuProps, type MenuItemType } from '@artisanpack-ui/react/navigation';
 
 /**
  * Menu item descriptor with Inertia `href` support.

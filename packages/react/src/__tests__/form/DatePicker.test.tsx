@@ -8,6 +8,18 @@ describe('DatePicker', () => {
     expect(screen.getByText('Start Date')).toBeInTheDocument();
   });
 
+  it('does not wrap a single input in a fieldset/legend', () => {
+    const { container } = render(<DatePicker label="Start Date" />);
+    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
+    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  });
+
+  it('associates the visible label with the input via htmlFor/id', () => {
+    render(<DatePicker id="start" label="Start Date" />);
+    const input = screen.getByLabelText('Start Date');
+    expect(input).toHaveAttribute('id', 'start');
+  });
+
   it('renders date input by default', () => {
     const { container } = render(<DatePicker label="Date" />);
     const input = container.querySelector('input[type="date"]');

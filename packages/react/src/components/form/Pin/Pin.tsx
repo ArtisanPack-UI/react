@@ -179,7 +179,7 @@ export const Pin = forwardRef<HTMLInputElement, PinProps>(
     );
 
     return (
-      <fieldset className="fieldset">
+      <div className="fieldset w-full">
         <div className="flex gap-2" role="group" aria-label="PIN input">
           {Array.from({ length }).map((_, index) => (
             <input
@@ -222,7 +222,7 @@ export const Pin = forwardRef<HTMLInputElement, PinProps>(
             {error}
           </p>
         )}
-      </fieldset>
+      </div>
     );
   },
 );

@@ -79,9 +79,19 @@ describe('Tabs', () => {
     expect(onChange).toHaveBeenCalledWith('tab2');
   });
 
-  it('applies variant class', () => {
+  it('applies variant class (daisyUI v5 naming)', () => {
     render(<Tabs tabs={sampleTabs} variant="lifted" />);
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-lifted');
+    expect(screen.getByRole('tablist')).toHaveClass('tabs-lift');
+  });
+
+  it('maps boxed variant to daisyUI v5 tabs-box', () => {
+    render(<Tabs tabs={sampleTabs} variant="boxed" />);
+    expect(screen.getByRole('tablist')).toHaveClass('tabs-box');
+  });
+
+  it('maps bordered variant to daisyUI v5 tabs-border', () => {
+    render(<Tabs tabs={sampleTabs} variant="bordered" />);
+    expect(screen.getByRole('tablist')).toHaveClass('tabs-border');
   });
 
   it('applies size class', () => {
