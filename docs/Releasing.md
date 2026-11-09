@@ -1,6 +1,6 @@
 # Releasing Packages
 
-This monorepo uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing all three packages (`@artisanpack-ui/tokens`, `@artisanpack-ui/react`, `@artisanpack-ui/react-laravel`) to npm under the `@artisanpack-ui` scope.
+This monorepo uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing both packages (`@artisanpack-ui/react`, `@artisanpack-ui/react-laravel`) to npm under the `@artisanpack-ui` scope. `@artisanpack-ui/tokens` is released from [ArtisanPack-UI/design-system](https://github.com/ArtisanPack-UI/design-system/tree/main/packages/tokens); this repo depends on it from npm.
 
 ## Overview
 
@@ -12,7 +12,7 @@ The release pipeline has three modes:
 | **Snapshot release** | Manual workflow dispatch | Custom (e.g. `snapshot`, `canary`) | Testing pre-release versions |
 | **Local dry run** | CLI on your machine | N/A | Verifying before pushing |
 
-All three packages are **linked** in Changesets config, meaning they are always versioned together (a bump to one bumps all).
+Both packages are **linked** in Changesets config, meaning they are always versioned together (a bump to one bumps the other).
 
 ---
 
@@ -159,13 +159,13 @@ You can verify provenance on npmjs.com — published packages will show a green 
 
 ## Linked Versioning
 
-All three packages are **linked** in `.changeset/config.json`:
+Both packages are **linked** in `.changeset/config.json`:
 
 ```json
-"linked": [["@artisanpack-ui/tokens", "@artisanpack-ui/react", "@artisanpack-ui/react-laravel"]]
+"linked": [["@artisanpack-ui/react", "@artisanpack-ui/react-laravel"]]
 ```
 
-This means if any package gets a minor bump, all three packages are bumped to the same minor version. This keeps versions in sync across the ecosystem so users don't have to worry about version matrix compatibility.
+This means if any package gets a minor bump, both packages are bumped to the same minor version. This keeps versions in sync across the ecosystem so users don't have to worry about version matrix compatibility.
 
 ---
 

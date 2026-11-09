@@ -1,12 +1,11 @@
 # ArtisanPack UI React
 
-A comprehensive React UI component ecosystem for building modern web applications. Includes 56+ components styled with [DaisyUI](https://daisyui.com/) and [Tailwind CSS](https://tailwindcss.com/), a shared design tokens package, and first-class [Laravel](https://laravel.com/) / [Inertia.js](https://inertiajs.com/) integration.
+A comprehensive React UI component ecosystem for building modern web applications. Includes 56+ components styled with [DaisyUI](https://daisyui.com/) and [Tailwind CSS](https://tailwindcss.com/), the shared [`@artisanpack-ui/tokens`](https://github.com/ArtisanPack-UI/design-system/tree/main/packages/tokens) package (now in the design-system repo), and first-class [Laravel](https://laravel.com/) / [Inertia.js](https://inertiajs.com/) integration.
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| `@artisanpack-ui/tokens` | Design tokens — colors, spacing, typography, shadows, animations, glass morphism presets |
 | `@artisanpack-ui/react` | 56+ React UI components (form, layout, navigation, data display, feedback, utility) |
 | `@artisanpack-ui/react-laravel` | Inertia.js adapter wrappers for navigation, forms, auth, and toast integration |
 

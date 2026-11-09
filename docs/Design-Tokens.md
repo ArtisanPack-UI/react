@@ -2,6 +2,8 @@
 
 The `@artisanpack-ui/tokens` package provides a shared set of design tokens used across all ArtisanPack UI components. Tokens cover colors, spacing, typography, shadows, borders, animations, and glass morphism effects.
 
+The package's source lives in [ArtisanPack-UI/design-system](https://github.com/ArtisanPack-UI/design-system/tree/main/packages/tokens). This repo uses the 1.x line from npm (`^1.0.1`).
+
 ## Installation
 
 ```bash

@@ -24,7 +24,7 @@ npm install
 npm run build
 ```
 
-This builds `tokens` → `react` → `react-laravel` in workspace order.
+This builds `react` → `react-laravel` in workspace order. `@artisanpack-ui/tokens` comes from npm; its source lives in [ArtisanPack-UI/design-system](https://github.com/ArtisanPack-UI/design-system/tree/main/packages/tokens).
 
 ### 3. Start Storybook
 
@@ -43,7 +43,6 @@ npm test
 Or run tests for a specific package:
 
 ```bash
-cd packages/tokens && npm test
 cd packages/react && npm test
 ```
 
@@ -51,12 +50,11 @@ cd packages/react && npm test
 
 ```text
 packages/
-├── tokens/         # @artisanpack-ui/tokens — Design tokens and utilities
 ├── react/          # @artisanpack-ui/react — React component library
 └── react-laravel/  # @artisanpack-ui/react-laravel — Inertia.js adapters
 ```
 
-All three packages are versioned together using [Changesets](https://github.com/changesets/changesets) linked versioning.
+Both packages are versioned together using [Changesets](https://github.com/changesets/changesets) linked versioning.
 
 ## Code Style
 

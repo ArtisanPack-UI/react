@@ -49,7 +49,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@artisanpack-ui/tokens": "*"
+    "@artisanpack-ui/tokens": "^1.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

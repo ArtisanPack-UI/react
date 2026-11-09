@@ -6,7 +6,7 @@
   ],
   "commit": false,
   "fixed": [],
-  "linked": [["@artisanpack-ui/tokens", "@artisanpack-ui/react", "@artisanpack-ui/react-laravel"]],
+  "linked": [["@artisanpack-ui/react", "@artisanpack-ui/react-laravel"]],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",

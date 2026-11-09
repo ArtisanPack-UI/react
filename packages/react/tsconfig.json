@@ -2,10 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "paths": {
-      "@artisanpack-ui/tokens": ["../tokens/dist"]
-    }
+    "rootDir": "./src"
   },
   "include": ["src"]
 }
