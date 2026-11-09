@@ -12,7 +12,7 @@ The release pipeline has three modes:
 | **Snapshot release** | Manual workflow dispatch | Custom (e.g. `snapshot`, `canary`) | Testing pre-release versions |
 | **Local dry run** | CLI on your machine | N/A | Verifying before pushing |
 
-Both packages are **linked** in Changesets config, meaning they are always versioned together (a bump to one bumps the other).
+Both packages are **linked** in Changesets config: packages released together share the same version, but a package with no changeset isn't bumped.
 
 ---
 
@@ -165,7 +165,7 @@ Both packages are **linked** in `.changeset/config.json`:
 "linked": [["@artisanpack-ui/react", "@artisanpack-ui/react-laravel"]]
 ```
 
-This means if any package gets a minor bump, both packages are bumped to the same minor version. This keeps versions in sync across the ecosystem so users don't have to worry about version matrix compatibility.
+When both packages are in a release, they're bumped to the same version, taking the highest bump type among their changesets. Linking only syncs packages that are being released: a release with a changeset for `@artisanpack-ui/react-laravel` alone leaves `@artisanpack-ui/react` at its current version. To release both, include both in the changeset. (To always bump both, the group would need to be `fixed` instead of `linked`.)
 
 ---
 
