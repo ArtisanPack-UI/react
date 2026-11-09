@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/tokens",
     "packages/react",
     "packages/react-laravel"
   ],

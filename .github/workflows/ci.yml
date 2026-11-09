@@ -128,7 +128,6 @@ jobs:
           buildScriptName: build-storybook
           exitOnceUploaded: true
           onlyChanged: true
-          externals: 'packages/tokens/src/**'
 
   release:
     name: Release

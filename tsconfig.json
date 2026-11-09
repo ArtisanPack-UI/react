@@ -16,7 +16,6 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@artisanpack-ui/tokens": ["./packages/tokens/src"],
       "@artisanpack-ui/react": ["./packages/react/src"],
       "@artisanpack-ui/react/form": ["./packages/react/src/components/form"],
       "@artisanpack-ui/react/layout": ["./packages/react/src/components/layout"],
