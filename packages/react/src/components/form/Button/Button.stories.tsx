@@ -9,35 +9,17 @@ const meta: Meta<typeof Button> = {
     docs: {
       description: {
         component:
-          'Versatile button supporting DaisyUI color variants, sizes, loading state, icons, badges, tooltips, and link mode. Fully accessible with keyboard and screen-reader support.',
+          'Triggers an action. Design-system Button: variants, colors, sizes, named icons, loading and disabled states, and an anchor when `href` is set.',
       },
     },
   },
   argTypes: {
+    variant: { control: 'select', options: ['solid', 'soft', 'outline', 'ghost', 'link'] },
     color: {
       control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-        'ghost',
-        'outline',
-      ],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
-    tooltipPosition: {
-      control: 'select',
-      options: ['top', 'bottom', 'left', 'right'],
-    },
+    size: { control: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl'] },
   },
 };
 
@@ -45,125 +27,72 @@ export default meta;
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
-  args: {
-    label: 'Button',
-  },
+  args: { children: 'Save changes' },
 };
 
-export const Primary: Story = {
-  args: {
-    label: 'Primary',
-    color: 'primary',
-  },
-};
-
-export const Secondary: Story = {
-  args: {
-    label: 'Secondary',
-    color: 'secondary',
-  },
-};
-
-export const AllColors: Story = {
-  name: 'Color Variants',
+export const Variants: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-2">
-      <Button label="Default" />
-      <Button label="Primary" color="primary" />
-      <Button label="Secondary" color="secondary" />
-      <Button label="Accent" color="accent" />
-      <Button label="Success" color="success" />
-      <Button label="Warning" color="warning" />
-      <Button label="Error" color="error" />
-      <Button label="Info" color="info" />
-      <Button label="Neutral" color="neutral" />
-      <Button label="Ghost" color="ghost" />
-      <Button label="Outline" color="outline" />
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <Button variant="solid">Solid</Button>
+      <Button variant="soft">Soft</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link">Link</Button>
+    </div>
+  ),
+};
+
+export const Colors: Story = {
+  render: () => (
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      {(
+        [
+          'primary',
+          'secondary',
+          'accent',
+          'neutral',
+          'success',
+          'warning',
+          'error',
+          'info',
+        ] as const
+      ).map((color) => (
+        <Button key={color} color={color}>
+          {color}
+        </Button>
+      ))}
     </div>
   ),
 };
 
 export const Sizes: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <Button label="Extra Small" size="xs" color="primary" />
-      <Button label="Small" size="sm" color="primary" />
-      <Button label="Medium" size="md" color="primary" />
-      <Button label="Large" size="lg" color="primary" />
+    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <Button size="xs">Extra small</Button>
+      <Button size="sm">Small</Button>
+      <Button size="md">Medium</Button>
+      <Button size="lg">Large</Button>
+      <Button size="xl">Extra large</Button>
     </div>
   ),
+};
+
+export const WithIcons: Story = {
+  args: { children: 'Continue', leadingIcon: 'plus', trailingIcon: 'arrow-right' },
+};
+
+export const IconOnly: Story = {
+  args: { iconOnly: true, leadingIcon: 'trash', color: 'error', 'aria-label': 'Delete' },
 };
 
 export const Loading: Story = {
-  args: {
-    label: 'Loading',
-    loading: true,
-    color: 'primary',
-  },
+  args: { children: 'Saving', loading: true },
 };
 
 export const Disabled: Story = {
-  args: {
-    label: 'Disabled',
-    disabled: true,
-  },
-};
-
-export const WithIcon: Story = {
-  args: {
-    label: 'Settings',
-    color: 'primary',
-    icon: <span>⚙️</span>,
-  },
-};
-
-export const WithBadge: Story = {
-  args: {
-    label: 'Inbox',
-    color: 'primary',
-    badge: '99+',
-    badgeClasses: 'badge-secondary',
-  },
-};
-
-export const WithTooltip: Story = {
-  args: {
-    label: 'Hover me',
-    color: 'primary',
-    tooltip: 'This is a tooltip',
-    tooltipPosition: 'top',
-  },
+  args: { children: 'Unavailable', disabled: true },
 };
 
 export const AsLink: Story = {
-  args: {
-    label: 'Visit Link',
-    color: 'primary',
-    link: '#',
-  },
-};
-
-export const Responsive: Story = {
-  args: {
-    label: 'Responsive',
-    color: 'primary',
-    icon: <span>📱</span>,
-    responsive: true,
-  },
-};
-
-export const Composition: Story = {
-  name: 'Card with Buttons',
-  render: () => (
-    <div className="card bg-base-100 shadow-xl w-80">
-      <div className="card-body">
-        <h2 className="card-title">Confirm Action</h2>
-        <p>Are you sure you want to proceed?</p>
-        <div className="card-actions justify-end">
-          <Button label="Cancel" color="ghost" />
-          <Button label="Confirm" color="primary" />
-        </div>
-      </div>
-    </div>
-  ),
+  args: { children: 'Read the docs', href: '#', variant: 'outline', color: 'neutral' },
 };

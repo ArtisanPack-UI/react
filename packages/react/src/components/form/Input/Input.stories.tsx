@@ -9,9 +9,12 @@ const meta: Meta<typeof Input> = {
     docs: {
       description: {
         component:
-          'Text input with label, hint, error, clearable value, left/right icons, prefix/suffix add-ons, and inline label layout.',
+          'Single-line text entry with a visible label, hint and error, named icons, and prefix/suffix add-ons.',
       },
     },
+  },
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
 };
 
@@ -19,10 +22,7 @@ export default meta;
 type Story = StoryObj<typeof Input>;
 
 export const Default: Story = {
-  args: {
-    label: 'Name',
-    placeholder: 'Enter your name',
-  },
+  args: { label: 'Name', placeholder: 'Enter your name' },
 };
 
 export const WithHint: Story = {
@@ -30,7 +30,8 @@ export const WithHint: Story = {
     label: 'Email',
     type: 'email',
     placeholder: 'you@example.com',
-    hint: 'We will never share your email.',
+    hint: 'We never share it.',
+    required: true,
   },
 };
 
@@ -42,44 +43,31 @@ export const WithError: Story = {
   },
 };
 
-export const WithIcons: Story = {
-  args: {
-    label: 'Search',
-    placeholder: 'Search...',
-    icon: <span aria-hidden="true">🔍</span>,
-  },
+export const WithAddons: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Input type="search" label="Search" leadingIcon="search" />
+      <Input type="number" label="Price" prefix="USD" suffix="/mo" />
+      <Input type="url" label="Website" prefix="https://" trailingIcon="arrow-right" />
+    </div>
+  ),
 };
 
-export const Clearable: Story = {
-  args: {
-    label: 'Search',
-    placeholder: 'Type to search...',
-    clearable: true,
-    defaultValue: 'Hello',
-  },
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Input size="sm" label="Small" />
+      <Input size="md" label="Medium" />
+      <Input size="lg" label="Large" />
+    </div>
+  ),
 };
 
-export const WithPrefixSuffix: Story = {
-  args: {
-    label: 'Price',
-    prefix: <span>$</span>,
-    suffix: <span>.00</span>,
-    placeholder: '0',
-  },
-};
-
-export const Inline: Story = {
-  args: {
-    label: 'Inline Label',
-    placeholder: 'Value',
-    inline: true,
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    label: 'Disabled',
-    value: 'Cannot edit',
-    disabled: true,
-  },
+export const ReadonlyAndDisabled: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Input label="Account ID" defaultValue="AP-20931" readonly />
+      <Input label="Team" defaultValue="Design" disabled />
+    </div>
+  ),
 };

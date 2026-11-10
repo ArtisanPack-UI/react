@@ -15,6 +15,8 @@ export * from './components/data';
 export * from './components/feedback';
 export * from './components/utility';
 
+// The icon registry (`registerIcons`, `UnsafeIconError`) is re-exported from ./components/form.
+
 // Hooks & Providers
 export { ThemeProvider, useTheme } from './hooks/use-theme';
 export type { ThemeContextValue, ColorScheme } from './hooks/use-theme';

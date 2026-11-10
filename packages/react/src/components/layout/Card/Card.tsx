@@ -1,180 +1,163 @@
 /**
  * @module Card
  *
- * A versatile content container built on DaisyUI's card component. Supports
- * title/subtitle, header/footer slots, figure placement, glass morphism, and
- * optional rendering as an anchor element when a `link` prop is provided.
+ * The design-system Card (#48): a surface with optional media, header, body
+ * and footer parts, rendering the `.apui-card` markup contract styled by
+ * `@artisanpack-ui/css`.
  *
  * @packageDocumentation
  */
 
-import { forwardRef, type AnchorHTMLAttributes, type HTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
-/**
- * Shared props for the Card component, independent of the underlying element type.
- */
-interface CardBaseProps {
-  /** Card title rendered as an `<h2>` inside the card body. */
-  title?: string;
-  /** Card subtitle rendered below the title. */
-  subtitle?: string;
-  /** Image or figure content displayed alongside the card body. */
-  figure?: ReactNode;
-  /** Placement of the figure relative to the card body. @defaultValue `'top'` */
-  figurePosition?: 'top' | 'bottom' | 'left' | 'right';
-  /** Custom header slot. When provided, `title` and `subtitle` are ignored. */
-  header?: ReactNode;
-  /** Footer/actions slot rendered at the bottom of the card body. */
+import { cx, devWarnOnce, flag, hasContent, type PartClasses } from '../../../internal/parts';
+import { isSafeMediaSrc, safeHref } from '../../../internal/url';
+
+/** The surface of a {@link Card}. */
+export type CardSurface = 'default' | 'raised' | 'sunken' | 'glass';
+
+/** The parts a {@link Card} accepts extra classes for. */
+export type CardPart =
+  | 'root'
+  | 'media'
+  | 'header'
+  | 'title'
+  | 'description'
+  | 'actions'
+  | 'body'
+  | 'footer';
+
+/** Props for the {@link Card} component. Native `<div>` attributes go to the root. */
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  /** The surface. Emitted as `data-surface`. @defaultValue `'default'` */
+  surface?: CardSurface;
+  /** Adds the hover edge. Emitted as `data-interactive`; implied by `href`. @defaultValue `false` */
+  interactive?: boolean;
+  /**
+   * Makes the title a link whose hit area covers the whole card. Needs a `title`;
+   * `javascript:`, `vbscript:` and `data:` URLs are ignored.
+   */
+  href?: string;
+  /** The heading in the header, rendered in an `<h3>`. */
+  title?: ReactNode;
+  /** Supporting text under the title. */
+  description?: ReactNode;
+  /** Controls at the end of the header. */
+  actions?: ReactNode;
+  /** The footer row, separated by an edge. */
   footer?: ReactNode;
-  /** Menu content rendered on the right side of the header area. */
-  menu?: ReactNode;
-  /** Remove the default shadow from the card. */
-  noShadow?: boolean;
-  /** Apply a visible border around the card. */
-  bordered?: boolean;
-  /** Use compact (reduced) padding inside the card body. */
-  compact?: boolean;
-  /** Apply a glass morphism (frosted-glass) visual effect. */
-  glass?: boolean;
+  /**
+   * Edge-to-edge media above the header: an image URL, or a node (a video, a
+   * chart) that replaces the image. A `javascript:` or `vbscript:` URL is ignored.
+   */
+  media?: ReactNode;
+  /** Alternative text for an image `media`. Empty marks it decorative. @defaultValue `''` */
+  mediaAlt?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CardPart>;
 }
 
 /**
- * Card props when rendering as a `<div>` element (no link provided).
- */
-interface CardDivProps extends CardBaseProps, HTMLAttributes<HTMLDivElement> {
-  /** When omitted, the card renders as a `<div>`. */
-  link?: undefined;
-}
-
-/**
- * Card props when rendering as an `<a>` element (link provided).
- */
-interface CardLinkProps extends CardBaseProps, AnchorHTMLAttributes<HTMLAnchorElement> {
-  /** When provided, the card renders as an `<a>` with this URL as its `href`. */
-  link: string;
-}
-
-/**
- * Union type for Card props. The card renders as a `<div>` by default, or as
- * an `<a>` when the `link` prop is provided.
- */
-export type CardProps = CardDivProps | CardLinkProps;
-
-/**
- * Content container with header, body, footer slots and figure support.
- *
- * Renders as a `<div>` by default. When a `link` prop is supplied, it renders
- * as an `<a>` element instead. The figure can be positioned on any side via
- * `figurePosition`.
+ * The default container. The ref points at the root `<div>`.
  *
  * @example
  * ```tsx
- * <Card title="Hello" subtitle="World" footer={<Button>Action</Button>}>
- *   <p>Card body content here.</p>
- * </Card>
- * ```
- *
- * @example
- * ```tsx
- * // Card as a link with a side figure
- * <Card link="/details" figure={<img src="/photo.jpg" alt="" />} figurePosition="left">
- *   <p>Click to navigate.</p>
+ * <Card title="Quarterly report" description="Updated 2 hours ago" actions={<Button size="sm">Share</Button>}>
+ *   Revenue grew 12% this quarter.
  * </Card>
  * ```
  */
-export const Card = forwardRef<HTMLDivElement | HTMLAnchorElement, CardProps>(
+export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
+      surface = 'default',
+      interactive = false,
+      href,
       title,
-      subtitle,
-      figure,
-      figurePosition = 'top',
-      header,
+      description,
+      actions,
       footer,
-      menu,
-      noShadow = false,
-      bordered = false,
-      compact = false,
-      glass = false,
-      link,
+      media,
+      mediaAlt = '',
+      classes = {},
       className,
       children,
       ...rest
     },
     ref,
   ) => {
-    const isHorizontal = figurePosition === 'left' || figurePosition === 'right';
+    const hasTitle = hasContent(title);
+    // The title holds the link, so href needs one. Unsafe schemes are dropped.
+    const linkHref = hasTitle ? safeHref(href) : undefined;
+    if (href !== undefined && !hasTitle) {
+      devWarnOnce('card:href-without-title', 'Card ignores `href` without a `title`.');
+    }
+    const hasDescription = hasContent(description);
+    const hasActions = hasContent(actions);
 
-    const hasHeader = header || title || subtitle || menu;
-
-    const figureEl = figure ? (
-      <figure className={cn(isHorizontal && 'shrink-0')}>{figure}</figure>
-    ) : null;
-
-    const headerEl = hasHeader ? (
-      <div className="flex items-center justify-between">
-        <div>
-          {header ?? (
-            <>
-              {title && <h2 className="card-title">{title}</h2>}
-              {subtitle && <p className="text-base-content/60 text-sm">{subtitle}</p>}
-            </>
-          )}
+    let mediaPart: ReactNode = null;
+    if (typeof media === 'string') {
+      if (media !== '' && isSafeMediaSrc(media)) {
+        mediaPart = (
+          <img
+            className={classes.media}
+            data-scope="card"
+            data-part="media"
+            src={media}
+            alt={mediaAlt}
+          />
+        );
+      }
+    } else if (hasContent(media)) {
+      mediaPart = (
+        <div className={classes.media} data-scope="card" data-part="media">
+          {media}
         </div>
-        {menu && <div>{menu}</div>}
-      </div>
-    ) : null;
-
-    const body = (
-      <div className="card-body">
-        {headerEl}
-        {children}
-        {footer && <div className="card-actions justify-end">{footer}</div>}
-      </div>
-    );
-
-    const cardContent = (
-      <>
-        {figurePosition === 'top' || figurePosition === 'left' ? figureEl : null}
-        {body}
-        {figurePosition === 'bottom' || figurePosition === 'right' ? figureEl : null}
-      </>
-    );
-
-    const cardClasses = cn(
-      'card',
-      'bg-base-100',
-      !noShadow && 'shadow-xl',
-      bordered && 'card-border',
-      // daisyUI 5 removed card-compact; card-sm is the closest replacement for "reduced padding".
-      compact && 'card-sm',
-      glass && 'glass',
-      isHorizontal && 'card-side',
-      className,
-    );
-
-    if (link) {
-      const { link: _link, ...anchorRest } = rest as CardLinkProps;
-      return (
-        <a
-          ref={ref as React.Ref<HTMLAnchorElement>}
-          href={link}
-          className={cardClasses}
-          {...anchorRest}
-        >
-          {cardContent}
-        </a>
       );
     }
 
     return (
       <div
-        ref={ref as React.Ref<HTMLDivElement>}
-        className={cardClasses}
-        {...(rest as CardDivProps)}
+        {...rest}
+        ref={ref}
+        className={cx('apui-card', classes.root, className)}
+        data-surface={surface}
+        data-interactive={flag(interactive || linkHref !== undefined)}
       >
-        {cardContent}
+        {mediaPart}
+        {hasTitle || hasDescription || hasActions ? (
+          <div className={classes.header} data-scope="card" data-part="header">
+            {hasTitle || hasDescription ? (
+              <div>
+                {hasTitle ? (
+                  <h3 className={classes.title} data-scope="card" data-part="title">
+                    {linkHref !== undefined ? <a href={linkHref}>{title}</a> : title}
+                  </h3>
+                ) : null}
+                {hasDescription ? (
+                  <p className={classes.description} data-scope="card" data-part="description">
+                    {description}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {hasActions ? (
+              <div className={classes.actions} data-scope="card" data-part="actions">
+                {actions}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {hasContent(children) ? (
+          <div className={classes.body} data-scope="card" data-part="body">
+            {children}
+          </div>
+        ) : null}
+        {hasContent(footer) ? (
+          <div className={classes.footer} data-scope="card" data-part="footer">
+            {footer}
+          </div>
+        ) : null}
       </div>
     );
   },

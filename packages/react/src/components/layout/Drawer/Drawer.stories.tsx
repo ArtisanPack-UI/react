@@ -64,7 +64,9 @@ export const Default: Story = {
         }
       >
         <div className="p-4">
-          <Button label="Open Drawer" color="primary" onClick={() => setOpen(true)} />
+          <Button color="primary" onClick={() => setOpen(true)}>
+            Open Drawer
+          </Button>
           <p className="mt-4">Main content area. The drawer slides in from the left.</p>
         </div>
       </Drawer>
@@ -106,7 +108,9 @@ export const EndSide: Story = {
         }
       >
         <div className="p-4">
-          <Button label="Open Right Drawer" color="secondary" onClick={() => setOpen(true)} />
+          <Button color="secondary" onClick={() => setOpen(true)}>
+            Open Right Drawer
+          </Button>
           <p className="mt-4">The drawer opens from the right side.</p>
         </div>
       </Drawer>

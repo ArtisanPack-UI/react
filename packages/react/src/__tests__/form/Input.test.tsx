@@ -1,132 +1,219 @@
+import { createRef, useState } from 'react';
+import { renderToString } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Input } from '../../components/form/Input/Input';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Input, type InputProps } from '../../components/form/Input/Input';
+
+const declaredProps: (keyof InputProps)[] = [
+  'size',
+  'type',
+  'label',
+  'hint',
+  'error',
+  'invalid',
+  'disabled',
+  'readonly',
+  'required',
+  'placeholder',
+  'value',
+  'defaultValue',
+  'prefix',
+  'suffix',
+  'leadingIcon',
+  'trailingIcon',
+  'classes',
+];
+const declaredEvents: (keyof InputProps)[] = ['onValueChange'];
+
+const part = (root: Element, name: string) =>
+  root.querySelector(`[data-scope="input"][data-part="${name}"]`);
 
 describe('Input', () => {
-  it('renders with label', () => {
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Input, 'Input', {
+      declared: { props: declaredProps, events: declaredEvents },
+    });
+  });
+
+  it('renders the contract anatomy with every part in order', () => {
+    const { container } = render(
+      <Input
+        label="Email"
+        placeholder="you@example.com"
+        required
+        hint="We never share it."
+        error="Enter a valid email address."
+        prefix="to:"
+        suffix="@work"
+        leadingIcon="mail"
+        trailingIcon="search"
+      />,
+    );
+    const root = container.firstElementChild!;
+    expect(root.tagName).toBe('DIV');
+    expect(root).toHaveClass('apui-input');
+    expect(root).toHaveAttribute('data-size', 'md');
+    expect([...root.children].map((el) => el.getAttribute('data-part'))).toEqual([
+      'label',
+      'box',
+      'hint',
+      'error',
+    ]);
+    expect([...part(root, 'box')!.children].map((el) => el.getAttribute('data-part'))).toEqual([
+      'icon',
+      'prefix',
+      'control',
+      'suffix',
+      'iconEnd',
+    ]);
+    const label = part(root, 'label')!;
+    expect(label.innerHTML).toMatch(/^Email<span[^>]*>\*<\/span>$/);
+    expect(part(label, 'required')).toHaveAttribute('aria-hidden', 'true');
+    const error = part(root, 'error')!;
+    expect(error.firstElementChild!.tagName.toLowerCase()).toBe('svg');
+    expect(error).toHaveTextContent('Enter a valid email address.');
+  });
+
+  it('renders only the box and control by default', () => {
+    const { container } = render(<Input aria-label="Search" />);
+    const root = container.firstElementChild!;
+    expect(root.querySelectorAll('[data-part]')).toHaveLength(2);
+    const control = screen.getByRole('textbox');
+    expect(control).toHaveAttribute('type', 'text');
+    expect(control).not.toHaveAttribute('aria-invalid');
+    expect(control).not.toHaveAttribute('aria-describedby');
+    expect(root).not.toHaveAttribute('data-invalid');
+  });
+
+  it('links the label with a generated id', () => {
     render(<Input label="Name" />);
-    expect(screen.getByText('Name')).toBeInTheDocument();
+    const control = screen.getByLabelText('Name');
+    expect(control.id).not.toBe('');
+    expect(control).toHaveAttribute('data-part', 'control');
   });
 
-  it('does not wrap a single input in a fieldset/legend', () => {
-    const { container } = render(<Input label="Email" type="email" />);
-    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
-    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  it('uses an explicit id and derives the hint and error ids from it', () => {
+    render(<Input id="email" label="Email" hint="Hint" error="Bad" />);
+    const control = screen.getByLabelText('Email');
+    expect(control.id).toBe('email');
+    expect(control).toHaveAttribute('aria-describedby', 'email-hint email-error');
+    expect(document.getElementById('email-hint')).toHaveTextContent('Hint');
+    expect(document.getElementById('email-error')).toHaveTextContent('Bad');
   });
 
-  it('associates the visible label with the input via htmlFor/id', () => {
-    render(<Input label="Email" type="email" />);
-    const input = screen.getByLabelText('Email');
-    expect(input).toBeInstanceOf(HTMLInputElement);
-    expect(input).toHaveAttribute('id');
-    expect(input.id).toBeTruthy();
+  it('lists only the rendered help ids in aria-describedby', () => {
+    render(<Input id="a" label="A" hint="Hint" />);
+    expect(screen.getByLabelText('A')).toHaveAttribute('aria-describedby', 'a-hint');
   });
 
-  it('renders the visible label with the daisyUI v5 fieldset-legend class', () => {
-    render(<Input id="email" label="Email" type="email" />);
-    const labelEl = screen.getByText('Email').closest('label');
-    expect(labelEl).toBeInTheDocument();
-    expect(labelEl).toHaveClass('fieldset-legend');
-    expect(labelEl).toHaveAttribute('for', 'email');
+  it('keeps a caller aria-describedby after its own ids', () => {
+    render(<Input id="b" label="B" error="Bad" aria-describedby="extra" />);
+    expect(screen.getByLabelText('B')).toHaveAttribute('aria-describedby', 'b-error extra');
   });
 
-  it('uses an explicit caller-provided id', () => {
-    render(<Input id="user-email" label="Email" />);
-    const input = screen.getByLabelText('Email');
-    expect(input).toHaveAttribute('id', 'user-email');
+  it('marks the field invalid from error or invalid', () => {
+    const { container, rerender } = render(<Input label="A" invalid />);
+    expect(container.firstElementChild).toHaveAttribute('data-invalid', '');
+    expect(screen.getByLabelText('A')).toHaveAttribute('aria-invalid', 'true');
+    expect(part(container, 'error')).toBeNull();
+    rerender(<Input label="A" error="Bad" />);
+    expect(container.firstElementChild).toHaveAttribute('data-invalid', '');
+    expect(screen.getByLabelText('A')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('renders hint text', () => {
-    render(<Input label="Email" hint="We will never share your email" />);
-    expect(screen.getByText('We will never share your email')).toBeInTheDocument();
+  it('sets disabled, readonly and required on the control and the root flags', () => {
+    const { container } = render(<Input label="A" disabled readonly required />);
+    const control = screen.getByLabelText(/^A/);
+    expect(control).toBeDisabled();
+    expect(control).toHaveAttribute('readonly');
+    expect(control).toBeRequired();
+    expect(container.firstElementChild).toHaveAttribute('data-disabled', '');
+    expect(container.firstElementChild).toHaveAttribute('data-readonly', '');
   });
 
-  it('renders error message', () => {
-    render(<Input label="Email" error="Email is required" />);
-    expect(screen.getByText('Email is required')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+  it('omits the required mark without a label', () => {
+    const { container } = render(<Input aria-label="A" required />);
+    expect(part(container, 'required')).toBeNull();
+    expect(screen.getByRole('textbox')).toBeRequired();
   });
 
-  it('hides hint when error is shown', () => {
-    render(<Input label="Email" hint="Enter email" error="Required" />);
-    expect(screen.queryByText('Enter email')).not.toBeInTheDocument();
-    expect(screen.getByText('Required')).toBeInTheDocument();
+  it('sends className to the root and other attributes to the control', () => {
+    const { container } = render(
+      <Input
+        label="A"
+        className="root-class"
+        classes={{ root: 'r', control: 'c', box: 'b' }}
+        name="email"
+        autoComplete="email"
+        data-testid="ctl"
+      />,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('apui-input', 'root-class', 'r');
+    expect(root).not.toHaveAttribute('name');
+    const control = screen.getByTestId('ctl');
+    expect(control).toHaveAttribute('name', 'email');
+    expect(control).toHaveAttribute('autocomplete', 'email');
+    expect(control).toHaveClass('c');
+    expect(part(root, 'box')).toHaveClass('b');
   });
 
-  it('sets aria-invalid when error is present', () => {
-    render(<Input label="Email" error="Required" />);
-    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  it('renders icon nodes in place of names', () => {
+    const { container } = render(
+      <Input label="A" leadingIcon="mail" icon={<i data-testid="lead" />} iconEnd={<b />} />,
+    );
+    expect(part(container, 'icon')).toContainElement(screen.getByTestId('lead'));
+    expect(part(container, 'iconEnd')!.querySelector('b')).not.toBeNull();
   });
 
-  it('wires aria-describedby to the hint when present', () => {
-    render(<Input id="phone" label="Phone" hint="Numbers only" />);
-    const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('aria-describedby', 'phone-hint');
+  it('works uncontrolled with defaultValue and reports changes', () => {
+    const onValueChange = vi.fn();
+    const onChange = vi.fn();
+    render(
+      <Input label="A" defaultValue="jacob" onValueChange={onValueChange} onChange={onChange} />,
+    );
+    const control = screen.getByLabelText('A') as HTMLInputElement;
+    expect(control.value).toBe('jacob');
+    fireEvent.change(control, { target: { value: 'jacob m' } });
+    expect(control.value).toBe('jacob m');
+    expect(onValueChange).toHaveBeenCalledWith('jacob m');
+    expect(onChange).toHaveBeenCalledOnce();
   });
 
-  it('wires aria-describedby to the error when present', () => {
-    render(<Input id="phone" label="Phone" error="Required" />);
-    const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('aria-describedby', 'phone-error');
+  it('works controlled with value and onValueChange', () => {
+    function Controlled() {
+      const [value, setValue] = useState('');
+      return (
+        <>
+          <Input label="A" value={value} onValueChange={setValue} />
+          <output>{value}</output>
+        </>
+      );
+    }
+    render(<Controlled />);
+    fireEvent.change(screen.getByLabelText('A'), { target: { value: 'hello' } });
+    expect(screen.getByRole('status')).toHaveTextContent('hello');
   });
 
-  it('shows required indicator', () => {
-    render(<Input label="Name" required />);
-    expect(screen.getByText('*')).toBeInTheDocument();
+  it('stays at the controlled value when the owner ignores changes', () => {
+    render(<Input label="A" value="fixed" onValueChange={() => {}} />);
+    const control = screen.getByLabelText('A') as HTMLInputElement;
+    fireEvent.change(control, { target: { value: 'other' } });
+    expect(control.value).toBe('fixed');
   });
 
-  it('renders icon', () => {
-    render(<Input label="Search" icon={<span data-testid="icon">🔍</span>} />);
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
+  it('forwards the ref to the native input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Input ref={ref} label="A" />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    expect(ref.current).toBe(screen.getByLabelText('A'));
   });
 
-  it('renders prefix and suffix', () => {
-    render(<Input label="Price" prefix="$" suffix=".00" />);
-    expect(screen.getByText('$')).toBeInTheDocument();
-    expect(screen.getByText('.00')).toBeInTheDocument();
-  });
-
-  it('renders clearable button', () => {
-    const onClear = vi.fn();
-    render(<Input label="Search" clearable onClear={onClear} />);
-    const clearButton = screen.getByLabelText('Clear input');
-    fireEvent.click(clearButton);
-    expect(onClear).toHaveBeenCalledOnce();
-  });
-
-  it('keeps the clear button keyboard-focusable', () => {
-    render(<Input label="Search" clearable onClear={() => {}} />);
-    expect(screen.getByLabelText('Clear input')).not.toHaveAttribute('tabindex', '-1');
-  });
-
-  it('renders inline label as a floating label associated with the input', () => {
-    const { container } = render(<Input id="city" label="City" inline />);
-    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
-    expect(container.querySelector('legend')).not.toBeInTheDocument();
-    const wrapper = container.querySelector('label.floating-label');
-    expect(wrapper).toBeInTheDocument();
-    expect(wrapper).toHaveAttribute('for', 'city');
-    const input = screen.getByLabelText('City');
-    expect(input).toHaveAttribute('id', 'city');
-    expect(wrapper?.contains(input)).toBe(true);
-    expect(input).toHaveAttribute('placeholder', ' ');
-  });
-
-  it('does not inject a single-space placeholder in non-inline mode', () => {
-    render(<Input id="city" label="City" />);
-    const input = screen.getByLabelText('City');
-    expect(input).not.toHaveAttribute('placeholder');
-  });
-
-  it('preserves a caller-provided placeholder in inline mode', () => {
-    render(<Input id="city" label="City" inline placeholder="Type a city" />);
-    const input = screen.getByLabelText('City');
-    expect(input).toHaveAttribute('placeholder', 'Type a city');
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Input ref={ref} label="Test" />);
-    expect(ref).toHaveBeenCalled();
+  it('renders on the server', () => {
+    const html = renderToString(<Input id="e" label="Email" hint="Hint" error="Bad" />);
+    expect(html).toContain('class="apui-input"');
+    expect(html).toContain('aria-describedby="e-hint e-error"');
+    expect(html).toContain('data-part="error"');
   });
 });

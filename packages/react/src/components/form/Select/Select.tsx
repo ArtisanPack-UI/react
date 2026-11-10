@@ -1,167 +1,252 @@
-/** @module Select */
-
-import { forwardRef, useId, type ReactNode, type SelectHTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-
 /**
- * Represents a single option in a {@link Select} dropdown.
+ * @module Select
  *
- * Options are generic key-value objects where the keys used for `value` and `label`
- * are configured via `optionValue` and `optionLabel` props on the Select component.
+ * The design-system Select (#46): the native `<select>` in the shared field
+ * anatomy, rendering the `.apui-select` markup contract styled by
+ * `@artisanpack-ui/css`. Searchable and rich options belong to Combobox.
  */
-export interface SelectOption {
-  /** Allows any additional properties for flexible option data. */
-  [key: string]: unknown;
-  /** When true, this option is rendered in a disabled state and cannot be selected. */
-  disabled?: boolean;
-}
+
+import {
+  forwardRef,
+  type ChangeEvent,
+  type ReactElement,
+  type ReactNode,
+  type RefAttributes,
+  type SelectHTMLAttributes,
+} from 'react';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { IconPart, IconSvg } from '../../../internal/icon';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+
+/** Control height of a {@link Select}. */
+export type SelectSize = 'sm' | 'md' | 'lg';
+
+/** A value an option can carry. */
+export type SelectValue = string | number;
+
+/** One option: a string (value and label), or a `{ value, label, disabled }` object. */
+export type SelectOption<V extends SelectValue = SelectValue> =
+  | string
+  | {
+      /** The option's value. Compared as a string; `onValueChange` receives it as given. */
+      value: V;
+      /** The text shown. Defaults to the value. */
+      label?: string;
+      /** Makes the option unselectable. */
+      disabled?: boolean;
+    };
+
+/** The parts a {@link Select} accepts extra classes for. */
+export type SelectPart =
+  | 'root'
+  | 'label'
+  | 'required'
+  | 'box'
+  | 'icon'
+  | 'control'
+  | 'indicator'
+  | 'hint'
+  | 'error';
+
+/** The default placeholder option text. Pass `placeholder` to translate it. */
+export const SELECT_DEFAULT_PLACEHOLDER = 'Select…';
 
 /**
  * Props for the {@link Select} component.
  *
- * Extends native `<select>` HTML attributes (excluding `size`).
- * Supports option mapping from data arrays, placeholder option, icons,
- * and inline label display. Children can also be passed as raw `<option>` elements.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `aria-*`, `data-*`, `id`, …) goes to the native `<select>`.
  */
-export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
-  /** Text label displayed above the select. Hidden when `inline` is true (shown below as a fieldset label). */
-  label?: string;
-  /** Helper text displayed below the select. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the select. Replaces `hint` when present and adds `aria-invalid`. */
+export interface SelectProps<V extends SelectValue = string> extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  'size' | 'value' | 'defaultValue' | 'multiple'
+> {
+  /** Control height. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: SelectSize;
+  /** The options. `<option>` children render as well, after them. */
+  options?: SelectOption<V>[];
+  /** The visible label, linked to the control. Without it, pass an `aria-label`. */
+  label?: ReactNode;
+  /** Help text under the control, linked with `aria-describedby`. */
+  hint?: ReactNode;
+  /** Validation message. Marks the field invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** Icon element rendered to the left of the select. */
-  icon?: ReactNode;
-  /** Icon element rendered to the right of the select. */
-  iconRight?: ReactNode;
-  /** Text for a disabled placeholder `<option>` rendered as the first option. */
+  /** Marks the field invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the control. @defaultValue `false` */
+  disabled?: boolean;
+  /** Marks the field required, shows the required mark and makes the placeholder unselectable. */
+  required?: boolean;
+  /** The empty first option. An empty string renders no placeholder option. @defaultValue `'Select…'` */
   placeholder?: string;
-  /** Value attribute for the placeholder option. @defaultValue `''` */
-  placeholderValue?: string;
-  /** When true, renders the label as an inline fieldset label below the select. @defaultValue `false` */
-  inline?: boolean;
-  /** Property key on each option object to use as the `<option>` value attribute. @defaultValue `'id'` */
-  optionValue?: string;
-  /** Property key on each option object to use as the displayed option text. @defaultValue `'name'` */
-  optionLabel?: string;
-  /** Array of option objects to render as `<option>` elements. Can also pass `<option>` elements as children. */
-  options?: SelectOption[] | Record<string, string>[];
+  /** The selected value of a controlled select. Compared with the options as a string. */
+  value?: SelectValue;
+  /** The initial value of an uncontrolled select. */
+  defaultValue?: SelectValue;
+  /** Icon name before the value, resolved through the icon registry. `icon` overrides it. */
+  leadingIcon?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<SelectPart>;
+  /** Leading icon node; overrides `leadingIcon`. */
+  icon?: ReactNode;
+  /**
+   * Called with the new value whenever it changes: the matching `options` entry's
+   * value with its original type (a number stays a number), or the string value of
+   * an `<option>` child or the placeholder. The native `onChange` still fires.
+   */
+  onValueChange?: (value: NoInfer<V> | string) => void;
 }
 
+const normalizeOption = (option: SelectOption) =>
+  typeof option === 'string'
+    ? { value: option, label: option, disabled: false }
+    : {
+        value: String(option.value),
+        label: option.label ?? String(option.value),
+        disabled: option.disabled === true,
+      };
+
 /**
- * A dropdown select component with DaisyUI styling that maps options from a data array,
- * supports a disabled placeholder option, left/right icons, inline label mode,
- * and accepts additional `<option>` children. Automatically generates accessible IDs and ARIA attributes.
+ * Chooses one value from a short list with the native `<select>`. Controlled
+ * (`value` + `onValueChange`) or uncontrolled (`defaultValue`). The ref points
+ * at the native `<select>`.
  *
  * @example
  * ```tsx
- * const countries = [
- *   { id: 'us', name: 'United States' },
- *   { id: 'ca', name: 'Canada' },
- * ];
- * <Select label="Country" options={countries} placeholder="Select a country" />
- * ```
- *
- * @example
- * ```tsx
- * <Select label="Status" icon={<FilterIcon />}>
- *   <option value="active">Active</option>
- *   <option value="inactive">Inactive</option>
- * </Select>
+ * <Select
+ *   label="Country"
+ *   options={[{ value: 'us', label: 'United States' }, { value: 'ca', label: 'Canada' }]}
+ *   value={country}
+ *   onValueChange={setCountry}
+ * />
  * ```
  */
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(
+const SelectBase = forwardRef<HTMLSelectElement, SelectProps<SelectValue>>(
   (
     {
+      size = 'md',
+      options = [],
       label,
       hint,
       error,
+      invalid = false,
+      disabled = false,
+      required = false,
+      placeholder = SELECT_DEFAULT_PLACEHOLDER,
+      leadingIcon,
+      classes = {},
       icon,
-      iconRight,
-      placeholder,
-      placeholderValue = '',
-      inline = false,
-      optionValue = 'id',
-      optionLabel = 'name',
-      options = [],
       className,
-      id: providedId,
-      required,
       children,
+      id: explicitId,
+      onChange,
+      onValueChange,
+      value,
+      defaultValue,
+      'aria-describedby': callerDescribedBy,
+      'aria-invalid': callerInvalid,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-    const errorId = error ? `${id}-error` : undefined;
-    const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+    const hasPlaceholder = placeholder !== '';
+    // Without a value, start on the placeholder. Browsers would otherwise
+    // select the first enabled option, skipping a required (disabled) placeholder.
+    const initialValue =
+      value === undefined && defaultValue === undefined && hasPlaceholder ? '' : defaultValue;
+    const isInvalid = invalid || Boolean(error);
+    const { id, helpId, errorId, describedBy } = useFieldIds(
+      explicitId,
+      { suffix: 'hint', content: hint },
+      error,
+      callerDescribedBy,
+    );
+
+    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+      onChange?.(event);
+      const selected = event.target.value;
+      const match = options.find(
+        (option) => typeof option !== 'string' && String(option.value) === selected,
+      );
+      onValueChange?.(match !== undefined && typeof match !== 'string' ? match.value : selected);
+    };
 
     return (
-      <div className="fieldset w-full">
-        {label && !inline && (
-          <label htmlFor={id} className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
-        )}
-        <span className={cn('select', 'w-full', error && 'select-error', className)}>
-          {icon && (
-            <span className="opacity-50" aria-hidden="true">
-              {icon}
-            </span>
-          )}
+      <div
+        className={cx('apui-select', classes.root, className)}
+        data-size={size}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+      >
+        <FieldLabel
+          scope="select"
+          htmlFor={id}
+          label={label}
+          required={required}
+          className={classes.label}
+          requiredClassName={classes.required}
+        />
+        <div className={classes.box} data-scope="select" data-part="box">
+          <IconPart
+            scope="select"
+            part="icon"
+            name={leadingIcon}
+            node={icon}
+            className={classes.icon}
+          />
           <select
-            ref={ref}
-            id={id}
-            className="grow"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={describedBy}
-            aria-required={required || undefined}
-            required={required}
             {...rest}
+            ref={ref}
+            className={classes.control}
+            data-scope="select"
+            data-part="control"
+            id={id}
+            value={value}
+            defaultValue={initialValue}
+            disabled={disabled || undefined}
+            required={required || undefined}
+            aria-invalid={isInvalid ? true : callerInvalid}
+            aria-describedby={describedBy}
+            onChange={handleChange}
           >
-            {placeholder && (
-              <option value={placeholderValue} disabled>
+            {hasPlaceholder ? (
+              <option value="" disabled={required || undefined}>
                 {placeholder}
               </option>
-            )}
-            {options.map((option, index) => {
-              const value = String(option[optionValue] ?? '');
-              const optLabel = String(option[optionLabel] ?? '');
-              return (
-                <option key={value || index} value={value} disabled={option.disabled === true}>
-                  {optLabel}
-                </option>
-              );
-            })}
+            ) : null}
+            {options.map(normalizeOption).map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled || undefined}
+              >
+                {option.label}
+              </option>
+            ))}
             {children}
           </select>
-          {iconRight && (
-            <span className="opacity-50" aria-hidden="true">
-              {iconRight}
-            </span>
-          )}
-        </span>
-        {inline && label && (
-          <label className="fieldset-label" htmlFor={id}>
-            {label}
-          </label>
-        )}
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
+          <span
+            className={classes.indicator}
+            data-scope="select"
+            data-part="indicator"
+            aria-hidden="true"
+          >
+            <IconSvg name="chevron-down" />
+          </span>
+        </div>
+        <FieldHelp scope="select" part="hint" id={helpId} className={classes.hint}>
+          {hint}
+        </FieldHelp>
+        <FieldError scope="select" id={errorId} message={error} className={classes.error} />
       </div>
     );
   },
 );
 
-Select.displayName = 'Select';
+SelectBase.displayName = 'Select';
+
+/** {@inheritDoc SelectBase} Generic over the options' value type. */
+export const Select = SelectBase as (<V extends SelectValue = string>(
+  props: SelectProps<V> & RefAttributes<HTMLSelectElement>,
+) => ReactElement | null) & { displayName?: string };

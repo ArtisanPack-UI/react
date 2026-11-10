@@ -1,0 +1,9 @@
+{
+  "components": ["Button", "Card", "Checkbox", "Input", "Select"],
+  "css": ["../../node_modules/@artisanpack-ui/css/dist/index.css"],
+  "stacks": {
+    "react": { "host": "test/fixture-host.tsx" }
+  },
+  "baselines": "../../node_modules/@artisanpack-ui/testing/baselines",
+  "out": "build/gates"
+}

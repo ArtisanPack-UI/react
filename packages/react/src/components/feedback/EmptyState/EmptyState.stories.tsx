@@ -51,7 +51,7 @@ export const WithAction: Story = {
     icon: <span className="text-4xl">📝</span>,
     heading: 'No posts yet',
     description: 'Get started by creating your first post.',
-    action: <Button label="Create Post" color="primary" />,
+    action: <Button color="primary">Create Post</Button>,
   },
 };
 
@@ -60,6 +60,6 @@ export const NoData: Story = {
     icon: <span className="text-4xl">📊</span>,
     heading: 'No data available',
     description: 'Data will appear here once records are added to the system.',
-    action: <Button label="Import Data" color="secondary" />,
+    action: <Button color="secondary">Import Data</Button>,
   },
 };

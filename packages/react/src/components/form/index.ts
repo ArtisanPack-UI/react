@@ -2,8 +2,8 @@
  * @module form
  *
  * Form components for the ArtisanPack UI React component library.
- * Provides a comprehensive set of form inputs and controls built on DaisyUI
- * with consistent styling, accessibility, and error handling patterns.
+ * Button, Input, Select and Checkbox render the design-system markup contract
+ * (styled by `@artisanpack-ui/css`); the other controls are still built on DaisyUI.
  *
  * @example
  * ```tsx
@@ -13,10 +13,16 @@
 
 // Form components
 export { Button } from './Button/Button';
-export type { ButtonProps } from './Button/Button';
+export type {
+  ButtonProps,
+  ButtonVariant,
+  ButtonColor,
+  ButtonSize,
+  ButtonPart,
+} from './Button/Button';
 
 export { Checkbox } from './Checkbox/Checkbox';
-export type { CheckboxProps } from './Checkbox/Checkbox';
+export type { CheckboxProps, CheckboxPart } from './Checkbox/Checkbox';
 
 export { ColorPicker } from './ColorPicker/ColorPicker';
 export type { ColorPickerProps } from './ColorPicker/ColorPicker';
@@ -31,7 +37,7 @@ export { File } from './File/File';
 export type { FileProps } from './File/File';
 
 export { Input } from './Input/Input';
-export type { InputProps } from './Input/Input';
+export type { InputProps, InputSize, InputPart } from './Input/Input';
 
 export { Password } from './Password/Password';
 export type { PasswordProps } from './Password/Password';
@@ -48,11 +54,21 @@ export type { RangeProps } from './Range/Range';
 export { RichTextEditor } from './RichTextEditor/RichTextEditor';
 export type { RichTextEditorProps } from './RichTextEditor/RichTextEditor';
 
-export { Select } from './Select/Select';
-export type { SelectProps, SelectOption } from './Select/Select';
+export { Select, SELECT_DEFAULT_PLACEHOLDER } from './Select/Select';
+export type {
+  SelectProps,
+  SelectOption,
+  SelectSize,
+  SelectPart,
+  SelectValue,
+} from './Select/Select';
 
 export { Textarea } from './Textarea/Textarea';
 export type { TextareaProps } from './Textarea/Textarea';
 
 export { Toggle } from './Toggle/Toggle';
 export type { ToggleProps } from './Toggle/Toggle';
+
+// Icon registry: Button, Input and Select resolve icon names through it.
+export { registerIcons, UnsafeIconError } from '@artisanpack-ui/behavior/icons';
+export type { IconSet } from '@artisanpack-ui/behavior/icons';
