@@ -157,22 +157,49 @@ describe('Card', () => {
     warn.mockRestore();
   });
 
-  it.each(['javascript:alert(1)', '\u0001 VBScript:x', 'DATA:text/html,x'])(
-    'ignores the unsafe href %j',
-    (href) => {
-      const { container } = render(<Card href={href} title="T" />);
-      expect(container.querySelector('a')).toBeNull();
-      expect(container.firstElementChild).not.toHaveAttribute('data-interactive');
-    },
-  );
+  it.each([
+    'javascript:alert(1)',
+    '\u0001 VBScript:x',
+    'DATA:text/html,x',
+    'file:///etc/passwd',
+    'blob:https://example.com/id',
+    'ftp://example.com/file',
+  ])('ignores the disallowed href %j', (href) => {
+    const { container } = render(<Card href={href} title="T" />);
+    expect(container.querySelector('a')).toBeNull();
+    expect(container.firstElementChild).not.toHaveAttribute('data-interactive');
+  });
 
-  it('rejects javascript: and vbscript: media but keeps data: images', () => {
-    const { container, rerender } = render(<Card media="javascript:alert(1)" title="T" />);
+  it.each([
+    'javascript:alert(1)',
+    ' vbscript:x',
+    'data:text/html,x',
+    'file:///a.png',
+    'ftp://x/a.png',
+  ])('rejects the disallowed media %j', (media) => {
+    const { container } = render(<Card media={media} title="T" />);
     expect(part(container, 'media')).toBeNull();
-    rerender(<Card media=" vbscript:x" title="T" />);
-    expect(part(container, 'media')).toBeNull();
-    rerender(<Card media="data:image/svg+xml,%3Csvg/%3E" title="T" />);
-    expect(part(container, 'media')).toHaveAttribute('src', 'data:image/svg+xml,%3Csvg/%3E');
+  });
+
+  it.each([
+    '/a.png',
+    'images/a.png',
+    'https://example.com/a.png',
+    'http://example.com/a.png',
+    'blob:https://example.com/id',
+    'data:image/svg+xml,%3Csvg/%3E',
+    'DATA:image/png;base64,AAAA',
+  ])('keeps the allowed media %j', (media) => {
+    const { container } = render(<Card media={media} title="T" />);
+    expect(part(container, 'media')).toHaveAttribute('src', media);
+  });
+
+  it('keeps allowed card links', () => {
+    render(<Card href="https://example.com/r" title="T" />);
+    expect(screen.getByRole('link', { name: 'T' })).toHaveAttribute(
+      'href',
+      'https://example.com/r',
+    );
   });
 
   it('renders on the server', () => {

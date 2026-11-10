@@ -35,7 +35,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'>
   interactive?: boolean;
   /**
    * Makes the title a link whose hit area covers the whole card. Needs a `title`;
-   * `javascript:`, `vbscript:` and `data:` URLs are ignored.
+   * only relative, http, https, mailto, tel and sms URLs are used.
    */
   href?: string;
   /** The heading in the header, rendered in an `<h3>`. */
@@ -48,7 +48,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'>
   footer?: ReactNode;
   /**
    * Edge-to-edge media above the header: an image URL, or a node (a video, a
-   * chart) that replaces the image. A `javascript:` or `vbscript:` URL is ignored.
+   * chart) that replaces the image. Only relative, http, https, blob and `data:image/…` URLs are used.
    */
   media?: ReactNode;
   /** Alternative text for an image `media`. Empty marks it decorative. @defaultValue `''` */

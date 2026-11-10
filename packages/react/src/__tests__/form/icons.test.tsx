@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, it, expect } from 'vitest';
 import { resetIcons } from '@artisanpack-ui/behavior/icons';
-import { Button, registerIcons, UnsafeIconError } from '../../index';
+import { Button, isSafeIconBody, registerIcons, UnsafeIconError } from '../../index';
 
 describe('icon registry re-exports', () => {
   afterEach(() => resetIcons());
@@ -19,6 +19,11 @@ describe('icon registry re-exports', () => {
     '<a href="javascript:alert(1)"><path /></a>',
     '<use href="#x" />',
   ])('rejects the unsafe body %j with UnsafeIconError', (body) => {
+    expect(isSafeIconBody(body)).toBe(false);
     expect(() => registerIcons({ bad: body })).toThrow(UnsafeIconError);
+  });
+
+  it('re-exports isSafeIconBody, which accepts static shapes', () => {
+    expect(isSafeIconBody('<path d="M0 0h24v24H0z" />')).toBe(true);
   });
 });

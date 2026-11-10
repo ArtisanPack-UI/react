@@ -134,14 +134,15 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     });
 
     // An uncontrolled checkbox follows its form's reset, which changes the input without a
-    // change event; read the result once the reset has run.
+    // change event; read the result in a later task, since a native reset button resets
+    // the controls only after the event's microtasks have run.
     useEffect(() => {
       const form = inputRef.current?.form;
       if (isControlled || !form) return;
       const handleReset = () => {
-        queueMicrotask(() => {
+        setTimeout(() => {
           if (inputRef.current) setUncontrolledChecked(inputRef.current.checked);
-        });
+        }, 0);
       };
       form.addEventListener('reset', handleReset);
       return () => form.removeEventListener('reset', handleReset);

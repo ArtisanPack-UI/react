@@ -61,8 +61,8 @@ export interface ButtonProps
   /** Disables the button. With `href`, renders an anchor without href and with `aria-disabled`. */
   disabled?: boolean;
   /**
-   * Renders an `<a>` with the same styles. A `javascript:`, `vbscript:` or `data:` URL is
-   * ignored (renders a `<button>`). While `loading` or `disabled`, the anchor has no href.
+   * Renders an `<a>` with the same styles. Only relative, http, https, mailto, tel and sms
+   * URLs are used; any other is ignored (renders a `<button>`). While `loading` or `disabled`, the anchor has no href.
    */
   href?: string;
   /** Icon name before the label, resolved through the icon registry. `icon` overrides it. */
@@ -78,9 +78,9 @@ export interface ButtonProps
   /** Trailing icon node; overrides `trailingIcon`. */
   iconEnd?: ReactNode;
   /** Click handler. Not called while `loading` or `disabled`. */
-  onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+  onClick?(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>): void;
   /** Auxiliary (e.g. middle) click handler. Not called while `loading` or `disabled`. */
-  onAuxClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+  onAuxClick?(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>): void;
 }
 
 /**

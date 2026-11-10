@@ -70,5 +70,5 @@ export { Toggle } from './Toggle/Toggle';
 export type { ToggleProps } from './Toggle/Toggle';
 
 // Icon registry: Button, Input and Select resolve icon names through it.
-export { registerIcons, UnsafeIconError } from '@artisanpack-ui/behavior/icons';
+export { isSafeIconBody, registerIcons, UnsafeIconError } from '@artisanpack-ui/behavior/icons';
 export type { IconSet } from '@artisanpack-ui/behavior/icons';

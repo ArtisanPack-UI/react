@@ -185,10 +185,29 @@ describe('Checkbox', () => {
     expect(root).toHaveAttribute('data-state', 'unchecked');
     await act(async () => {
       container.querySelector('form')!.reset();
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(root).toHaveAttribute('data-state', control.checked ? 'checked' : 'unchecked');
     expect(control.checked).toBe(true);
+    expect(root).toHaveAttribute('data-state', 'checked');
+  });
+
+  it('resyncs when a native reset button resets the form', async () => {
+    const { container } = render(
+      <form>
+        <Checkbox label="A" />
+        <button type="reset">Reset</button>
+      </form>,
+    );
+    const control = screen.getByLabelText('A') as HTMLInputElement;
+    const root = container.querySelector('.apui-checkbox')!;
+    fireEvent.click(control);
+    expect(root).toHaveAttribute('data-state', 'checked');
+    await act(async () => {
+      screen.getByRole('button', { name: 'Reset' }).click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(control.checked).toBe(false);
+    expect(root).toHaveAttribute('data-state', 'unchecked');
   });
 
   it('renders on the server', () => {

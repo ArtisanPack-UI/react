@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import { createRef, type MouseEvent } from 'react';
 import { renderToString } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
@@ -328,17 +328,41 @@ describe('Button', () => {
     }
   });
 
-  it.each(['javascript:alert(1)', ' JaVa\tScRiPt:alert(1)', 'vbscript:x', 'data:text/html,x'])(
-    'ignores the unsafe href %j and renders a button',
-    (href) => {
-      const { container } = render(<Button href={href}>Go</Button>);
-      expect(container.querySelector('a')).toBeNull();
-      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
-    },
-  );
+  it.each([
+    'javascript:alert(1)',
+    ' JaVa\tScRiPt:alert(1)',
+    'vbscript:x',
+    'data:text/html,x',
+    'file:///etc/passwd',
+    'blob:https://example.com/id',
+    'ftp://example.com/file',
+  ])('ignores the disallowed href %j and renders a button', (href) => {
+    const { container } = render(<Button href={href}>Go</Button>);
+    expect(container.querySelector('a')).toBeNull();
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
 
-  it('keeps safe hrefs', () => {
-    render(<Button href="mailto:a@b.co">Mail</Button>);
-    expect(screen.getByRole('link')).toHaveAttribute('href', 'mailto:a@b.co');
+  it.each([
+    '/docs',
+    './docs',
+    '?page=2',
+    '#top',
+    '//cdn.example.com/x',
+    'docs/page',
+    'http://example.com',
+    'HTTPS://example.com',
+    'mailto:a@b.co',
+    'tel:+15555550100',
+    'sms:+15555550100',
+  ])('keeps the allowed href %j', (href) => {
+    render(<Button href={href}>Go</Button>);
+    expect(screen.getByRole('link')).toHaveAttribute('href', href);
+  });
+
+  it('accepts a handler annotated for the narrower element type', () => {
+    const onClick = vi.fn((event: MouseEvent<HTMLButtonElement>) => event.currentTarget.type);
+    render(<Button onClick={onClick}>Go</Button>);
+    fireEvent.click(screen.getByRole('button'));
+    expect(onClick).toHaveReturnedWith('button');
   });
 });
