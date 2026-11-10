@@ -1,7 +1,5 @@
 import type { Preview } from '@storybook/react-vite';
 import './storybook.css';
-// Design-system styles for the components that moved to it (Button, Input, Select, Checkbox, Card).
-import '@artisanpack-ui/css';
 
 const DAISY_THEMES = [
   'light',
