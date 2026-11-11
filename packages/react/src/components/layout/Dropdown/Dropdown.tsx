@@ -74,6 +74,8 @@ export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
  *   <DropdownItem onClick={handleEdit}>Edit</DropdownItem>
  * </Dropdown>
  * ```
+ *
+ * @deprecated Use {@link DropdownMenu}, the design-system replacement. Dropdown will be removed in a later major release.
  */
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   (
@@ -363,6 +365,8 @@ export interface DropdownItemProps extends Omit<HTMLAttributes<HTMLLIElement>, '
  * ```tsx
  * <DropdownItem onClick={() => alert('Clicked!')}>Save</DropdownItem>
  * ```
+ *
+ * @deprecated Use {@link DropdownMenuItem} inside a {@link DropdownMenu}. DropdownItem will be removed in a later major release.
  */
 export const DropdownItem = forwardRef<HTMLLIElement, DropdownItemProps>(
   ({ disabled = false, className, children, onClick, ...rest }, ref) => {
