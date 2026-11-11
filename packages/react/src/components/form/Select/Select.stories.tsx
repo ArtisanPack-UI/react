@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Select } from './Select';
 
+const countries = [
+  { value: 'us', label: 'United States' },
+  { value: 'ca', label: 'Canada' },
+  { value: 'mx', label: 'Mexico' },
+];
+
 const meta: Meta<typeof Select> = {
   title: 'Form/Select',
   component: Select,
@@ -9,77 +15,48 @@ const meta: Meta<typeof Select> = {
     docs: {
       description: {
         component:
-          'Dropdown select input with label, hint, error state, inline layout, and disabled mode. Accepts an array of option objects with value, label, and optional disabled flag.',
+          'Chooses one value from a short list with the native select, in the shared field anatomy (label, hint, error).',
       },
     },
+  },
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Select>;
 
-const fruitOptions = [
-  { value: 'apple', label: 'Apple' },
-  { value: 'banana', label: 'Banana' },
-  { value: 'cherry', label: 'Cherry' },
-  { value: 'grape', label: 'Grape' },
-];
-
 export const Default: Story = {
-  args: {
-    label: 'Fruit',
-    placeholder: 'Pick a fruit',
-    options: fruitOptions,
-    optionValue: 'value',
-    optionLabel: 'label',
-  },
+  args: { label: 'Country', options: countries },
 };
 
-export const WithHint: Story = {
-  args: {
-    label: 'Country',
-    hint: 'Select your country of residence.',
-    placeholder: 'Choose...',
-    options: [
-      { value: 'us', label: 'United States' },
-      { value: 'uk', label: 'United Kingdom' },
-      { value: 'ca', label: 'Canada' },
-    ],
-    optionValue: 'value',
-    optionLabel: 'label',
-  },
+export const StringOptions: Story = {
+  args: { label: 'Time zone', options: ['UTC', 'America/New_York', 'Europe/Paris'] },
 };
 
-export const WithError: Story = {
-  args: {
-    label: 'Category',
-    error: 'Please select a category.',
-    options: fruitOptions,
-    optionValue: 'value',
-    optionLabel: 'label',
-  },
+export const WithChildren: Story = {
+  render: () => (
+    <Select label="Plan" leadingIcon="user">
+      <option value="starter">Starter</option>
+      <option value="team">Team</option>
+      <option value="enterprise" disabled>
+        Enterprise (contact us)
+      </option>
+    </Select>
+  ),
 };
 
-export const Inline: Story = {
+export const WithHintAndError: Story = {
   args: {
-    label: 'Sort by',
-    inline: true,
-    options: [
-      { value: 'name', label: 'Name' },
-      { value: 'date', label: 'Date' },
-      { value: 'price', label: 'Price' },
-    ],
-    optionValue: 'value',
-    optionLabel: 'label',
+    label: 'Time zone',
+    hint: 'Used for reports and reminders.',
+    error: 'Choose a time zone.',
+    options: ['UTC', 'America/New_York', 'Europe/Paris'],
+    required: true,
   },
 };
 
 export const Disabled: Story = {
-  args: {
-    label: 'Disabled',
-    disabled: true,
-    options: fruitOptions,
-    optionValue: 'value',
-    optionLabel: 'label',
-  },
+  args: { label: 'Region', options: ['North America'], disabled: true },
 };

@@ -34,7 +34,7 @@ export const Default: Story = {
 
 export const WithTrigger: Story = {
   args: {
-    trigger: <Button label="Actions" color="primary" />,
+    trigger: <Button color="primary">Actions</Button>,
     children: (
       <>
         <DropdownItem>View</DropdownItem>

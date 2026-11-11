@@ -5,3 +5,4 @@ dist/
 coverage/
 storybook-static/
 .idea/
+build/

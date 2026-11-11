@@ -48,7 +48,7 @@ type Story = StoryObj<typeof Tooltip>;
 export const Default: Story = {
   args: {
     tip: 'Hello, I am a tooltip!',
-    children: <Button label="Hover me" color="primary" />,
+    children: <Button color="primary">Hover me</Button>,
   },
   decorators: [centeredDecorator],
 };
@@ -57,16 +57,16 @@ export const Positions: Story = {
   render: () => (
     <div className="flex gap-4 p-16 justify-center">
       <Tooltip tip="Top tooltip" position="top">
-        <Button label="Top" />
+        <Button>Top</Button>
       </Tooltip>
       <Tooltip tip="Bottom tooltip" position="bottom">
-        <Button label="Bottom" />
+        <Button>Bottom</Button>
       </Tooltip>
       <Tooltip tip="Left tooltip" position="left">
-        <Button label="Left" />
+        <Button>Left</Button>
       </Tooltip>
       <Tooltip tip="Right tooltip" position="right">
-        <Button label="Right" />
+        <Button>Right</Button>
       </Tooltip>
     </div>
   ),
@@ -76,28 +76,28 @@ export const Colors: Story = {
   render: () => (
     <div className="flex flex-wrap gap-4 p-12 justify-center">
       <Tooltip tip="Primary" color="primary">
-        <Button label="Primary" color="primary" />
+        <Button color="primary">Primary</Button>
       </Tooltip>
       <Tooltip tip="Secondary" color="secondary">
-        <Button label="Secondary" color="secondary" />
+        <Button color="secondary">Secondary</Button>
       </Tooltip>
       <Tooltip tip="Accent" color="accent">
-        <Button label="Accent" color="accent" />
+        <Button color="accent">Accent</Button>
       </Tooltip>
       <Tooltip tip="Success" color="success">
-        <Button label="Success" color="success" />
+        <Button color="success">Success</Button>
       </Tooltip>
       <Tooltip tip="Warning" color="warning">
-        <Button label="Warning" color="warning" />
+        <Button color="warning">Warning</Button>
       </Tooltip>
       <Tooltip tip="Error" color="error">
-        <Button label="Error" color="error" />
+        <Button color="error">Error</Button>
       </Tooltip>
       <Tooltip tip="Info" color="info">
-        <Button label="Info" color="info" />
+        <Button color="info">Info</Button>
       </Tooltip>
       <Tooltip tip="Neutral" color="neutral">
-        <Button label="Neutral" color="neutral" />
+        <Button color="neutral">Neutral</Button>
       </Tooltip>
     </div>
   ),
@@ -107,7 +107,7 @@ export const AlwaysOpen: Story = {
   args: {
     tip: 'Always visible',
     open: true,
-    children: <Button label="Pinned tooltip" color="primary" />,
+    children: <Button color="primary">Pinned tooltip</Button>,
   },
   decorators: [centeredDecorator],
 };

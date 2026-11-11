@@ -13,7 +13,7 @@ export { Accordion } from './Accordion/Accordion';
 export type { AccordionProps } from './Accordion/Accordion';
 
 export { Card } from './Card/Card';
-export type { CardProps } from './Card/Card';
+export type { CardProps, CardSurface, CardPart } from './Card/Card';
 
 export { Collapse } from './Collapse/Collapse';
 export type { CollapseProps } from './Collapse/Collapse';

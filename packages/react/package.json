@@ -49,9 +49,13 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@artisanpack-ui/behavior": "file:../../../design-system/packages/behavior",
     "@artisanpack-ui/tokens": "^1.0.1"
   },
   "devDependencies": {
+    "@artisanpack-ui/css": "file:../../../design-system/packages/css",
+    "@artisanpack-ui/manifest": "file:../../../design-system/packages/manifest",
+    "@artisanpack-ui/testing": "file:../../../design-system/packages/testing",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",

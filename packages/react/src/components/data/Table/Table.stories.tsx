@@ -85,8 +85,12 @@ export const WithActions: Story = {
     keyBy: 'id',
     renderActions: (_row: Record<string, unknown>) => (
       <div className="flex gap-1">
-        <Button label="Edit" size="xs" color="ghost" />
-        <Button label="Delete" size="xs" color="error" />
+        <Button size="xs" variant="ghost">
+          Edit
+        </Button>
+        <Button size="xs" color="error">
+          Delete
+        </Button>
       </div>
     ),
   },
