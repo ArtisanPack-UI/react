@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Steps } from './Steps';
+import { useState } from 'react';
+import { Step, Steps } from './Steps';
 
 const meta: Meta<typeof Steps> = {
   title: 'Navigation/Steps',
@@ -9,77 +10,63 @@ const meta: Meta<typeof Steps> = {
     docs: {
       description: {
         component:
-          'Step indicator for multi-step workflows in horizontal or vertical layout. Supports per-step colors, custom content, and size variants.',
+          'Shows progress through a sequence. Compose it from Step children, or pass the same structure as steps.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Steps>;
 
-const checkoutSteps = [
-  { label: 'Cart' },
-  { label: 'Shipping' },
-  { label: 'Payment' },
-  { label: 'Confirm' },
-];
-
-export const Default: Story = {
-  args: {
-    steps: checkoutSteps,
-    currentStep: 2,
-    color: 'primary',
-  },
+export const Horizontal: Story = {
+  render: (args) => (
+    <Steps {...args} value={3} label="Listing progress">
+      <Step title="Basics" description="Title and type" />
+      <Step title="Location" description="Address and map" />
+      <Step title="Pricing" description="Price and rent" />
+      <Step title="Photos" description="At least 6" />
+      <Step title="Review" description="Publish" />
+    </Steps>
+  ),
 };
 
-export const AllComplete: Story = {
-  args: {
-    steps: checkoutSteps,
-    currentStep: 4,
-    color: 'success',
-  },
-};
-
-export const Vertical: Story = {
-  args: {
-    steps: checkoutSteps,
-    currentStep: 1,
-    vertical: true,
-    color: 'primary',
-  },
-};
-
-export const WithCustomContent: Story = {
-  args: {
-    steps: [
-      { label: 'Register', dataContent: '1' },
-      { label: 'Verify Email', dataContent: '2' },
-      { label: 'Set Password', dataContent: '3' },
-      { label: 'Done', dataContent: '✓' },
-    ],
-    currentStep: 2,
-    color: 'accent',
-  },
-};
-
-export const Sizes: Story = {
+export const VerticalWithError: Story = {
   render: () => (
-    <div className="flex flex-col gap-6">
-      <Steps steps={checkoutSteps} currentStep={2} color="primary" size="xs" />
-      <Steps steps={checkoutSteps} currentStep={2} color="primary" size="sm" />
-      <Steps steps={checkoutSteps} currentStep={2} color="primary" size="md" />
-      <Steps steps={checkoutSteps} currentStep={2} color="primary" size="lg" />
+    <div style={{ maxWidth: 420 }}>
+      <Steps value={3} orientation="vertical">
+        <Step title="Account created" description="Nov 2 · Olivia Rhye" />
+        <Step title="Identity verified" description="Nov 3" />
+        <Step
+          state="error"
+          title="Payout account"
+          description="IBAN rejected by the bank. Update it to continue."
+        />
+        <Step title="Go live" description="Listings become public" />
+      </Steps>
     </div>
   ),
+};
+
+export const ClickableData: Story = {
+  render: function Render() {
+    const [step, setStep] = useState(3);
+    return (
+      <Steps
+        value={step}
+        onValueChange={setStep}
+        clickable
+        label="Checkout progress"
+        steps={[
+          { title: 'Cart' },
+          { title: 'Shipping' },
+          { title: 'Payment' },
+          { title: 'Confirm' },
+        ]}
+      />
+    );
+  },
 };

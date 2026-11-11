@@ -202,4 +202,23 @@ describe('Select', () => {
     fireEvent.change(select, { target: { value: '4' } });
     expect(onValueChange).toHaveBeenLastCalledWith('4');
   });
+  it('renders { label, options } entries as native optgroups (#53, replaces select-group)', () => {
+    const onValueChange = vi.fn();
+    const { container } = render(
+      <Select<string | number>
+        label="Type"
+        options={[
+          { label: 'Apartments', options: [{ value: 1, label: 'Studio' }, 'Loft'] },
+          { value: 'other', label: 'Other' },
+        ]}
+        onValueChange={onValueChange}
+      />,
+    );
+    const group = container.querySelector('optgroup')!;
+    expect(group).toHaveAttribute('label', 'Apartments');
+    expect(group.querySelectorAll('option')).toHaveLength(2);
+    expect(container.querySelector('select > option[value="other"]')).not.toBeNull();
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: '1' } });
+    expect(onValueChange).toHaveBeenCalledWith(1);
+  });
 });

@@ -9,50 +9,35 @@ const meta: Meta<typeof Textarea> = {
     docs: {
       description: {
         component:
-          'Multi-line text input with label, hint, error state, inline layout, and disabled mode.',
+          'Multi-line text entry in the field anatomy (label, box, hint, error), with an optional character counter.',
       },
     },
   },
+  argTypes: {},
 };
 
 export default meta;
 type Story = StoryObj<typeof Textarea>;
 
 export const Default: Story = {
+  args: { label: 'Notes', hint: 'Only your team sees these.', rows: 3 },
+};
+
+export const WithCounter: Story = {
   args: {
     label: 'Description',
-    placeholder: 'Enter a description...',
+    placeholder: 'Describe the property, nearby amenities and anything renters should know…',
+    maxLength: 500,
+    autoResize: true,
   },
 };
 
-export const WithHint: Story = {
-  args: {
-    label: 'Bio',
-    placeholder: 'Tell us about yourself...',
-    hint: 'Maximum 500 characters.',
-  },
-};
-
-export const WithError: Story = {
-  args: {
-    label: 'Comment',
-    defaultValue: '',
-    error: 'Comment is required.',
-  },
-};
-
-export const Inline: Story = {
-  args: {
-    label: 'Notes',
-    placeholder: 'Add notes...',
-    inline: true,
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    label: 'Read-only content',
-    value: 'This content cannot be edited.',
-    disabled: true,
-  },
+export const States: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Textarea label="Summary" error="Write at least 40 characters." defaultValue="Too short" />
+      <Textarea label="Imported text" value="Imported from the March listing feed." readonly />
+      <Textarea label="Internal notes" value="Locked while the listing is reviewed." disabled />
+    </div>
+  ),
 };

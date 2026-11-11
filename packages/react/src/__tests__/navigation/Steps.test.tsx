@@ -1,95 +1,117 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { Steps } from '../../components/navigation/Steps/Steps';
-import type { StepItem } from '../../components/navigation/Steps/Steps';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Step, Steps, type StepsProps } from '../../components/navigation/Steps/Steps';
 
-const sampleSteps: StepItem[] = [
-  { label: 'Register' },
-  { label: 'Choose plan' },
-  { label: 'Purchase' },
-  { label: 'Complete' },
+const declaredProps: (keyof StepsProps)[] = [
+  'steps',
+  'value',
+  'orientation',
+  'clickable',
+  'label',
+  'completeLabel',
+  'errorLabel',
+  'classes',
 ];
 
+const states = (container: HTMLElement) =>
+  [...container.querySelectorAll('li[data-part="step"]')].map((li) =>
+    li.getAttribute('data-state'),
+  );
+
 describe('Steps', () => {
-  it('renders all step labels', () => {
-    render(<Steps steps={sampleSteps} />);
-    expect(screen.getByText('Register')).toBeInTheDocument();
-    expect(screen.getByText('Choose plan')).toBeInTheDocument();
-    expect(screen.getByText('Purchase')).toBeInTheDocument();
-    expect(screen.getByText('Complete')).toBeInTheDocument();
-  });
-
-  it('renders with aria-label', () => {
-    render(<Steps steps={sampleSteps} />);
-    expect(screen.getByLabelText('Progress')).toBeInTheDocument();
-  });
-
-  it('marks completed steps with color class', () => {
-    render(<Steps steps={sampleSteps} currentStep={1} color="primary" />);
-    const items = screen.getByLabelText('Progress').querySelectorAll('.step');
-    expect(items[0]).toHaveClass('step-primary');
-    expect(items[1]).toHaveClass('step-primary');
-    expect(items[2]).not.toHaveClass('step-primary');
-  });
-
-  it('marks current step with aria-current', () => {
-    render(<Steps steps={sampleSteps} currentStep={2} />);
-    const items = screen.getByLabelText('Progress').querySelectorAll('.step');
-    expect(items[2]).toHaveAttribute('aria-current', 'step');
-    expect(items[0]).not.toHaveAttribute('aria-current');
-    expect(items[1]).not.toHaveAttribute('aria-current');
-  });
-
-  it('renders vertical layout', () => {
-    render(<Steps steps={sampleSteps} vertical />);
-    expect(screen.getByLabelText('Progress')).toHaveClass('steps-vertical');
-  });
-
-  it('applies size class', () => {
-    render(<Steps steps={sampleSteps} size="lg" />);
-    expect(screen.getByLabelText('Progress')).toHaveClass('steps-lg');
-  });
-
-  it('supports per-step color override', () => {
-    const steps: StepItem[] = [
-      { label: 'Step 1', color: 'success' },
-      { label: 'Step 2', color: 'error' },
-    ];
-    render(<Steps steps={steps} currentStep={1} />);
-    const items = screen.getByLabelText('Progress').querySelectorAll('.step');
-    expect(items[0]).toHaveClass('step-success');
-    expect(items[1]).toHaveClass('step-error');
-  });
-
-  it('renders icons', () => {
-    const steps: StepItem[] = [{ label: 'Step 1', icon: <span data-testid="icon">★</span> }];
-    render(<Steps steps={steps} />);
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
-  });
-
-  it('supports data-content attribute', () => {
-    const steps: StepItem[] = [{ label: 'Step 1', dataContent: '✓' }];
-    render(<Steps steps={steps} currentStep={0} color="primary" />);
-    const item = screen.getByLabelText('Progress').querySelector('.step');
-    expect(item).toHaveAttribute('data-content', '✓');
-  });
-
-  it('no steps are marked when currentStep is -1', () => {
-    render(<Steps steps={sampleSteps} currentStep={-1} color="primary" />);
-    const items = screen.getByLabelText('Progress').querySelectorAll('.step');
-    items.forEach((item) => {
-      expect(item).not.toHaveClass('step-primary');
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Steps, 'Steps', {
+      declared: { props: declaredProps, events: ['onValueChange'] },
     });
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Steps ref={ref} steps={sampleSteps} />);
-    expect(ref).toHaveBeenCalled();
+  it('composes an ordered list from Step children', () => {
+    const { container } = render(
+      <Steps value={2} label="Listing progress">
+        <Step title="Basics" description="Title and type" />
+        <Step title="Location" />
+        <Step title="Pricing" />
+      </Steps>,
+    );
+    const list = screen.getByRole('list', { name: 'Listing progress' });
+    expect(list).toHaveClass('apui-steps');
+    expect(list).toHaveAttribute('data-orientation', 'horizontal');
+    expect(states(container)).toEqual(['complete', 'current', 'upcoming']);
+    expect(container.querySelector('[aria-current="step"]')).toHaveTextContent('Location');
+    expect(
+      [...container.querySelector('li')!.children].map((el) => el.getAttribute('data-part')),
+    ).toEqual(['marker', 'title', 'connector', 'description']);
   });
 
-  it('applies custom className', () => {
-    render(<Steps steps={sampleSteps} className="custom-class" />);
-    expect(screen.getByLabelText('Progress')).toHaveClass('custom-class');
+  it('marks complete and error steps with icons and hidden text', () => {
+    const { container } = render(
+      <Steps value={3}>
+        <Step title="A" />
+        <Step title="B" state="error" />
+        <Step title="C" />
+        <Step title="D" />
+      </Steps>,
+    );
+    const markers = container.querySelectorAll('[data-part="marker"]');
+    expect(states(container)).toEqual(['complete', 'error', 'current', 'upcoming']);
+    expect(markers[0]!.querySelector('svg')).not.toBeNull();
+    expect(markers[0]).toHaveTextContent('Completed');
+    expect(markers[1]).toHaveTextContent('Error');
+    expect(markers[2]).toHaveTextContent('3');
+    expect(container.querySelectorAll('[data-part="connector"][aria-hidden="true"]')).toHaveLength(
+      4,
+    );
+  });
+
+  it('renders steps data as the same children', () => {
+    const { container } = render(
+      <Steps
+        value={2}
+        orientation="vertical"
+        steps={[{ title: 'Cart', description: 'Two items' }, { title: 'Shipping' }]}
+      />,
+    );
+    expect(container.querySelector('ol')).toHaveAttribute('data-orientation', 'vertical');
+    expect(states(container)).toEqual(['complete', 'current']);
+    expect(container.querySelector('[data-part="description"]')).toHaveTextContent('Two items');
+  });
+
+  it('turns completed steps into buttons when clickable', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <Steps
+        value={3}
+        clickable
+        onValueChange={onValueChange}
+        steps={[{ title: 'Cart' }, { title: 'Shipping' }, { title: 'Payment' }]}
+      />,
+    );
+    expect(screen.getAllByRole('button')).toHaveLength(2);
+    await userEvent.click(screen.getByRole('button', { name: 'Shipping' }));
+    expect(onValueChange).toHaveBeenCalledWith(2);
+  });
+
+  it('takes translated state labels and per-part classes', () => {
+    const { container } = render(
+      <Steps
+        value={2}
+        completeLabel="Erledigt"
+        classes={{ root: 'r', step: 's', title: 't' }}
+        steps={[{ title: 'A' }, { title: 'B' }]}
+      />,
+    );
+    expect(container.querySelector('[data-part="marker"]')).toHaveTextContent('Erledigt');
+    expect(container.querySelector('ol')).toHaveClass('apui-steps', 'r');
+    expect(container.querySelector('li')).toHaveClass('s');
+    expect(container.querySelector('[data-part="title"]')).toHaveClass('t');
+  });
+
+  it('forwards the ref to the list', () => {
+    const ref = createRef<HTMLOListElement>();
+    render(<Steps ref={ref} steps={[{ title: 'A' }]} />);
+    expect(ref.current?.tagName).toBe('OL');
   });
 });

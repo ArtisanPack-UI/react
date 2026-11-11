@@ -49,6 +49,6 @@ describe('InertiaBreadcrumbs', () => {
   it('has proper navigation aria label', () => {
     render(<InertiaBreadcrumbs items={[{ label: 'Home', href: '/' }]} />);
 
-    expect(screen.getByRole('navigation')).toHaveAttribute('aria-label', 'Breadcrumbs');
+    expect(screen.getByRole('navigation')).toHaveAttribute('aria-label', 'Breadcrumb');
   });
 });

@@ -1,118 +1,130 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { Pagination } from '../../components/navigation/Pagination/Pagination';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import {
+  Pagination,
+  paginationRange,
+  type PaginationProps,
+} from '../../components/navigation/Pagination/Pagination';
+
+const declaredProps: (keyof PaginationProps)[] = [
+  'page',
+  'pageCount',
+  'total',
+  'perPage',
+  'siblings',
+  'summary',
+  'label',
+  'previousLabel',
+  'nextLabel',
+  'pageLabel',
+  'summaryLabel',
+  'classes',
+];
+
+const sequence = (container: HTMLElement) =>
+  [...container.querySelector('nav')!.children].map(
+    (el) => `${el.getAttribute('data-part')}:${el.textContent}`,
+  );
 
 describe('Pagination', () => {
-  it('renders page buttons', () => {
-    render(<Pagination currentPage={1} totalPages={5} />);
-    expect(screen.getByLabelText('Page 1')).toBeInTheDocument();
-    expect(screen.getByLabelText('Page 5')).toBeInTheDocument();
-  });
-
-  it('renders previous and next buttons', () => {
-    render(<Pagination currentPage={3} totalPages={5} />);
-    expect(screen.getByLabelText('Previous page')).toBeInTheDocument();
-    expect(screen.getByLabelText('Next page')).toBeInTheDocument();
-  });
-
-  it('marks current page with btn-active', () => {
-    render(<Pagination currentPage={3} totalPages={5} />);
-    expect(screen.getByLabelText('Page 3')).toHaveClass('btn-active');
-  });
-
-  it('marks current page with aria-current', () => {
-    render(<Pagination currentPage={3} totalPages={5} />);
-    expect(screen.getByLabelText('Page 3')).toHaveAttribute('aria-current', 'page');
-  });
-
-  it('calls onChange when page is clicked', () => {
-    const onChange = vi.fn();
-    render(<Pagination currentPage={3} totalPages={5} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Page 4'));
-    expect(onChange).toHaveBeenCalledWith(4);
-  });
-
-  it('calls onChange with prev page', () => {
-    const onChange = vi.fn();
-    render(<Pagination currentPage={3} totalPages={5} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Previous page'));
-    expect(onChange).toHaveBeenCalledWith(2);
-  });
-
-  it('calls onChange with next page', () => {
-    const onChange = vi.fn();
-    render(<Pagination currentPage={3} totalPages={5} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Next page'));
-    expect(onChange).toHaveBeenCalledWith(4);
-  });
-
-  it('disables previous button on first page', () => {
-    render(<Pagination currentPage={1} totalPages={5} />);
-    expect(screen.getByLabelText('Previous page')).toBeDisabled();
-  });
-
-  it('disables next button on last page', () => {
-    render(<Pagination currentPage={5} totalPages={5} />);
-    expect(screen.getByLabelText('Next page')).toBeDisabled();
-  });
-
-  it('does not call onChange for current page', () => {
-    const onChange = vi.fn();
-    render(<Pagination currentPage={3} totalPages={5} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Page 3'));
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('shows ellipsis for large page ranges', () => {
-    render(<Pagination currentPage={5} totalPages={10} siblings={1} />);
-    const ellipsisButtons = screen.getAllByText('…');
-    expect(ellipsisButtons.length).toBeGreaterThan(0);
-  });
-
-  it('applies size classes', () => {
-    render(<Pagination currentPage={1} totalPages={3} size="lg" />);
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach((btn) => {
-      expect(btn).toHaveClass('btn-lg');
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Pagination, 'Pagination', {
+      declared: { props: declaredProps, events: ['onPageChange'] },
     });
   });
 
-  it('disables all buttons when disabled', () => {
-    render(<Pagination currentPage={2} totalPages={3} disabled />);
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach((btn) => {
-      expect(btn).toBeDisabled();
-    });
+  it('renders a named nav with previous, the pages and next', () => {
+    const { container } = render(<Pagination page={3} total={318} perPage={10} />);
+    expect(screen.getByRole('navigation', { name: 'Pagination' })).toHaveClass('apui-pagination');
+    expect(sequence(container)).toEqual([
+      'previous:',
+      'page:1',
+      'page:2',
+      'page:3',
+      'page:4',
+      'page:5',
+      'ellipsis:…',
+      'page:32',
+      'next:',
+    ]);
   });
 
-  it('renders custom previous/next labels', () => {
-    render(<Pagination currentPage={2} totalPages={3} previousLabel="Prev" nextLabel="Next" />);
-    expect(screen.getByText('Prev')).toBeInTheDocument();
-    expect(screen.getByText('Next')).toBeInTheDocument();
+  it('marks the current page and names every control', () => {
+    render(<Pagination page={3} total={318} />);
+    expect(screen.getByRole('button', { name: 'Page 3' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Previous page' })).toHaveAttribute('data-mirror');
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeInTheDocument();
   });
 
-  it('renders single page', () => {
-    render(<Pagination currentPage={1} totalPages={1} />);
-    expect(screen.getByLabelText('Page 1')).toHaveClass('btn-active');
-    expect(screen.getByLabelText('Previous page')).toBeDisabled();
-    expect(screen.getByLabelText('Next page')).toBeDisabled();
+  it('reports page-change from pages, previous and next', async () => {
+    const onPageChange = vi.fn();
+    render(<Pagination page={3} pageCount={10} onPageChange={onPageChange} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Page 4' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Previous page' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Page 3' }));
+    expect(onPageChange.mock.calls).toEqual([[4], [2], [4]]);
   });
 
-  it('has aria-label on the nav', () => {
-    render(<Pagination currentPage={1} totalPages={3} />);
-    expect(screen.getByLabelText('Pagination')).toBeInTheDocument();
+  it('keeps previous and next focusable but inert at the ends', async () => {
+    const onPageChange = vi.fn();
+    render(<Pagination page={1} pageCount={1} onPageChange={onPageChange} />);
+    const previous = screen.getByRole('button', { name: 'Previous page' });
+    expect(previous).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Next page' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    await userEvent.click(previous);
+    expect(onPageChange).not.toHaveBeenCalled();
   });
 
-  it('renders nothing when totalPages is 0', () => {
-    render(<Pagination currentPage={1} totalPages={0} />);
-    expect(screen.queryByLabelText('Page 1')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Previous page')).toBeDisabled();
-    expect(screen.getByLabelText('Next page')).toBeDisabled();
+  it('prefers pageCount and clamps the page', () => {
+    render(<Pagination page={9} pageCount={3} total={1000} />);
+    expect(screen.getAllByRole('button', { name: /^Page / })).toHaveLength(3);
+    expect(screen.getByRole('button', { name: 'Page 3' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Pagination ref={ref} currentPage={1} totalPages={3} />);
-    expect(ref).toHaveBeenCalled();
+  it('keeps one width as the page moves', () => {
+    expect(paginationRange(1, 20, 1)).toEqual([1, 2, 3, 4, 5, null, 20]);
+    expect(paginationRange(10, 20, 1)).toEqual([1, null, 9, 10, 11, null, 20]);
+    expect(paginationRange(20, 20, 1)).toEqual([1, null, 16, 17, 18, 19, 20]);
+    expect(paginationRange(2, 6, 1)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('shows a translatable summary', () => {
+    const { container, rerender } = render(<Pagination page={32} total={318} summary />);
+    const summary = () => container.querySelector('[data-part="summary"]')!.textContent;
+    expect(summary()).toBe('Showing 311–318 of 318');
+    rerender(<Pagination page={2} pageCount={32} summary />);
+    expect(summary()).toBe('Page 2 of 32');
+    rerender(
+      <Pagination page={2} pageCount={32} summary summaryLabel="Seite {page} von {pageCount}" />,
+    );
+    expect(summary()).toBe('Seite 2 von 32');
+  });
+
+  it('takes translated labels', () => {
+    render(
+      <Pagination
+        pageCount={2}
+        label="Seiten"
+        previousLabel="Zurück"
+        nextLabel="Weiter"
+        pageLabel="Seite {page}"
+      />,
+    );
+    expect(screen.getByRole('navigation', { name: 'Seiten' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zurück' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Seite 2' })).toBeInTheDocument();
+  });
+
+  it('forwards the ref to the nav', () => {
+    const ref = createRef<HTMLElement>();
+    render(<Pagination ref={ref} pageCount={2} />);
+    expect(ref.current?.tagName).toBe('NAV');
   });
 });

@@ -9,7 +9,7 @@ const meta: Meta<typeof File> = {
     docs: {
       description: {
         component:
-          'File upload input with drag-and-drop zone, upload progress indicator, error state, disabled mode, and multi-file support.',
+          'Uploads files by dropping or browsing: a native file input over a drop zone, and a list with sizes, progress, errors and remove buttons.',
       },
     },
   },
@@ -18,49 +18,37 @@ const meta: Meta<typeof File> = {
 export default meta;
 type Story = StoryObj<typeof File>;
 
-export const Default: Story = {
-  args: {},
-};
-
-export const WithLabel: Story = {
+export const Dropzone: Story = {
   args: {
-    label: 'Upload Document',
-  },
-};
-
-export const DragAndDrop: Story = {
-  args: {
-    label: 'Upload Files',
-    withDragDrop: true,
-    dragDropText: 'Drag and drop files here or click to browse',
-  },
-};
-
-export const WithProgress: Story = {
-  args: {
-    label: 'Uploading...',
-    progress: 45,
-  },
-};
-
-export const WithError: Story = {
-  args: {
-    label: 'Avatar',
-    error: 'File size must be less than 2MB.',
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    label: 'Disabled Upload',
-    disabled: true,
-  },
-};
-
-export const Multiple: Story = {
-  args: {
-    label: 'Gallery Images',
+    label: 'Listing photos',
+    title: 'Drop photos here or browse',
+    hint: 'JPG or PNG, up to 20 MB each, 12 files max',
     multiple: true,
-    hint: 'Select multiple files to upload.',
+    accept: 'image/jpeg,image/png',
   },
+};
+
+export const WithFiles: Story = {
+  args: {
+    label: 'Listing photos',
+    multiple: true,
+    value: [
+      { name: 'lakeview-lofts-exterior.jpg', size: 2400000 },
+      { name: 'courtyard-garden.jpg', size: 1250000, progress: 64 },
+      { name: 'floor-plan.heic', size: 830000, error: "HEIC isn't supported. Use JPG or PNG." },
+    ],
+  },
+};
+
+export const Compact: Story = {
+  args: {
+    variant: 'compact',
+    title: 'Upload a contract',
+    hint: 'PDF up to 10 MB',
+    accept: 'application/pdf',
+  },
+};
+
+export const Invalid: Story = {
+  args: { label: 'Documents', required: true, error: 'Add at least one document.' },
 };

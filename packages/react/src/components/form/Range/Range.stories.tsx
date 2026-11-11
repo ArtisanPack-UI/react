@@ -9,15 +9,17 @@ const meta: Meta<typeof Range> = {
     docs: {
       description: {
         component:
-          'Slider range input with label, current value display, hint, error state, custom min/max/step, and DaisyUI color variants.',
+          'A slider for one value, or two thumbs (dual) for a range; native inputs over a drawn track, with a value bubble and marks.',
       },
     },
   },
   argTypes: {
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
+    size: { control: 'select', options: ['sm', 'md'] },
+    showValue: { control: 'select', options: ['never', 'focus', 'always'] },
   },
 };
 
@@ -25,48 +27,38 @@ export default meta;
 type Story = StoryObj<typeof Range>;
 
 export const Default: Story = {
-  args: {},
-};
-
-export const WithLabel: Story = {
   args: {
-    label: 'Volume',
+    label: 'Search radius',
+    max: 50,
+    defaultValue: 20,
+    format: '{value} km',
+    marks: [
+      { value: 0, label: '0 km' },
+      { value: 25, label: '25 km' },
+      { value: 50, label: '50 km' },
+    ],
   },
 };
 
-export const ColorVariants: Story = {
+export const Dual: Story = {
+  args: {
+    label: 'Price',
+    dual: true,
+    min: 100,
+    max: 700,
+    step: 10,
+    defaultValue: [200, 450],
+    format: '${value}k',
+    showValue: 'always',
+  },
+};
+
+export const ColorsAndStates: Story = {
   render: () => (
-    <div className="flex flex-col gap-4">
-      <Range label="Primary" color="primary" />
-      <Range label="Secondary" color="secondary" />
-      <Range label="Accent" color="accent" />
-      <Range label="Success" color="success" />
-      <Range label="Warning" color="warning" />
-      <Range label="Error" color="error" />
-      <Range label="Info" color="info" />
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Range label="Volume" defaultValue={80} color="success" />
+      <Range label="Opacity" defaultValue={30} size="sm" />
+      <Range label="Locked" defaultValue={50} disabled />
     </div>
   ),
-};
-
-export const WithHint: Story = {
-  args: {
-    label: 'Brightness',
-    hint: 'Adjust the screen brightness level.',
-  },
-};
-
-export const WithError: Story = {
-  args: {
-    label: 'Budget',
-    error: 'Value must be between 100 and 500.',
-  },
-};
-
-export const CustomMinMax: Story = {
-  args: {
-    label: 'Price Range',
-    min: 0,
-    max: 1000,
-    step: 100,
-  },
 };

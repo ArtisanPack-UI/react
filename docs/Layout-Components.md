@@ -472,41 +472,50 @@ Flexbox layout container for vertical or horizontal stacking.
 
 ## Tabs
 
-Tabbed interface with keyboard navigation.
-
-### TabItem
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `name` | `string` | Unique tab identifier |
-| `label` | `ReactNode` | Tab button label |
-| `content` | `ReactNode` | Tab panel content |
-| `disabled` | `boolean` | Disable this tab |
-| `icon` | `ReactNode` | Icon before label |
+Switches between views of the same content, built on the design system (`.apui-tabs`) and the behavior engine's tabs machine. A tablist of triggers and one panel per tab; only the selected tab is in the Tab order, the arrow keys move between tabs and follow the text direction (in RTL ArrowLeft moves to the next tab), Home and End jump. Compose it from `Tab` children, each holding its panel (direct children or inside a fragment), or pass the same structure as `tabs`.
 
 ### Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `tabs` | `TabItem[]` | **required** | Tab definitions |
-| `activeTab` | `string` | — | Active tab name (controlled) |
-| `defaultTab` | `string` | — | Initial active tab (uncontrolled) |
-| `onChange` | `(tabName: string) => void` | — | Tab change callback |
-| `variant` | `'bordered' \| 'lifted' \| 'boxed'` | `'bordered'` | Visual style |
-| `size` | `Size` | — | Tab button size |
-| `vertical` | `boolean` | `false` | Vertical layout (tabs left) |
-| `verticalRight` | `boolean` | `false` | Vertical layout (tabs right) |
-| `color` | `DaisyColor` | — | Active tab color |
-| `tabListClassName` | `string` | — | Tab list CSS class |
-| `panelClassName` | `string` | — | Tab panel CSS class |
-| `activeTabClassName` | `string` | — | Active tab button CSS class |
+| `value` | `string` | — | The selected tab (controlled). Pair it with `onValueChange` |
+| `defaultValue` | `string` | first enabled tab | The initially selected tab when uncontrolled |
+| `onValueChange` | `(value: string) => void` | — | Another tab was selected, by click or the keyboard |
+| `tabs` | `TabData[]` | — | The tabs as data: `{ value, label, icon, count, disabled, content }`. Rendered before `children` |
+| `variant` | `'segmented' \| 'underline'` | `'segmented'` | Segmented for filters and view switches, underline under a page header (`data-variant`) |
+| `size` | `'sm' \| 'md'` | `'md'` | The triggers' size (`data-size`) |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Row or column; picks the arrow keys (`data-orientation`) |
+| `activationMode` | `'automatic' \| 'manual'` | `'automatic'` | Manual only moves focus; Enter or Space selects (`data-activation-mode`) |
+| `label` | `string` | — | Names the tablist. Needed when a page has more than one set of tabs |
+| `classes` | `Partial<Record<TabsPart, string>>` | — | Extra classes per part: `root`, `list`, `trigger`, `icon`, `count`, `content` |
+
+### Tab Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string` | **required** | Unique in the tabs |
+| `label` | `ReactNode` | **required** | The trigger's label |
+| `icon` | `string \| ReactNode` | — | Icon name or node before the label |
+| `count` | `ReactNode` | — | A count at the end of the trigger; part of its accessible name |
+| `disabled` | `boolean` | `false` | Skipped by the arrow keys |
+| `children` | `ReactNode` | — | The panel. Native attributes go to the panel |
 
 ```tsx
-<Tabs
-  variant="lifted"
-  tabs={[
-    { name: 'overview', label: 'Overview', content: <p>Overview content</p> },
-    { name: 'details', label: 'Details', content: <p>Details content</p> },
-  ]}
-/>
+import { Tab, Tabs } from '@artisanpack-ui/react';
+import { useState } from 'react';
+
+export default function BasicExample() {
+  const [section, setSection] = useState('profile');
+
+  return (
+    <Tabs value={section} onValueChange={setSection} label="Account">
+      <Tab value="profile" label="Profile" icon="user">
+        Your name, photo and contact details.
+      </Tab>
+      <Tab value="security" label="Security" icon="lock">
+        Password and two-factor authentication.
+      </Tab>
+    </Tabs>
+  );
+}
 ```
