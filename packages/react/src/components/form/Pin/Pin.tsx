@@ -1,227 +1,256 @@
-/** @module Pin */
+/**
+ * @module Pin
+ *
+ * The design-system Pin (#53). Renders the `.apui-pin` markup contract,
+ * styled by `@artisanpack-ui/css`: one native input with
+ * `autocomplete="one-time-code"` lies over a row of cells that mirror its
+ * value, so SMS autofill, paste and screen readers see one field.
+ */
 
 import {
   forwardRef,
-  useCallback,
-  useEffect,
-  useId,
+  Fragment,
+  useImperativeHandle,
   useRef,
+  useState,
+  type ChangeEvent,
   type ClipboardEvent,
   type InputHTMLAttributes,
-  type KeyboardEvent,
+  type ReactNode,
 } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { useFormReset } from '../../../internal/form-reset';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+
+/** Cell size of a {@link Pin}. */
+export type PinSize = 'sm' | 'md';
+
+/** The characters a {@link Pin} accepts. */
+export type PinType = 'numeric' | 'alphanumeric';
+
+/** The parts a {@link Pin} accepts extra classes for. */
+export type PinPart =
+  | 'root'
+  | 'label'
+  | 'required'
+  | 'cells'
+  | 'control'
+  | 'cell'
+  | 'separator'
+  | 'hint'
+  | 'error';
+
+/** Drops the characters a type doesn't allow and cuts the code to `length`. */
+export function sanitizePin(raw: string, type: PinType, length: number): string {
+  const allowed = type === 'numeric' ? raw.replace(/\D/g, '') : raw.replace(/[^A-Za-z0-9]/g, '');
+  return allowed.slice(0, length);
+}
 
 /**
  * Props for the {@link Pin} component.
  *
- * Extends native `<input>` HTML attributes (excluding `size` and `type`).
- * Renders a row of individual single-character inputs for PIN/OTP entry
- * with auto-focus navigation, paste support, and completion callbacks.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `aria-*`, `data-*`, `id`, …) goes to the native `<input>`.
  */
-export interface PinProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Number of individual PIN input fields to render. This is required. */
-  length: number;
-  /** When true, restricts input to digits only (0-9) and sets `inputMode="numeric"`. @defaultValue `false` */
-  numeric?: boolean;
-  /** When true, masks the input characters using `type="password"`. @defaultValue `false` */
-  hide?: boolean;
-  /** Error message displayed below the PIN inputs. Adds `aria-invalid` to each field. */
+export interface PinProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'type' | 'value' | 'defaultValue' | 'maxLength'
+> {
+  /** The number of cells. @defaultValue `6` */
+  length?: number;
+  /** The characters allowed. @defaultValue `'numeric'` */
+  type?: PinType;
+  /** Shows a dot for each character and makes the control a password input. @defaultValue `false` */
+  mask?: boolean;
+  /** Draws a separator after every `groupSize` cells. */
+  groupSize?: number;
+  /** Cell size. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: PinSize;
+  /** The visible label, linked to the control. Without it, pass an `aria-label`. */
+  label?: ReactNode;
+  /** Help text under the cells, linked with `aria-describedby`. */
+  hint?: ReactNode;
+  /** Validation message. Marks the code invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** DaisyUI color variant applied to each individual PIN input field. */
-  color?: DaisyColor;
-  /** Callback fired when all PIN fields are filled. Receives the complete PIN string. */
-  onComplete?: (value: string) => void;
-  /** Callback fired when the PIN becomes incomplete (e.g., a character is deleted). Receives the current partial value. */
-  onIncomplete?: (value: string) => void;
-  /** The current PIN value for controlled usage. Each character maps to one input field. */
+  /** Marks the code invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the control. @defaultValue `false` */
+  disabled?: boolean;
+  /** Marks the code required and shows the required mark. @defaultValue `false` */
+  required?: boolean;
+  /** The code of a controlled pin. */
   value?: string;
-  /** Callback fired on every input change with the current concatenated PIN value. */
+  /** The initial code of an uncontrolled pin. */
+  defaultValue?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<PinPart>;
+  /** Called with the new code whenever it changes. The native `onChange` still fires. */
   onValueChange?: (value: string) => void;
+  /** Called with the code once every cell is filled. */
+  onComplete?: (value: string) => void;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'input-primary',
-  secondary: 'input-secondary',
-  accent: 'input-accent',
-  success: 'input-success',
-  warning: 'input-warning',
-  error: 'input-error',
-  info: 'input-info',
-  neutral: 'input-neutral',
-};
-
 /**
- * A multi-field PIN/OTP entry component with auto-focus navigation between fields,
- * clipboard paste support, arrow key navigation, and completion/incompletion callbacks.
- * Supports both controlled and uncontrolled usage. The forwarded ref points to the
- * first input field.
+ * A row of single-character cells for one-time codes. Controlled (`value` +
+ * `onValueChange`) or uncontrolled (`defaultValue`); `onComplete` fires when
+ * the last cell is filled. The ref points at the native `<input>`.
  *
  * @example
  * ```tsx
- * <Pin length={6} numeric onComplete={(pin) => verifyOTP(pin)} />
- * ```
- *
- * @example
- * ```tsx
- * <Pin length={4} hide color="primary" value={pin} onValueChange={setPin} />
+ * <Pin label="Verification code" groupSize={3} onComplete={verify} />
  * ```
  */
 export const Pin = forwardRef<HTMLInputElement, PinProps>(
   (
     {
-      length,
-      numeric = false,
-      hide = false,
+      length = 6,
+      type = 'numeric',
+      mask = false,
+      groupSize,
+      size = 'md',
+      label,
+      hint,
       error,
-      color,
-      onComplete,
-      onIncomplete,
-      value: controlledValue,
-      onValueChange,
+      invalid = false,
+      disabled = false,
+      required = false,
+      value,
+      defaultValue,
+      classes = {},
       className,
-      id: providedId,
+      id: explicitId,
+      onChange,
+      onPaste,
+      onValueChange,
+      onComplete,
+      'aria-describedby': callerDescribedBy,
+      'aria-invalid': callerInvalid,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const errorId = error ? `${id}-error` : undefined;
-    const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-
-    // Sync controlled value to individual inputs
-    useEffect(() => {
-      if (controlledValue === undefined) return;
-      inputsRef.current.forEach((input, i) => {
-        if (input) {
-          input.value = controlledValue[i] ?? '';
-        }
-      });
-    }, [controlledValue]);
-
-    const getValue = useCallback(() => {
-      return inputsRef.current.map((input) => input?.value ?? '').join('');
-    }, []);
-
-    const notifyChange = useCallback(
-      (currentValue: string) => {
-        onValueChange?.(currentValue);
-        if (currentValue.length === length && currentValue.split('').every((c) => c !== '')) {
-          onComplete?.(currentValue);
-        } else {
-          onIncomplete?.(currentValue);
-        }
-      },
-      [length, onComplete, onIncomplete, onValueChange],
+    const isInvalid = invalid || Boolean(error);
+    const [uncontrolled, setUncontrolled] = useState(defaultValue ?? '');
+    const isControlled = value !== undefined;
+    const current = isControlled ? value : uncontrolled;
+    // An uncontrolled pin follows its form's reset, so the cells don't keep the old code.
+    const controlRef = useRef<HTMLInputElement | null>(null);
+    useImperativeHandle(ref, () => controlRef.current as HTMLInputElement);
+    useFormReset(controlRef, !isControlled, (control) => setUncontrolled(control.value));
+    const { id, helpId, errorId, describedBy } = useFieldIds(
+      explicitId,
+      { suffix: 'hint', content: hint },
+      error,
+      callerDescribedBy,
     );
 
-    const handleInput = useCallback(
-      (index: number, inputValue: string) => {
-        if (numeric && !/^\d*$/.test(inputValue)) {
-          const input = inputsRef.current[index];
-          if (input) input.value = '';
-          return;
-        }
+    const commit = (next: string) => {
+      if (!isControlled) setUncontrolled(next);
+      onValueChange?.(next);
+      if (next.length === length) onComplete?.(next);
+    };
 
-        if (inputValue.length > 0 && index < length - 1) {
-          inputsRef.current[index + 1]?.focus();
-        }
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const next = sanitizePin(event.target.value, type, length);
+      if (next !== event.target.value) event.target.value = next;
+      onChange?.(event);
+      commit(next);
+    };
 
-        notifyChange(getValue());
-      },
-      [numeric, length, getValue, notifyChange],
-    );
+    const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+      onPaste?.(event);
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      const input = event.currentTarget;
+      const pasted = event.clipboardData.getData('text');
+      const start = input.selectionStart ?? current.length;
+      const end = input.selectionEnd ?? current.length;
+      const next = sanitizePin(current.slice(0, start) + pasted + current.slice(end), type, length);
+      input.value = next;
+      commit(next);
+    };
 
-    const handleKeyDown = useCallback(
-      (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Backspace') {
-          const input = inputsRef.current[index];
-          if (input && input.value === '' && index > 0) {
-            inputsRef.current[index - 1]?.focus();
-          }
-        } else if (e.key === 'ArrowLeft' && index > 0) {
-          inputsRef.current[index - 1]?.focus();
-        } else if (e.key === 'ArrowRight' && index < length - 1) {
-          inputsRef.current[index + 1]?.focus();
-        }
-      },
-      [length],
-    );
-
-    const handlePaste = useCallback(
-      (e: ClipboardEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const pastedData = e.clipboardData.getData('text').slice(0, length);
-
-        if (numeric && !/^\d*$/.test(pastedData)) {
-          return;
-        }
-
-        for (let i = 0; i < length; i++) {
-          const input = inputsRef.current[i];
-          if (input) {
-            input.value = pastedData[i] ?? '';
-          }
-        }
-
-        const lastFilledIndex = Math.min(pastedData.length, length) - 1;
-        if (lastFilledIndex >= 0 && lastFilledIndex < length - 1) {
-          inputsRef.current[lastFilledIndex + 1]?.focus();
-        } else if (lastFilledIndex === length - 1) {
-          inputsRef.current[lastFilledIndex]?.focus();
-        }
-
-        notifyChange(getValue());
-      },
-      [length, numeric, getValue, notifyChange],
-    );
+    const active = Math.min(current.length, length - 1);
+    const cells = Array.from({ length }, (_, index) => {
+      const char = current[index];
+      const cell = (
+        <span
+          className={classes.cell}
+          data-scope="pin"
+          data-part="cell"
+          aria-hidden="true"
+          data-filled={flag(char !== undefined)}
+          data-active={flag(index === active)}
+        >
+          {char === undefined ? null : mask ? '•' : char}
+        </span>
+      );
+      const separated =
+        groupSize !== undefined &&
+        groupSize > 0 &&
+        (index + 1) % groupSize === 0 &&
+        index < length - 1;
+      return (
+        <Fragment key={index}>
+          {cell}
+          {separated ? (
+            <span
+              className={classes.separator}
+              data-scope="pin"
+              data-part="separator"
+              aria-hidden="true"
+            />
+          ) : null}
+        </Fragment>
+      );
+    });
 
     return (
-      <div className="fieldset w-full">
-        <div className="flex gap-2" role="group" aria-label="PIN input">
-          {Array.from({ length }).map((_, index) => (
-            <input
-              key={index}
-              ref={(el) => {
-                inputsRef.current[index] = el;
-                if (index === 0) {
-                  if (typeof ref === 'function') {
-                    ref(el);
-                  } else if (ref && 'current' in ref) {
-                    ref.current = el;
-                  }
-                }
-              }}
-              id={`${id}-${index}`}
-              type={hide ? 'password' : 'text'}
-              inputMode={numeric ? 'numeric' : 'text'}
-              pattern={numeric ? '[0-9]*' : undefined}
-              maxLength={1}
-              className={cn(
-                'input w-12 h-12 text-center text-lg font-mono',
-                color && colorMap[color],
-                error && 'input-error',
-                className,
-              )}
-              defaultValue={controlledValue?.[index] ?? ''}
-              onInput={(e) => handleInput(index, (e.target as HTMLInputElement).value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              onPaste={handlePaste}
-              autoComplete="one-time-code"
-              aria-label={`PIN digit ${index + 1} of ${length}`}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? errorId : undefined}
-              {...rest}
-            />
-          ))}
+      <div
+        className={cx('apui-pin', classes.root, className)}
+        data-size={size}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+      >
+        <FieldLabel
+          scope="pin"
+          htmlFor={id}
+          label={label}
+          required={required}
+          className={classes.label}
+          requiredClassName={classes.required}
+        />
+        <div className={classes.cells} data-scope="pin" data-part="cells">
+          <input
+            autoCapitalize="off"
+            spellCheck={false}
+            {...rest}
+            ref={controlRef}
+            className={classes.control}
+            data-scope="pin"
+            data-part="control"
+            id={id}
+            type={mask ? 'password' : 'text'}
+            inputMode={type === 'numeric' ? 'numeric' : 'text'}
+            pattern={type === 'numeric' ? '[0-9]*' : undefined}
+            autoComplete="one-time-code"
+            maxLength={length}
+            value={isControlled ? value : undefined}
+            defaultValue={isControlled ? undefined : defaultValue}
+            disabled={disabled || undefined}
+            required={required || undefined}
+            aria-invalid={isInvalid ? true : callerInvalid}
+            aria-describedby={describedBy}
+            onChange={handleChange}
+            onPaste={handlePaste}
+          />
+          {cells}
         </div>
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
+        <FieldHelp scope="pin" part="hint" id={helpId} className={classes.hint}>
+          {hint}
+        </FieldHelp>
+        <FieldError scope="pin" id={errorId} message={error} className={classes.error} />
       </div>
     );
   },

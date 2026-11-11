@@ -1,236 +1,331 @@
-/** @module ColorPicker */
+/**
+ * @module ColorPicker
+ *
+ * The design-system ColorPicker (#53): a color field whose swatch opens a
+ * popover with a saturation and brightness area, hue and opacity sliders, a
+ * format select (HEX, RGB, HSL, OKLCH), an eyedropper and preset swatches.
+ * The text value stays in the field, always available for typing. It runs
+ * on the behavior engine's color-picker machine (`useColorPicker`) and
+ * renders the `.apui-color-picker` markup contract styled by
+ * `@artisanpack-ui/css`.
+ *
+ * @packageDocumentation
+ */
 
 import {
-  forwardRef,
-  useCallback,
-  useId,
-  useRef,
-  useState,
-  type InputHTMLAttributes,
-  type ReactNode,
-} from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+  COLOR_FORMATS,
+  type ColorTextFormat,
+  useColorPicker,
+} from '@artisanpack-ui/behavior/react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { IconSvg } from '../../../internal/icon';
+import { mergePartProps } from '../../../internal/merge';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+import { Portal } from '../../../internal/portal';
+
+export type { ColorTextFormat };
+
+/** The parts a {@link ColorPicker} accepts extra classes for. */
+export type ColorPickerPart =
+  | 'root'
+  | 'label'
+  | 'required'
+  | 'box'
+  | 'trigger'
+  | 'swatch'
+  | 'control'
+  | 'hint'
+  | 'error'
+  | 'positioner'
+  | 'content'
+  | 'area'
+  | 'areaBackground'
+  | 'areaThumb'
+  | 'channelSlider'
+  | 'channelSliderTrack'
+  | 'channelSliderThumb'
+  | 'transparencyGrid'
+  | 'row'
+  | 'formatSelect'
+  | 'eyeDropperTrigger'
+  | 'swatchGroup'
+  | 'swatchTrigger';
+
+/** Control height of a {@link ColorPicker}. */
+export type ColorPickerSize = 'sm' | 'md' | 'lg';
+
+/** The default picker label. Pass `triggerLabel` to translate it. */
+export const COLOR_PICKER_DEFAULT_PICKER_LABEL = 'Choose a color';
+
+/** The default swatch group label. Pass `swatchesLabel` to translate it. */
+export const COLOR_PICKER_DEFAULT_SWATCHES_LABEL = 'Swatches';
+
+/** What the format select shows for each format. */
+const FORMAT_NAMES: Record<ColorTextFormat, string> = {
+  hex: 'HEX',
+  rgb: 'RGB',
+  hsl: 'HSL',
+  oklch: 'OKLCH',
+};
 
 /**
  * Props for the {@link ColorPicker} component.
  *
- * Extends native `<input>` HTML attributes (excluding `size`, `type`, and `prefix`).
- * Combines a native color input with a hex value display, optional icons,
- * and action buttons for clearing and generating random colors.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `aria-*`, `autoComplete`, …) goes to the text input.
  */
 export interface ColorPickerProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'size' | 'type' | 'prefix'
+  'size' | 'type' | 'value' | 'defaultValue' | 'onChange'
 > {
-  /** Text label displayed above the color picker. */
-  label?: string;
-  /** Helper text displayed below the color picker. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the picker. Replaces `hint` when present and adds `aria-invalid`. */
+  /** The color as text in any format (controlled); reported in the current format. */
+  value?: string;
+  /** The initial color of an uncontrolled picker. */
+  defaultValue?: string;
+  /** The text format. The format select switches it. @defaultValue `'hex'` */
+  format?: ColorTextFormat;
+  /** Offers opacity. Off keeps every value opaque. @defaultValue `true` */
+  alpha?: boolean;
+  /** Preset colors as text, shown in the popover. */
+  swatches?: string[];
+  /** Control height. @defaultValue `'md'` */
+  size?: ColorPickerSize;
+  /** The visible label, linked to the text value. */
+  label?: ReactNode;
+  /** Help text under the field, linked with `aria-describedby`. */
+  hint?: ReactNode;
+  /** Validation message. Marks the field invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** Icon element rendered to the left of the hex value display. */
-  icon?: ReactNode;
-  /** Icon element rendered to the right of the action buttons. */
-  iconRight?: ReactNode;
-  /** When true, shows a clear button that resets the color to `defaultValue` or `#000000`. @defaultValue `false` */
-  clearable?: boolean;
-  /** Callback fired when the clear button is clicked. */
-  onClear?: () => void;
-  /** When true, shows a button to generate a random hex color. @defaultValue `false` */
-  random?: boolean;
-  /** Callback fired when a random color is generated, receiving the new hex string. */
-  onRandomColor?: (color: string) => void;
-  /** Custom icon element for the random color button. Defaults to a refresh/shuffle SVG. */
-  randomIcon?: ReactNode;
-}
-
-function generateRandomHex(): string {
-  return (
-    '#' +
-    Math.floor(Math.random() * 16777216)
-      .toString(16)
-      .padStart(6, '0')
-  );
+  /** Marks the field invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the field and the popover's controls. @defaultValue `false` */
+  disabled?: boolean;
+  /** Marks the field required and shows the required mark. @defaultValue `false` */
+  required?: boolean;
+  /** Whether the popover is open (controlled). */
+  open?: boolean;
+  /** The initial state of an uncontrolled popover. */
+  defaultOpen?: boolean;
+  /** Renders the popover at the end of the body. @defaultValue `true` */
+  portal?: boolean;
+  /** The swatch button's and the popover's name. @defaultValue `'Choose a color'` */
+  triggerLabel?: string;
+  /** The area's name. @defaultValue `'Saturation and brightness'` */
+  areaLabel?: string;
+  /** The hue slider's name. @defaultValue `'Hue'` */
+  hueLabel?: string;
+  /** The opacity slider's name. @defaultValue `'Opacity'` */
+  alphaLabel?: string;
+  /** The format select's name. @defaultValue `'Format'` */
+  formatLabel?: string;
+  /** The eyedropper's name. @defaultValue `'Pick a color from the screen'` */
+  eyeDropperLabel?: string;
+  /** The preset group's name. @defaultValue `'Swatches'` */
+  swatchesLabel?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<ColorPickerPart>;
+  /** Called with the color as text in the current format. */
+  onValueChange?: (value: string) => void;
+  /** Called when the popover opens or closes itself. */
+  onOpenChange?: (open: boolean) => void;
+  /** Called when the format select changes the format. */
+  onFormatChange?: (format: ColorTextFormat) => void;
 }
 
 /**
- * A color picker that combines a native `<input type="color">` swatch with a hex value display.
- * Supports controlled and uncontrolled usage, optional clear and random color buttons,
- * and icon adornments. Fires native `input` events for form compatibility.
+ * A color field with a picker popover. Controlled (`value` +
+ * `onValueChange`) or uncontrolled (`defaultValue`). The ref points at the
+ * text input.
  *
  * @example
  * ```tsx
- * <ColorPicker label="Brand Color" value="#3b82f6" onChange={handleChange} />
- * ```
- *
- * @example
- * ```tsx
- * <ColorPicker label="Theme" random clearable onRandomColor={(c) => console.log(c)} />
+ * <ColorPicker label="Accent color" swatches={brand} value={accent} onValueChange={setAccent} />
  * ```
  */
 export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
   (
     {
+      value,
+      defaultValue,
+      format = 'hex',
+      alpha = true,
+      swatches = [],
+      size = 'md',
       label,
       hint,
       error,
-      icon,
-      iconRight,
-      clearable = false,
-      onClear,
-      random = false,
-      onRandomColor,
-      randomIcon,
+      invalid = false,
+      disabled = false,
+      required = false,
+      open,
+      defaultOpen,
+      portal = true,
+      triggerLabel = COLOR_PICKER_DEFAULT_PICKER_LABEL,
+      areaLabel = 'Saturation and brightness',
+      hueLabel = 'Hue',
+      alphaLabel = 'Opacity',
+      formatLabel = 'Format',
+      eyeDropperLabel = 'Pick a color from the screen',
+      swatchesLabel = COLOR_PICKER_DEFAULT_SWATCHES_LABEL,
+      classes = {},
       className,
-      id: providedId,
-      value,
-      defaultValue,
-      onChange,
-      required,
+      id: explicitId,
+      onValueChange,
+      onOpenChange,
+      onFormatChange,
+      'aria-describedby': callerDescribedBy,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-    const errorId = error ? `${id}-error` : undefined;
-    const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
-
-    const [internalValue, setInternalValue] = useState((defaultValue as string) ?? '#000000');
-    const currentValue = (value as string) ?? internalValue;
-
-    const inputRefInternal = useRef<HTMLInputElement | null>(null);
-
-    const setRefs = useCallback(
-      (el: HTMLInputElement | null) => {
-        inputRefInternal.current = el;
-        if (typeof ref === 'function') {
-          ref(el);
-        } else if (ref) {
-          ref.current = el;
-        }
-      },
-      [ref],
+    const isInvalid = invalid || Boolean(error);
+    const { id, helpId, errorId, describedBy } = useFieldIds(
+      explicitId,
+      { suffix: 'hint', content: hint },
+      error,
+      callerDescribedBy,
     );
 
-    const handleRandomClick = useCallback(() => {
-      const color = generateRandomHex();
-      setInternalValue(color);
-      if (inputRefInternal.current) {
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype,
-          'value',
-        )?.set;
-        nativeInputValueSetter?.call(inputRefInternal.current, color);
-        inputRefInternal.current.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      onRandomColor?.(color);
-    }, [onRandomColor]);
+    const api = useColorPicker({
+      id,
+      ids: {
+        root: `${id}-root`,
+        label: `${id}-label`,
+        control: `${id}-box`,
+        trigger: `${id}-trigger`,
+        positioner: `${id}-positioner`,
+        content: `${id}-content`,
+        area: `${id}-area`,
+        areaThumb: `${id}-area-thumb`,
+        channelSliderTrack: (channel) => `${id}-${channel}-track`,
+        channelSliderThumb: (channel) => `${id}-${channel}-thumb`,
+      },
+      value,
+      defaultValue,
+      onValueChange: (details) => onValueChange?.(details.value),
+      open,
+      defaultOpen,
+      onOpenChange: (details) => onOpenChange?.(details.open),
+      format,
+      onFormatChange: (details) => onFormatChange?.(details.format),
+      alpha,
+      disabled,
+      required,
+      invalid: isInvalid,
+      labels: {
+        trigger: triggerLabel,
+        area: areaLabel,
+        hue: hueLabel,
+        alpha: alphaLabel,
+        format: formatLabel,
+        eyeDropper: eyeDropperLabel,
+        swatches: swatchesLabel,
+      },
+    });
 
     return (
-      <div className="fieldset w-full">
-        {label && (
-          <label htmlFor={id} className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
-        )}
-        <span
-          className={cn('input w-full', error && 'input-error', className)}
-          style={{ paddingInlineStart: 0, overflow: 'hidden' }}
-        >
+      <div
+        {...api.getRootProps()}
+        className={cx('apui-color-picker', classes.root, className)}
+        data-size={size}
+        data-format={api.textFormat}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+      >
+        <FieldLabel
+          scope="color-picker"
+          htmlFor={id}
+          label={label}
+          required={required}
+          className={classes.label}
+          requiredClassName={classes.required}
+        />
+        <div {...api.getControlProps()} className={classes.box}>
+          <button {...api.getTriggerProps()} className={classes.trigger}>
+            <span {...api.getSwatchProps({ value: api.value })} className={classes.swatch} />
+          </button>
           <input
-            ref={setRefs}
-            id={id}
-            type="color"
-            className="cursor-pointer shrink-0"
-            style={{
-              WebkitAppearance: 'none',
-              appearance: 'none',
-              width: '2.5rem',
-              height: 'calc(100% + var(--border) * 2)',
-              border: 'none',
-              padding: 0,
-              marginBlock: 'calc(var(--border) * -1)',
-              marginInlineStart: 'calc(var(--border) * -1)',
-              borderStartStartRadius: 'calc(var(--radius-field) - var(--border))',
-              borderEndStartRadius: 'calc(var(--radius-field) - var(--border))',
-              backgroundColor: currentValue,
-            }}
-            value={currentValue}
-            onChange={(e) => {
-              setInternalValue(e.target.value);
-              onChange?.(e);
-            }}
-            aria-invalid={error ? true : undefined}
+            {...mergePartProps(rest, api.getValueInputProps({ id }))}
+            ref={ref}
+            className={classes.control}
             aria-describedby={describedBy}
-            aria-label={label ?? 'Color picker'}
-            {...rest}
           />
-          {icon && (
-            <span className="opacity-50" aria-hidden="true">
-              {icon}
-            </span>
-          )}
-          <span className="grow font-mono text-sm">{currentValue}</span>
-          {random && (
-            <button
-              type="button"
-              className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={handleRandomClick}
-              aria-label="Generate random color"
-            >
-              {randomIcon ?? (
-                <svg
-                  className="w-4 h-4"
-                  viewBox="0 0 512 512"
-                  fill="currentColor"
-                  aria-hidden="true"
+        </div>
+        <FieldHelp scope="color-picker" part="hint" id={helpId} className={classes.hint}>
+          {hint}
+        </FieldHelp>
+        <FieldError scope="color-picker" id={errorId} message={error} className={classes.error} />
+        <Portal enabled={portal}>
+          <div {...api.getPositionerProps()} className={classes.positioner}>
+            <div {...api.getContentProps()} className={classes.content}>
+              <div {...api.getAreaProps()} className={classes.area}>
+                <div {...api.getAreaBackgroundProps()} className={classes.areaBackground} />
+                <div {...api.getAreaThumbProps()} className={classes.areaThumb} />
+              </div>
+              <div
+                {...api.getChannelSliderProps({ channel: 'hue' })}
+                className={classes.channelSlider}
+              >
+                <div
+                  {...api.getChannelSliderTrackProps({ channel: 'hue' })}
+                  className={classes.channelSliderTrack}
                 >
-                  <path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160 352 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l111.5 0c0 0 .1 0 .1 0l.4 0c17.7 0 32-14.3 32-32l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1L16 432c0 17.7 14.3 32 32 32s32-14.3 32-32l0-35.1l17.6 17.5c0 0 0 0 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352l34.4 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-111.5 0c-.1 0-.3 0-.4 0c-5.8-.1-11.9 1.6-17.1 4.3z" />
-                </svg>
-              )}
-            </button>
-          )}
-          {clearable && (
-            <button
-              type="button"
-              className="opacity-50 hover:opacity-100 cursor-pointer"
-              onClick={() => {
-                const resetValue = (defaultValue as string) ?? '#000000';
-                setInternalValue(resetValue);
-                if (inputRefInternal.current) {
-                  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                    window.HTMLInputElement.prototype,
-                    'value',
-                  )?.set;
-                  nativeInputValueSetter?.call(inputRefInternal.current, resetValue);
-                  inputRefInternal.current.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-                onClear?.();
-              }}
-              aria-label="Clear color"
-            >
-              ✕
-            </button>
-          )}
-          {iconRight && (
-            <span className="opacity-50" aria-hidden="true">
-              {iconRight}
-            </span>
-          )}
-        </span>
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
+                  <div
+                    {...api.getChannelSliderThumbProps({ channel: 'hue' })}
+                    className={classes.channelSliderThumb}
+                  />
+                </div>
+              </div>
+              {alpha ? (
+                <div
+                  {...api.getChannelSliderProps({ channel: 'alpha' })}
+                  className={classes.channelSlider}
+                >
+                  <div {...api.getTransparencyGridProps()} className={classes.transparencyGrid} />
+                  <div
+                    {...api.getChannelSliderTrackProps({ channel: 'alpha' })}
+                    className={classes.channelSliderTrack}
+                  >
+                    <div
+                      {...api.getChannelSliderThumbProps({ channel: 'alpha' })}
+                      className={classes.channelSliderThumb}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <div {...api.getRowProps()} className={classes.row}>
+                <select
+                  {...api.getFormatSelectProps({ id: `${id}-format` })}
+                  className={classes.formatSelect}
+                >
+                  {COLOR_FORMATS.map((option) => (
+                    <option key={option} value={option}>
+                      {FORMAT_NAMES[option]}
+                    </option>
+                  ))}
+                </select>
+                <button {...api.getEyeDropperTriggerProps()} className={classes.eyeDropperTrigger}>
+                  <IconSvg name="pipette" />
+                </button>
+              </div>
+              {swatches.length > 0 ? (
+                <div {...api.getSwatchGroupProps()} className={classes.swatchGroup}>
+                  {swatches.map((swatch) => (
+                    <button
+                      key={swatch}
+                      {...api.getSwatchTriggerProps({ value: swatch })}
+                      className={classes.swatchTrigger}
+                    >
+                      <span {...api.getSwatchProps({ value: swatch })} className={classes.swatch} />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </Portal>
       </div>
     );
   },

@@ -37,6 +37,17 @@ export type SelectOption<V extends SelectValue = SelectValue> =
       disabled?: boolean;
     };
 
+/**
+ * A group of options, rendered as a native `<optgroup>` (#53; replaces
+ * Livewire's `select-group`).
+ */
+export interface SelectOptionGroup<V extends SelectValue = SelectValue> {
+  /** The group's label. */
+  label: string;
+  /** The options in the group. */
+  options: SelectOption<V>[];
+}
+
 /** The parts a {@link Select} accepts extra classes for. */
 export type SelectPart =
   | 'root'
@@ -64,8 +75,11 @@ export interface SelectProps<V extends SelectValue = string> extends Omit<
 > {
   /** Control height. Emitted as `data-size`. @defaultValue `'md'` */
   size?: SelectSize;
-  /** The options. `<option>` children render as well, after them. */
-  options?: SelectOption<V>[];
+  /**
+   * The options, and `{ label, options }` groups rendered as native optgroups.
+   * `<option>` children render as well, after them.
+   */
+  options?: (SelectOption<V> | SelectOptionGroup<V>)[];
   /** The visible label, linked to the control. Without it, pass an `aria-label`. */
   label?: ReactNode;
   /** Help text under the control, linked with `aria-describedby`. */
@@ -97,6 +111,19 @@ export interface SelectProps<V extends SelectValue = string> extends Omit<
    */
   onValueChange?: (value: NoInfer<V> | string) => void;
 }
+
+const isGroup = (entry: SelectOption | SelectOptionGroup): entry is SelectOptionGroup =>
+  typeof entry !== 'string' && Array.isArray((entry as SelectOptionGroup).options);
+
+/** The options with the groups' options in place, for matching a chosen value. */
+const flatOptions = (entries: (SelectOption | SelectOptionGroup)[]): SelectOption[] =>
+  entries.flatMap((entry) => (isGroup(entry) ? entry.options : [entry]));
+
+const renderOption = (option: { value: string; label: string; disabled: boolean }) => (
+  <option key={option.value} value={option.value} disabled={option.disabled || undefined}>
+    {option.label}
+  </option>
+);
 
 const normalizeOption = (option: SelectOption) =>
   typeof option === 'string'
@@ -166,7 +193,7 @@ const SelectBase = forwardRef<HTMLSelectElement, SelectProps<SelectValue>>(
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
       onChange?.(event);
       const selected = event.target.value;
-      const match = options.find(
+      const match = flatOptions(options).find(
         (option) => typeof option !== 'string' && String(option.value) === selected,
       );
       onValueChange?.(match !== undefined && typeof match !== 'string' ? match.value : selected);
@@ -215,15 +242,15 @@ const SelectBase = forwardRef<HTMLSelectElement, SelectProps<SelectValue>>(
                 {placeholder}
               </option>
             ) : null}
-            {options.map(normalizeOption).map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled || undefined}
-              >
-                {option.label}
-              </option>
-            ))}
+            {options.map((entry, index) =>
+              isGroup(entry) ? (
+                <optgroup key={`group-${index}`} label={entry.label}>
+                  {entry.options.map(normalizeOption).map(renderOption)}
+                </optgroup>
+              ) : (
+                renderOption(normalizeOption(entry))
+              ),
+            )}
             {children}
           </select>
           <span

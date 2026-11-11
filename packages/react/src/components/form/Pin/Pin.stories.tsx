@@ -9,25 +9,13 @@ const meta: Meta<typeof Pin> = {
     docs: {
       description: {
         component:
-          'One-time PIN / verification code input with configurable length, numeric-only mode, hidden characters, DaisyUI color variants, and error state.',
+          'One-time code entry: one native input with autocomplete=one-time-code drives the cells, so autofill and paste fill every cell.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
+    size: { control: 'select', options: ['sm', 'md'] },
+    type: { control: 'select', options: ['numeric', 'alphanumeric'] },
   },
 };
 
@@ -36,48 +24,32 @@ type Story = StoryObj<typeof Pin>;
 
 export const Default: Story = {
   args: {
-    length: 4,
+    label: 'Verification code',
+    hint: 'Enter the 6-digit code we sent to your phone.',
+    groupSize: 3,
   },
 };
 
-export const SixDigit: Story = {
-  args: {
-    length: 6,
-  },
-};
-
-export const NumericOnly: Story = {
-  args: {
-    length: 4,
-    numeric: true,
-  },
-};
-
-export const Hidden: Story = {
-  args: {
-    length: 4,
-    hide: true,
-  },
-};
-
-export const ColorVariants: Story = {
+export const MaskedAndAlphanumeric: Story = {
   render: () => (
-    <div className="flex flex-col gap-4">
-      <Pin length={4} color="primary" />
-      <Pin length={4} color="secondary" />
-      <Pin length={4} color="accent" />
-      <Pin length={4} color="success" />
-      <Pin length={4} color="warning" />
-      <Pin length={4} color="error" />
-      <Pin length={4} color="info" />
-      <Pin length={4} color="neutral" />
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Pin label="PIN" length={4} mask />
+      <Pin label="Recovery code" length={8} type="alphanumeric" groupSize={4} />
     </div>
   ),
 };
 
-export const WithError: Story = {
-  args: {
-    length: 4,
-    error: 'Invalid verification code.',
-  },
+export const States: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Pin
+        label="Verification code"
+        groupSize={3}
+        defaultValue="991027"
+        error="That code has expired. We sent a new one."
+      />
+      <Pin label="Small" size="sm" groupSize={3} />
+      <Pin label="Disabled" value="503186" groupSize={3} disabled />
+    </div>
+  ),
 };

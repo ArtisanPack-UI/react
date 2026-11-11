@@ -22,6 +22,8 @@ export interface EditorProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
  * A code/text editor component that renders a monospace-styled textarea with label,
  * hint, and error support. Defaults to 12 rows of height.
  *
+ * @deprecated Use {@link CodeEditor}, the design-system replacement. Editor will be removed in a later major release.
+ *
  * For a full code editor experience, integrate a third-party library like
  * CodeMirror or Monaco Editor and use this component's prop interface as a base.
  *

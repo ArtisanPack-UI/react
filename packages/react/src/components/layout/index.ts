@@ -75,5 +75,14 @@ export type { PopoverProps } from './Popover/Popover';
 export { Stack } from './Stack/Stack';
 export type { StackProps } from './Stack/Stack';
 
-export { Tabs } from './Tabs/Tabs';
-export type { TabsProps, TabItem } from './Tabs/Tabs';
+export { Tabs, Tab } from './Tabs/Tabs';
+export type {
+  TabsProps,
+  TabProps,
+  TabData,
+  TabsVariant,
+  TabsSize,
+  TabsOrientation,
+  TabsActivationMode,
+  TabsPart,
+} from './Tabs/Tabs';

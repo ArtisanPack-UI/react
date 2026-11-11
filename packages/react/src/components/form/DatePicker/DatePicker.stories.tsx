@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { DatePicker } from './DatePicker';
+import { DatePicker, type DatePickerValue } from './DatePicker';
 
 const meta: Meta<typeof DatePicker> = {
   title: 'Form/DatePicker',
@@ -9,61 +10,72 @@ const meta: Meta<typeof DatePicker> = {
     docs: {
       description: {
         component:
-          'Date and time input supporting date, datetime-local, time, month, and week types. Includes label, hint, error, icon slots, and inline layout.',
+          'A text field with a calendar popover for a single date or a range; with `time` it is DateTime (date and time in one field). Typing a date always works; the calendar is an aid. Values are ISO strings.',
       },
     },
   },
   argTypes: {
-    dateType: {
-      control: 'select',
-      options: ['date', 'datetime-local', 'time', 'month', 'week'],
-    },
+    mode: { control: 'select', options: ['single', 'range'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    locale: { control: 'text' },
   },
+  args: { label: 'Move-in date', hint: 'MM/DD/YYYY' },
 };
 
 export default meta;
 type Story = StoryObj<typeof DatePicker>;
 
 export const Default: Story = {
-  args: {},
-};
-
-export const WithLabel: Story = {
-  args: {
-    label: 'Start Date',
+  render: function Render(args) {
+    const [value, setValue] = useState<DatePickerValue>('2026-11-12');
+    return <DatePicker {...args} value={value} onValueChange={setValue} />;
   },
 };
 
-export const DateTypes: Story = {
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <DatePicker label="Date" dateType="date" />
-      <DatePicker label="Date & Time" dateType="datetime-local" />
-      <DatePicker label="Time" dateType="time" />
-      <DatePicker label="Month" dateType="month" />
-      <DatePicker label="Week" dateType="week" />
-    </div>
-  ),
-};
-
-export const WithError: Story = {
-  args: {
-    label: 'Due Date',
-    error: 'Please select a valid date.',
+export const Range: Story = {
+  args: { label: 'Stay', hint: undefined, mode: 'range', disabledDates: ['2026-11-20'] },
+  render: function Render(args) {
+    const [value, setValue] = useState<DatePickerValue>(['2026-11-12', '2026-11-18']);
+    return <DatePicker {...args} value={value} onValueChange={setValue} />;
   },
 };
 
-export const WithIcons: Story = {
-  args: {
-    label: 'Event Date',
-    icon: <span aria-hidden="true">📅</span>,
-    iconRight: <span aria-hidden="true">🔽</span>,
+export const DateAndTime: Story = {
+  args: { label: 'Viewing', hint: undefined, time: true, timeZone: 'Europe/Madrid' },
+  render: function Render(args) {
+    const [value, setValue] = useState<DatePickerValue>('2026-11-12T11:00');
+    return <DatePicker {...args} value={value} onValueChange={setValue} />;
   },
 };
 
-export const InlineLabel: Story = {
+export const OpenInPlace: Story = {
+  args: { open: true, portal: false, defaultValue: '2026-11-12', footer: 'Thu, Nov 12' },
+};
+
+export const Invalid: Story = {
+  args: { label: 'Closing date', error: "That date doesn't exist." },
+};
+
+export const Localized: Story = {
   args: {
-    label: 'Date',
-    inline: true,
+    label: 'Date d’emménagement',
+    hint: 'JJ/MM/AAAA',
+    locale: 'fr-FR',
+    triggerLabel: 'Choisir une date',
+    previousLabel: 'Mois précédent',
+    nextLabel: 'Mois suivant',
+    calendarLabel: 'Calendrier',
+    defaultValue: '2026-11-12',
   },
+};
+
+export const RightToLeft: Story = {
+  args: { defaultValue: '2026-11-12', open: true, portal: false },
+  decorators: [
+    (Story) => (
+      <div dir="rtl">
+        <Story />
+      </div>
+    ),
+  ],
 };

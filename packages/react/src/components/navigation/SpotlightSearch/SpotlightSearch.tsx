@@ -114,6 +114,8 @@ function defaultFilter(item: SpotlightItem, query: string): boolean {
  *   shortcut
  * />
  * ```
+ *
+ * @deprecated Use {@link Spotlight}, the design-system replacement. SpotlightSearch will be removed in a later major release.
  */
 export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
   (
