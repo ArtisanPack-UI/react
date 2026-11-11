@@ -67,6 +67,8 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDialogElement>, 'tit
  *   <p>Are you sure you want to proceed?</p>
  * </Modal>
  * ```
+ *
+ * @deprecated Use {@link Dialog}, the design-system replacement. Modal will be removed in a later major release.
  */
 export const Modal = forwardRef<HTMLDialogElement, ModalProps>(
   (

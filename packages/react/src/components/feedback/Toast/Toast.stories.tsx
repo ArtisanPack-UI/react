@@ -1,75 +1,92 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ToastProvider, useToast } from './Toast';
+import { Button } from '../../form/Button/Button';
+import { Toast } from './Toast';
+import { Toaster, toast } from './Toaster';
 
-const meta: Meta<typeof ToastProvider> = {
+const meta: Meta<typeof Toast> = {
   title: 'Feedback/Toast',
-  component: ToastProvider,
+  component: Toast,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Ephemeral notification system with success, error, warning, and info variants. Wrap your app in ToastProvider and call useToast() to trigger toasts from anywhere.',
+          'A brief, non-blocking message about something that just happened. Rendered on its own, a Toast is static; render a Toaster and call toast.create({ … }) for toasts that stack and time out.',
       },
     },
+  },
+  argTypes: {
+    color: {
+      control: 'select',
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
+    },
+    variant: { control: 'select', options: ['default', 'inverse'] },
+    surface: { control: 'select', options: ['overlay', 'glass'] },
   },
 };
 
 export default meta;
-type Story = StoryObj<typeof ToastProvider>;
-
-function ToastDemo() {
-  const toast = useToast();
-  return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        className="btn btn-success btn-sm"
-        onClick={() => toast.success('Operation completed!')}
-      >
-        Success
-      </button>
-      <button className="btn btn-error btn-sm" onClick={() => toast.error('Something went wrong!')}>
-        Error
-      </button>
-      <button
-        className="btn btn-warning btn-sm"
-        onClick={() => toast.warning('Please check your input.')}
-      >
-        Warning
-      </button>
-      <button
-        className="btn btn-info btn-sm"
-        onClick={() => toast.info('Here is some information.')}
-      >
-        Info
-      </button>
-    </div>
-  );
-}
+type Story = StoryObj<typeof Toast>;
 
 export const Default: Story = {
+  args: {
+    color: 'success',
+    title: 'Listing saved',
+    description: 'Cedarwood Estates is live now.',
+  },
+};
+
+export const Static: Story = {
   render: () => (
-    <ToastProvider>
-      <ToastDemo />
-    </ToastProvider>
+    <div style={{ display: 'grid', gap: '0.75rem' }}>
+      <Toast color="success" title="Listing saved" description="Cedarwood Estates is live now." />
+      <Toast color="error" title="Upload failed" description="The file is larger than 10 MB." />
+      <Toast
+        variant="inverse"
+        title="Listing archived"
+        actions={
+          <Button size="sm" variant="outline" color="neutral">
+            Undo
+          </Button>
+        }
+      />
+    </div>
   ),
 };
 
-export const Positions: Story = {
+export const WithToaster: Story = {
   render: () => (
-    <ToastProvider position={['toast-top', 'toast-center']}>
-      <ToastDemo />
-    </ToastProvider>
-  ),
-};
-
-export const CustomDuration: Story = {
-  render: () => (
-    <ToastProvider defaultDuration={10000}>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm opacity-60">Toasts will stay for 10 seconds.</p>
-        <ToastDemo />
+    <>
+      <Toaster />
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <Button
+          onClick={() =>
+            toast.create({
+              title: 'Listing archived',
+              description: 'Cedarwood Estates is hidden from search.',
+              action: { label: 'Undo', onClick: () => console.log('restored') },
+            })
+          }
+        >
+          Archive listing
+        </Button>
+        <Button
+          variant="outline"
+          color="neutral"
+          onClick={() => toast.create({ title: 'Listing saved', color: 'success' })}
+        >
+          Save
+        </Button>
+        <Button
+          variant="soft"
+          color="error"
+          onClick={() =>
+            toast.create({ title: 'Upload failed', description: 'Try again.', color: 'error' })
+          }
+        >
+          Fail
+        </Button>
       </div>
-    </ToastProvider>
+    </>
   ),
 };

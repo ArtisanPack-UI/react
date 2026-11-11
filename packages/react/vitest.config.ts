@@ -15,10 +15,12 @@ export default defineConfig({
     passWithNoTests: true,
     server: {
       deps: {
-        // The linked packages resolve outside node_modules. Inline the testing kit so
-        // its react/react-dom imports go through `dedupe`; run the manifest loader
-        // natively, since it locates its JSON with `new URL(…, import.meta.url)`.
-        inline: [/design-system\/packages\/testing\//],
+        // The linked packages resolve outside node_modules. Inline the testing kit,
+        // the behavior engine and Zag's React adapter (which the engine resolves from
+        // the design-system checkout) so their react/react-dom imports go through
+        // `dedupe`; run the manifest loader natively, since it locates its JSON with
+        // `new URL(…, import.meta.url)`.
+        inline: [/design-system\/packages\/(testing|behavior)\//, /@zag-js\/react\//],
         external: [/design-system\/packages\/manifest\//],
       },
     },

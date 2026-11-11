@@ -1,5 +1,5 @@
 {
-  "components": ["Button", "Card", "Checkbox", "Input", "Select"],
+  "components": ["Button", "Card", "Checkbox", "Dialog", "DropdownMenu", "Input", "Select", "Toast"],
   "css": ["../../node_modules/@artisanpack-ui/css/dist/index.css"],
   "stacks": {
     "react": { "host": "test/fixture-host.tsx" }

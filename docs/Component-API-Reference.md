@@ -5,10 +5,10 @@ Complete API reference for all ArtisanPack UI React components, organized by cat
 ## Categories
 
 - [[Form Components]] — Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
-- [[Layout Components]] — Card, Modal, Tabs, Accordion, Drawer, Dropdown, Grid, Stack, Popover
+- [[Layout Components]] — Card, Dialog, DropdownMenu, Tabs, Accordion, Drawer, Grid, Stack, Popover (Modal and Dropdown are deprecated)
 - [[Navigation Components]] — Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
 - [[Data Display Components]] — Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
-- [[Feedback Components]] — Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
+- [[Feedback Components]] — Alert, Toast and Toaster, Loading, Skeleton, EmptyState, ErrorDisplay
 - [[Utility Components]] — Icon, ThemeToggle, Tooltip, Clipboard, Markdown
 
 ## Import Patterns
@@ -19,7 +19,7 @@ import { Button, Card, Alert } from '@artisanpack-ui/react';
 
 // Or import from category entry points for smaller bundles
 import { Button, Input } from '@artisanpack-ui/react/form';
-import { Card, Modal } from '@artisanpack-ui/react/layout';
+import { Card, Dialog } from '@artisanpack-ui/react/layout';
 import { Menu } from '@artisanpack-ui/react/navigation';
 import { Table, Badge } from '@artisanpack-ui/react/data';
 import { Alert, Toast } from '@artisanpack-ui/react/feedback';

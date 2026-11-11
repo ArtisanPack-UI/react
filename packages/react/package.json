@@ -50,7 +50,8 @@
   },
   "dependencies": {
     "@artisanpack-ui/behavior": "file:../../../design-system/packages/behavior",
-    "@artisanpack-ui/tokens": "^1.0.1"
+    "@artisanpack-ui/tokens": "^1.0.1",
+    "@zag-js/react": "~1.47.0"
   },
   "devDependencies": {
     "@artisanpack-ui/css": "file:../../../design-system/packages/css",

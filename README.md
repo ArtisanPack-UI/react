@@ -83,10 +83,10 @@ LoginPage.layout = createLayout(AppLayout);
 ## Component Categories
 
 - **Form** — Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
-- **Layout** — Card, Modal, Tabs, Accordion, Drawer, Dropdown, Grid, Stack, Popover
+- **Layout** — Card, Dialog, DropdownMenu, Tabs, Accordion, Drawer, Grid, Stack, Popover
 - **Navigation** — Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
 - **Data Display** — Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
-- **Feedback** — Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
+- **Feedback** — Alert, Toast and Toaster, Loading, Skeleton, EmptyState, ErrorDisplay
 - **Utility** — Icon, ThemeToggle, Tooltip, Clipboard, Markdown
 
 ## Theming

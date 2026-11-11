@@ -56,7 +56,7 @@ Import from specific categories to minimize bundle size:
 
 ```tsx
 import { Button, Input, Select } from '@artisanpack-ui/react/form';
-import { Card, Modal, Tabs } from '@artisanpack-ui/react/layout';
+import { Card, Dialog, Tabs } from '@artisanpack-ui/react/layout';
 import { Menu, Breadcrumbs } from '@artisanpack-ui/react/navigation';
 import { Table, Badge, Avatar } from '@artisanpack-ui/react/data';
 import { Alert, Toast, Loading } from '@artisanpack-ui/react/feedback';
@@ -66,10 +66,10 @@ import { Icon, ThemeToggle, Tooltip } from '@artisanpack-ui/react/utility';
 ## Component Categories
 
 - **Form** - Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
-- **Layout** - Card, Modal, Tabs, Accordion, Drawer, Dropdown, Grid, Stack, Popover
+- **Layout** - Card, Dialog, DropdownMenu, Tabs, Accordion, Drawer, Grid, Stack, Popover
 - **Navigation** - Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
 - **Data Display** - Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
-- **Feedback** - Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
+- **Feedback** - Alert, Toast and Toaster, Loading, Skeleton, EmptyState, ErrorDisplay
 - **Utility** - Icon, ThemeToggle, Tooltip, Clipboard, Markdown
 
 ## Theming
