@@ -1,148 +1,202 @@
 /**
  * @module Code
  *
- * Code display component using DaisyUI's mockup-code pattern. Renders a
- * formatted code block with optional line numbers, a copy-to-clipboard button,
- * language/label header, and scrollable max height.
+ * The design-system Code (#65): read-only code, as a block with a header
+ * (file name, language, copy) and optional line numbers and highlighted
+ * lines, or inline. Renders the `.apui-code` markup contract styled by
+ * `@artisanpack-ui/css`, with the lines from the behavior package's
+ * `codeLines`, the same ones Blade and Vue render. No syntax highlighting.
+ * The copy button runs on `useClipboard`, as Clipboard does. The code stays
+ * LTR (D-004).
+ *
+ * @packageDocumentation
  */
 
-import { forwardRef, useEffect, useRef, useState, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import {
+  CLIPBOARD_LABELS,
+  clipboardLabel,
+  clipboardMessage,
+  codeHighlights,
+  codeLabel,
+  codeLines,
+} from '@artisanpack-ui/behavior';
+import { useClipboard } from '@artisanpack-ui/behavior/react';
+import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 
-/**
- * Props for the {@link Code} component.
- */
-export interface CodeProps extends HTMLAttributes<HTMLDivElement> {
-  /** The code string to display. */
-  code: string;
-  /** Programming language name displayed in the header bar. */
+import { IconPart } from '../../../internal/icon';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** The parts a {@link Code} accepts extra classes for. */
+export type CodePart = 'root' | 'header' | 'file' | 'language' | 'copy' | 'status' | 'pre' | 'line';
+
+/** Props for the {@link Code} component. Native attributes go to the root. */
+export interface CodeProps extends HTMLAttributes<HTMLElement> {
+  /** The code, shown as text. */
+  code?: string;
+  /** The language, shown as a badge in the header. Only a label: nothing is highlighted. */
   language?: string;
-  /** Custom label displayed in the header bar (takes precedence over `language`). */
-  label?: string;
-  /** Hint or description text displayed below the code block. */
-  hint?: string;
-  /** Whether to show line numbers. @defaultValue false */
-  showLineNumbers?: boolean;
-  /** Whether to show the copy-to-clipboard button. @defaultValue true */
+  /** The file name or a title, at the start of the header. */
+  fileName?: string;
+  /** Shows line numbers, which copying leaves out. @defaultValue `false` */
+  numbered?: boolean;
+  /** Line numbers to emphasize (1-based). */
+  highlight?: number[];
+  /** Inline code in running text: no header, numbers or copy. @defaultValue `false` */
+  inline?: boolean;
+  /** Shows the copy button. @defaultValue `true` */
   copyable?: boolean;
-  /** Maximum height CSS value for the code block (enables scrolling). */
-  maxHeight?: string;
+  /** Names the scroll region. Defaults to the file name, then the language, then "Code". */
+  label?: string;
+  /** The copy button's label; translate it. @defaultValue `'Copy'` */
+  copyLabel?: string;
+  /** The label after a copy; translate it. @defaultValue `'Copied'` */
+  copiedLabel?: string;
+  /** Announced after a copy; translate it. @defaultValue `'Copied to clipboard'` */
+  copiedMessage?: string;
+  /** Announced when the copy fails; translate it. */
+  errorMessage?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CodePart>;
 }
 
 /**
- * Code display component with copy-to-clipboard, line numbers, and a language header.
- *
- * Uses DaisyUI's `mockup-code` class for styling. The copy button uses the
- * Clipboard API and shows a checkmark icon for 2 seconds after copying.
+ * Read-only code. The ref points at the root: the block's `<div>`, or the
+ * inline `<code>`.
  *
  * @example
  * ```tsx
- * <Code
- *   code={`const greeting = "Hello, world!";`}
- *   language="typescript"
- *   showLineNumbers
- *   copyable
- * />
+ * <Code code={snippet} fileName="format-price.ts" language="TypeScript" numbered highlight={[3]} />
+ * <Code inline code="npm install" />
  * ```
  */
-export const Code = forwardRef<HTMLDivElement, CodeProps>(
+export const Code = forwardRef<HTMLElement, CodeProps>(
   (
     {
       code,
       language,
-      label,
-      hint,
-      showLineNumbers = false,
+      fileName,
+      numbered = false,
+      highlight,
+      inline = false,
       copyable = true,
-      maxHeight,
+      label,
+      copyLabel = CLIPBOARD_LABELS.copy,
+      copiedLabel = CLIPBOARD_LABELS.copied,
+      copiedMessage = CLIPBOARD_LABELS.copiedMessage,
+      errorMessage = CLIPBOARD_LABELS.errorMessage,
+      classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
-    const [copied, setCopied] = useState(false);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const clipboard = useClipboard();
+    const lines = useMemo(() => codeLines(code), [code]);
+    const highlighted = useMemo(() => codeHighlights(highlight), [highlight]);
 
-    const handleCopy = async () => {
-      try {
-        await navigator.clipboard.writeText(code);
-        setCopied(true);
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        timeoutRef.current = setTimeout(() => setCopied(false), 2000);
-      } catch {
-        // Clipboard API may not be available
-      }
-    };
+    if (inline) {
+      return (
+        <code
+          {...rest}
+          ref={ref}
+          className={cx('apui-code', classes.root, className)}
+          data-scope="code"
+          data-part="root"
+          data-inline=""
+        >
+          {code}
+        </code>
+      );
+    }
 
-    useEffect(() => {
-      return () => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      };
-    }, []);
-
-    const lines = code.split('\n');
+    const labels = { copy: copyLabel, copied: copiedLabel, copiedMessage, errorMessage };
+    const hasHeader = hasContent(fileName) || hasContent(language) || copyable;
 
     return (
-      <div ref={ref} className={cn('relative', className)} {...rest}>
-        {(label || language || copyable) && (
-          <div className="flex items-center justify-between bg-base-300 px-4 py-2 rounded-t-lg text-sm">
-            {(label || language) && <span className="font-semibold">{label ?? language}</span>}
-            {copyable && (
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs"
-                onClick={handleCopy}
-                aria-label={copied ? 'Copied' : 'Copy code'}
+      <div
+        {...rest}
+        ref={ref as never}
+        className={cx('apui-code', classes.root, className)}
+        data-scope="code"
+        data-part="root"
+        data-numbered={flag(numbered)}
+      >
+        {hasHeader ? (
+          <div className={classes.header} data-scope="code" data-part="header">
+            {hasContent(fileName) ? (
+              <span className={classes.file} data-scope="code" data-part="file">
+                {fileName}
+              </span>
+            ) : null}
+            {hasContent(language) ? (
+              <span
+                className={cx('apui-badge', classes.language)}
+                data-scope="code"
+                data-part="language"
+                data-color="neutral"
+                data-variant="outline"
+                data-size="sm"
               >
-                {copied ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4 text-success"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-4 h-4"
-                    aria-hidden="true"
-                  >
-                    <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z" />
-                    <path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z" />
-                  </svg>
-                )}
-              </button>
-            )}
+                {language}
+              </span>
+            ) : null}
+            {copyable ? (
+              <>
+                <button
+                  type="button"
+                  className={cx('apui-button', classes.copy)}
+                  data-scope="code"
+                  data-part="copy"
+                  data-variant="ghost"
+                  data-color="neutral"
+                  data-size="xs"
+                  data-state={clipboard.status}
+                  onClick={() => void clipboard.copy(lines.join('\n'))}
+                >
+                  <IconPart
+                    scope="button"
+                    part="icon"
+                    name={clipboard.status === 'copied' ? 'check' : 'copy'}
+                  />
+                  <span data-scope="button" data-part="label">
+                    {clipboardLabel(clipboard.status, labels)}
+                  </span>
+                </button>
+                <span
+                  className={cx('apui-sr-only', classes.status)}
+                  data-scope="code"
+                  data-part="status"
+                  role="status"
+                >
+                  {clipboardMessage(clipboard.status, labels)}
+                </span>
+              </>
+            ) : null}
           </div>
-        )}
-        <div
-          className={cn('mockup-code', (label || language || copyable) && 'rounded-t-none')}
-          style={maxHeight ? { maxHeight, overflow: 'auto' } : undefined}
+        ) : null}
+        <pre
+          className={classes.pre}
+          data-scope="code"
+          data-part="pre"
+          role="region"
+          aria-label={codeLabel(label, fileName, language)}
+          tabIndex={0}
         >
-          {showLineNumbers ? (
-            lines.map((line, i) => (
-              <pre key={i} data-prefix={i + 1}>
-                <code>{line}</code>
-              </pre>
-            ))
-          ) : (
-            <pre>
-              <code>{code}</code>
-            </pre>
-          )}
-        </div>
-        {hint && <p className="text-sm opacity-60 mt-1">{hint}</p>}
+          <code>
+            {lines.map((line, index) => (
+              <span
+                key={index}
+                className={classes.line}
+                data-scope="code"
+                data-part="line"
+                data-n={index + 1}
+                data-highlight={flag(highlighted.has(index + 1))}
+              >
+                {line}
+              </span>
+            ))}
+          </code>
+        </pre>
       </div>
     );
   },

@@ -44,13 +44,13 @@ export type {
 } from './Timeline/Timeline';
 
 export { Code } from './Code/Code';
-export type { CodeProps } from './Code/Code';
+export type { CodeProps, CodePart } from './Code/Code';
 
 export { Diff } from './Diff/Diff';
 export type { DiffProps, DiffPart, DiffView } from './Diff/Diff';
 
 export { Carousel } from './Carousel/Carousel';
-export type { CarouselProps, CarouselSlide } from './Carousel/Carousel';
+export type { CarouselProps, CarouselSlide, CarouselPart } from './Carousel/Carousel';
 
 export { Table, tableValue } from './Table/Table';
 export type {
@@ -64,13 +64,20 @@ export type {
 } from './Table/Table';
 
 export { Calendar } from './Calendar/Calendar';
-export type { CalendarProps, CalendarEvent } from './Calendar/Calendar';
+export type {
+  CalendarProps,
+  CalendarEvent,
+  CalendarColor,
+  CalendarLabels,
+  CalendarPart,
+  CalendarView,
+} from './Calendar/Calendar';
 
 export { Sparkline } from './Sparkline/Sparkline';
 export type { SparklineProps, SparklinePart, SparklineVariant } from './Sparkline/Sparkline';
 
 export { Chart } from './Chart/Chart';
-export type { ChartProps, ChartSeries, ChartDataPoint, ChartType } from './Chart/Chart';
+export type { ChartProps, ChartSeries, ChartType, ChartPart, ChartNotation } from './Chart/Chart';
 
 export { ImageGallery } from './ImageGallery/ImageGallery';
 export type {

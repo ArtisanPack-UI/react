@@ -64,9 +64,21 @@
     "Diff",
     "ImageGallery",
     "ImageSlider",
-    "Table"
+    "Table",
+    "Chart",
+    "Calendar",
+    "Icon",
+    "ThemeToggle",
+    "Markdown",
+    "Code",
+    "Kbd",
+    "Swap",
+    "Carousel",
+    "Clipboard"
   ],
-  "css": ["../../node_modules/@artisanpack-ui/css/dist/index.css"],
+  "css": [
+    "../../node_modules/@artisanpack-ui/css/dist/index.css"
+  ],
   "stacks": {
     "react": {
       "host": "test/fixture-host.tsx"

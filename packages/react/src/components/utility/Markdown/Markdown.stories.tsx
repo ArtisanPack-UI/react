@@ -1,5 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { Markdown } from './Markdown';
+
+const notes = `## Viewing checklist
+
+Bring **photo ID** and proof of income.
+
+- [x] Confirm time with agent
+- [ ] Measure the living room
+- [ ] Ask about \`heating costs\`
+
+> Viewings run 30 minutes.
+
+| Unit | Rent |
+|---|---:|
+| 2B | $1,400 |
+| 4A | $1,650 |
+`;
 
 const meta: Meta<typeof Markdown> = {
   title: 'Utility/Markdown',
@@ -9,81 +26,35 @@ const meta: Meta<typeof Markdown> = {
     docs: {
       description: {
         component:
-          'Renders a Markdown source string as styled HTML using DaisyUI prose classes. Accepts a custom renderMarkdown function for advanced parsing.',
+          'GitHub-flavored Markdown in the shared prose styles, the same HTML in every stack. Raw HTML is escaped and unsafe URLs are dropped. Write and split modes add Write, Preview and Split tabs over a Textarea.',
       },
     },
   },
   argTypes: {
-    source: {
-      control: 'text',
-    },
+    mode: { control: 'select', options: ['preview', 'write', 'split'] },
+    sanitize: { control: 'boolean' },
   },
+  args: { source: notes },
 };
 
 export default meta;
 type Story = StoryObj<typeof Markdown>;
 
-export const Default: Story = {
-  args: {
-    source: `# Hello World
+export const Preview: Story = {};
 
-This is a simple markdown example with **bold text** and *italic text*.
-
-- Item one
-- Item two
-- Item three`,
+export const Split: Story = {
+  render: (args) => {
+    const [source, setSource] = useState(args.source ?? '');
+    return <Markdown {...args} source={source} onSourceChange={setSource} mode="split" />;
   },
 };
 
-export const Headings: Story = {
+export const Write: Story = { args: { mode: 'write' } };
+
+export const RawHtml: Story = {
   args: {
-    source: `# Heading 1
-## Heading 2
-### Heading 3
-#### Heading 4
-##### Heading 5
-###### Heading 6`,
-  },
-};
-
-export const Lists: Story = {
-  args: {
-    source: `## Unordered List
-
-- Apples
-- Bananas
-- Cherries
-
-## Ordered List
-
-1. First step
-2. Second step
-3. Third step`,
-  },
-};
-
-export const FormattedText: Story = {
-  args: {
-    source: `This paragraph has **bold text**, *italic text*, and \`inline code\`.
-
-Here is another paragraph with a combination of **bold and *nested italic*** formatting.`,
-  },
-};
-
-export const Links: Story = {
-  args: {
-    source: `Visit [Google](https://google.com) or check out [GitHub](https://github.com).
-
-Here is a link in a sentence: the [documentation](https://docs.example.com) has more details.`,
-  },
-};
-
-export const Blockquote: Story = {
-  args: {
-    source: `> This is a blockquote. It can contain **bold** and *italic* text.
-
-Regular paragraph after the blockquote.
-
-> Another blockquote with a longer passage of text that demonstrates how blockquotes handle wrapping content.`,
+    source:
+      'Press <kbd>Esc</kbd> to close. <script>alert(1)</script> and [a link](javascript:alert(1)).',
+    sanitize: false,
   },
 };

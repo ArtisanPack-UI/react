@@ -1,117 +1,165 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { createRef, useState } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Markdown } from '../../components/utility/Markdown/Markdown';
+import { renderMarkdown } from '@artisanpack-ui/behavior';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Markdown, type MarkdownProps } from '../../components/utility/Markdown/Markdown';
+
+const declaredProps: (keyof MarkdownProps)[] = [
+  'source',
+  'mode',
+  'sanitize',
+  'tabsLabel',
+  'writeLabel',
+  'previewLabel',
+  'splitLabel',
+  'editorLabel',
+  'outputLabel',
+  'classes',
+];
+
+const SOURCE = `## Viewing checklist
+
+Bring **photo ID** and proof of income.
+
+- [x] Confirm time with agent
+- [ ] Measure the living room
+
+> Viewings run 30 minutes.
+
+| Unit | Rent |
+|---|---:|
+| 2B | $1,400 |
+`;
+
+/** The HTML as the DOM serializes it, so `<br />` compares with `<br>`. */
+const serialized = (html: string) => {
+  const host = document.createElement('div');
+  host.innerHTML = html;
+  return host.innerHTML;
+};
 
 describe('Markdown', () => {
-  it('renders a heading', () => {
-    render(<Markdown source="# Hello" />);
-    expect(screen.getByText('Hello')).toBeInTheDocument();
-    expect(screen.getByText('Hello').tagName).toBe('H1');
+  it('matches the design-system manifest', async () => {
+    // sanitize only changes raw HTML, which the fixture source has none of.
+    await expectReactParity(Markdown, 'Markdown', {
+      declared: { props: declaredProps, events: ['onSourceChange'] },
+      ignoreEffects: ['sanitize'],
+    });
   });
 
-  it('renders multiple heading levels', () => {
-    render(<Markdown source={'# H1\n## H2\n### H3'} />);
-    expect(screen.getByText('H1').tagName).toBe('H1');
-    expect(screen.getByText('H2').tagName).toBe('H2');
-    expect(screen.getByText('H3').tagName).toBe('H3');
+  it('renders the shared HTML in the prose root', () => {
+    const ref = createRef<HTMLDivElement>();
+    const { container } = render(<Markdown ref={ref} source={SOURCE} className="extra" />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(ref.current).toBe(root);
+    expect(root.className).toBe('apui-markdown apui-prose extra');
+    expect(root.getAttribute('data-mode')).toBe('preview');
+    expect(root.innerHTML).toBe(serialized(renderMarkdown(SOURCE)));
+    expect(root.querySelector('h2')!.textContent).toBe('Viewing checklist');
+    expect(root.querySelector('th[data-align="end"]')!.textContent).toBe('Rent');
   });
 
-  it('renders bold text', () => {
-    render(<Markdown source="This is **bold** text" />);
-    expect(screen.getByText('bold').tagName).toBe('STRONG');
+  it('renders task items as disabled, labelled checkboxes', () => {
+    render(<Markdown source={SOURCE} />);
+    const done = screen.getByRole('checkbox', { name: 'Confirm time with agent' });
+    expect(done).toBeDisabled();
+    expect(done).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Measure the living room' })).not.toBeChecked();
+    expect(done.closest('li')!.getAttribute('data-part')).toBe('task');
   });
 
-  it('renders italic text', () => {
-    render(<Markdown source="This is *italic* text" />);
-    expect(screen.getByText('italic').tagName).toBe('EM');
+  it('escapes raw HTML and drops unsafe URLs, and filters it with sanitize off', () => {
+    const source = '<b onclick="x()">b</b> <script>alert(1)</script> [x](javascript:alert(1))';
+    const { container: safe } = render(<Markdown source={source} />);
+    expect(safe.querySelector('b, script, a')).toBeNull();
+    expect(safe.textContent).toContain('<b onclick="x()">b</b>');
+    const { container: raw } = render(<Markdown source={source} sanitize={false} />);
+    const bold = raw.querySelector('b')!;
+    expect(bold.attributes).toHaveLength(0);
+    expect(raw.querySelector('script, a')).toBeNull();
   });
 
-  it('renders inline code', () => {
-    render(<Markdown source="Use `code` here" />);
-    expect(screen.getByText('code').tagName).toBe('CODE');
+  it('opens split mode on the split tab with one Textarea beside the preview', () => {
+    const { container } = render(<Markdown source={SOURCE} mode="split" />);
+    const root = container.firstElementChild!;
+    expect(root.className).toBe('apui-markdown');
+    expect(root.getAttribute('data-mode')).toBe('split');
+    expect(screen.getByRole('tablist', { name: 'Markdown mode' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Split' })).toHaveAttribute('aria-selected', 'true');
+    expect(container.querySelectorAll('textarea')).toHaveLength(1);
+    const split = root.querySelector('[data-scope="markdown"][data-part="split"]')!;
+    expect(split.querySelector('[data-part="editor"] textarea')).toHaveValue(SOURCE);
+    const preview = screen.getByRole('region', { name: 'Rendered preview' });
+    expect(preview.className).toBe('apui-prose');
+    expect(preview.querySelector('h2')).not.toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Markdown source' })).toBeInTheDocument();
   });
 
-  it('renders links', () => {
-    render(<Markdown source="Visit [Example](https://example.com)" />);
-    const link = screen.getByText('Example');
-    expect(link.tagName).toBe('A');
-    expect(link).toHaveAttribute('href', 'https://example.com');
+  it('switches tabs and keeps the draft', async () => {
+    render(<Markdown source="# One" mode="write" />);
+    const textarea = screen.getByRole('textbox', { name: 'Markdown source' });
+    fireEvent.change(textarea, { target: { value: '# Two' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+    });
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Rendered preview' }).innerHTML).toBe(
+      '<h1>Two</h1>\n',
+    );
   });
 
-  it('renders unordered lists', () => {
-    const { container } = render(<Markdown source={'- Item 1\n- Item 2\n- Item 3'} />);
-    const items = container.querySelectorAll('li');
-    expect(items).toHaveLength(3);
-    expect(items[0].textContent).toBe('Item 1');
+  it('reports edits with onSourceChange and follows a controlled source', () => {
+    const onSourceChange = vi.fn();
+    function Controlled() {
+      const [source, setSource] = useState('a');
+      return (
+        <Markdown
+          source={source}
+          mode="split"
+          onSourceChange={(next) => {
+            onSourceChange(next);
+            setSource(next.toUpperCase());
+          }}
+        />
+      );
+    }
+    render(<Controlled />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'b' } });
+    expect(onSourceChange).toHaveBeenCalledWith('b');
+    expect(screen.getByRole('textbox')).toHaveValue('B');
+    expect(screen.getByRole('region').innerHTML).toBe('<p>B</p>\n');
   });
 
-  it('renders ordered lists', () => {
-    const { container } = render(<Markdown source={'1. First\n2. Second'} />);
-    expect(container.querySelector('ol')).toBeInTheDocument();
-    expect(container.querySelectorAll('li')).toHaveLength(2);
+  it('takes translated labels and per-part classes', () => {
+    const { container } = render(
+      <Markdown
+        source="x"
+        mode="split"
+        tabsLabel="Modo"
+        writeLabel="Escribir"
+        previewLabel="Vista previa"
+        splitLabel="Dividir"
+        editorLabel="Fuente"
+        outputLabel="Vista"
+        classes={{ root: 'r', editor: 'e', preview: 'p', split: 's' }}
+      />,
+    );
+    expect(screen.getByRole('tablist', { name: 'Modo' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Escribir',
+      'Vista previa',
+      'Dividir',
+    ]);
+    expect(screen.getByRole('textbox', { name: 'Fuente' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Vista' }).className).toBe('apui-prose p');
+    expect(container.firstElementChild!.className).toBe('apui-markdown r');
+    expect(container.querySelector('[data-part="editor"]')!.className).toBe('e');
+    expect(container.querySelector('[data-part="split"]')!.className).toBe('s');
   });
 
-  it('renders blockquotes', () => {
-    const { container } = render(<Markdown source="> Important note" />);
-    expect(container.querySelector('blockquote')).toBeInTheDocument();
-  });
-
-  it('renders horizontal rules', () => {
-    const { container } = render(<Markdown source={'Above\n\n---\n\nBelow'} />);
-    expect(container.querySelector('hr')).toBeInTheDocument();
-  });
-
-  it('renders paragraphs for plain text', () => {
-    const { container } = render(<Markdown source="Just a paragraph" />);
-    expect(container.querySelector('p')).toBeInTheDocument();
-    expect(container.querySelector('p')!.textContent).toBe('Just a paragraph');
-  });
-
-  it('uses custom renderMarkdown function', () => {
-    const custom = vi.fn().mockReturnValue('<p>Custom output</p>');
-    render(<Markdown source="input" renderMarkdown={custom} />);
-    expect(custom).toHaveBeenCalledWith('input');
-    expect(screen.getByText('Custom output')).toBeInTheDocument();
-  });
-
-  it('applies prose class', () => {
-    const { container } = render(<Markdown source="text" />);
-    expect(container.firstChild).toHaveClass('prose');
-  });
-
-  it('applies custom className', () => {
-    const { container } = render(<Markdown source="text" className="custom" />);
-    expect(container.firstChild).toHaveClass('custom');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<Markdown ref={ref} source="text" />);
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
-  });
-
-  it('escapes HTML in source', () => {
-    const { container } = render(<Markdown source='<script>alert("xss")</script>' />);
-    expect(container.querySelector('script')).not.toBeInTheDocument();
-  });
-
-  it('rejects javascript: URLs in links', () => {
-    const { container } = render(<Markdown source="[click](javascript:alert)" />);
-    expect(container.querySelector('a')).not.toBeInTheDocument();
-    expect(screen.getByText('click')).toBeInTheDocument();
-  });
-
-  it('rejects javascript: URLs with HTML entities', () => {
-    const { container } = render(<Markdown source="[click](java&#115;cript:alert)" />);
-    expect(container.querySelector('a')).not.toBeInTheDocument();
-    expect(screen.getByText('click')).toBeInTheDocument();
-  });
-
-  it('allows relative URLs in links', () => {
-    const { container } = render(<Markdown source="[page](/about)" />);
-    const link = container.querySelector('a');
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', '/about');
+  it('renders nothing inside for an empty source', () => {
+    const { container } = render(<Markdown />);
+    expect(container.firstElementChild!.innerHTML).toBe('');
   });
 });

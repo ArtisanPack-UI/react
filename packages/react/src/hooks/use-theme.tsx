@@ -140,3 +140,14 @@ export function useTheme(): ThemeContextValue {
   }
   return context;
 }
+
+/**
+ * The theme context, or `null` outside a {@link ThemeProvider}. Unlike
+ * {@link useTheme} it never throws; the design-system ThemeToggle uses it to
+ * keep driving a 2.x provider when one is present.
+ *
+ * @internal
+ */
+export function useOptionalTheme(): ThemeContextValue | null {
+  return useContext(ThemeContext);
+}

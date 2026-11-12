@@ -1,6 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Code } from './Code';
 
+const snippet = `export function formatPrice(amount: number, currency = 'USD') {
+  // Tabular figures line up in tables
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}`;
+
 const meta: Meta<typeof Code> = {
   title: 'Data Display/Code',
   component: Code,
@@ -9,78 +18,34 @@ const meta: Meta<typeof Code> = {
     docs: {
       description: {
         component:
-          'Syntax-highlighted code block with optional line numbers, copy-to-clipboard button, language label, and scrollable max height.',
+          'Read-only code with a header (file name, language, copy), optional line numbers and highlighted lines, or inline. No syntax highlighting; the code stays LTR and scrolls instead of wrapping.',
       },
     },
   },
-  argTypes: {
-    language: {
-      control: 'text',
-    },
-    showLineNumbers: {
-      control: 'boolean',
-    },
-    copyable: {
-      control: 'boolean',
-    },
-    maxHeight: {
-      control: 'text',
-    },
-  },
+  args: { code: snippet, fileName: 'format-price.ts', language: 'TypeScript' },
 };
 
 export default meta;
 type Story = StoryObj<typeof Code>;
 
-const sampleCode = `function greet(name: string): string {
-  return \`Hello, \${name}!\`;
-}
+export const NumberedAndHighlighted: Story = { args: { numbered: true, highlight: [3] } };
 
-const result = greet('World');
-console.log(result);`;
-
-export const Default: Story = {
+export const Plain: Story = {
   args: {
-    code: sampleCode,
+    code: 'composer require artisanpack-ui/livewire-ui-components\nphp artisan vendor:publish --tag=artisanpack-tokens',
+    fileName: 'Terminal',
+    language: 'Shell',
   },
 };
 
-export const WithLanguageLabel: Story = {
-  args: {
-    code: sampleCode,
-    language: 'typescript',
-  },
+export const WithoutHeader: Story = {
+  args: { fileName: undefined, language: undefined, copyable: false, label: 'formatPrice' },
 };
 
-export const WithLineNumbers: Story = {
-  args: {
-    code: sampleCode,
-    language: 'typescript',
-    showLineNumbers: true,
-  },
-};
-
-export const NotCopyable: Story = {
-  args: {
-    code: sampleCode,
-    language: 'typescript',
-    copyable: false,
-  },
-};
-
-export const WithMaxHeight: Story = {
-  args: {
-    code: `${sampleCode}\n\n// More code below\nconst a = 1;\nconst b = 2;\nconst c = 3;\nconst d = 4;\nconst e = 5;\nconst f = 6;\nconst g = 7;\nconst h = 8;\nconst i = 9;\nconst j = 10;`,
-    language: 'typescript',
-    showLineNumbers: true,
-    maxHeight: '200px',
-  },
-};
-
-export const CustomLabel: Story = {
-  args: {
-    code: `export default {\n  database: 'sqlite',\n  host: 'localhost',\n  port: 3306,\n};`,
-    label: 'config.ts',
-    showLineNumbers: true,
-  },
+export const Inline: Story = {
+  render: () => (
+    <p>
+      Set <Code inline code='data-theme="dark"' /> on any element to switch that region.
+    </p>
+  ),
 };

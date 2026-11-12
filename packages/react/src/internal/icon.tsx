@@ -8,7 +8,11 @@
  * @internal
  */
 
-import { ICON_SVG_ATTRIBUTES, resolveIcon } from '@artisanpack-ui/behavior/icons';
+import {
+  ICON_SVG_ATTRIBUTES,
+  isDirectionalIcon as isRegisteredDirectional,
+  resolveIcon,
+} from '@artisanpack-ui/behavior/icons';
 import type { ReactNode, SVGProps } from 'react';
 
 import { devWarnOnce, hasContent } from './parts';
@@ -26,25 +30,40 @@ const SVG_PROPS = Object.fromEntries(
   ]),
 ) as SVGProps<SVGSVGElement>;
 
-/** Icon names whose glyph points along the inline axis, mirrored under RTL. */
-const DIRECTIONAL_ICONS = new Set(['arrow-right', 'arrow-left', 'chevron-right', 'chevron-left']);
-
-/** Whether a named icon flips under RTL. */
+/**
+ * Whether a named icon flips under RTL: the registry's directional names
+ * (`DIRECTIONAL_ICONS` in `@artisanpack-ui/behavior/icons`, plus any an app
+ * registers with `registerDirectionalIcons`).
+ */
 export function isDirectionalIcon(name: string | undefined): boolean {
-  return name !== undefined && DIRECTIONAL_ICONS.has(name);
+  return isRegisteredDirectional(name);
 }
 
 /**
  * The `<svg>` for a registered icon name, or `null` (with a one-time
  * development warning) when the name isn't registered.
  */
-export function IconSvg({ name, dataIcon }: { name: string; dataIcon?: string }) {
+export function IconSvg({
+  name,
+  dataIcon,
+  ...extra
+}: { name: string; dataIcon?: string } & SVGProps<SVGSVGElement> & {
+    'data-scope'?: string;
+    'data-part'?: string;
+  }) {
   const body = resolveIcon(name);
   if (body === undefined) {
     devWarnOnce(`icon:${name}`, `Unknown icon "${name}". Register it with registerIcons().`);
     return null;
   }
-  return <svg {...SVG_PROPS} data-icon={dataIcon} dangerouslySetInnerHTML={{ __html: body }} />;
+  return (
+    <svg
+      {...SVG_PROPS}
+      {...extra}
+      data-icon={dataIcon}
+      dangerouslySetInnerHTML={{ __html: body }}
+    />
+  );
 }
 
 export interface IconPartProps {
