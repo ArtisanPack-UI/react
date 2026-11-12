@@ -1,6 +1,27 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Diff } from './Diff';
 
+const before = `{
+  id: 4127,
+  name: "Grove Greenfield",
+  beds: 3,
+  price: 220000,
+  rent: 1600,
+  currency: "USD",
+  available: "2027-01-01",
+}`;
+
+const after = `{
+  id: 4127,
+  name: "Grove Greenfield",
+  beds: 3,
+  price: 220000,
+  rent: 1650,
+  deposit: 3300,
+  currency: "USD",
+  available: "2027-01-15",
+}`;
+
 const meta: Meta<typeof Diff> = {
   title: 'Data Display/Diff',
   component: Diff,
@@ -9,60 +30,31 @@ const meta: Meta<typeof Diff> = {
     docs: {
       description: {
         component:
-          'Side-by-side or inline text diff viewer for comparing old and new content. Highlights additions and deletions with customizable labels.',
+          'The changes between two versions of a text, unified or side by side, with the changed words marked. Signs and counts carry the meaning in text; the code stays LTR.',
       },
     },
   },
   argTypes: {
-    mode: {
-      control: 'select',
-      options: ['inline', 'side-by-side'],
-    },
+    view: { control: 'select', options: ['unified', 'split'] },
   },
+  args: { oldContent: before, newContent: after, fileName: 'listings/grove-greenfield.json' },
 };
 
 export default meta;
 type Story = StoryObj<typeof Diff>;
 
-const oldContent = `const x = 1;
-const y = 2;
-const z = 3;
+export const Unified: Story = {};
 
-function add(a, b) {
-  return a + b;
-}`;
+export const Split: Story = { args: { view: 'split', fileName: 'Version 3 → Version 4' } };
 
-const newContent = `const x = 1;
-const y = 3;
-const z = 3;
-const w = 4;
+export const WithoutWordLevel: Story = { args: { wordLevel: false, context: 1 } };
 
-function add(a, b) {
-  const result = a + b;
-  return result;
-}`;
-
-export const InlineMode: Story = {
+export const WithActions: Story = {
   args: {
-    oldContent,
-    newContent,
-    mode: 'inline',
-  },
-};
-
-export const SideBySide: Story = {
-  args: {
-    oldContent,
-    newContent,
-    mode: 'side-by-side',
-  },
-};
-
-export const CustomLabels: Story = {
-  args: {
-    oldContent: 'const greeting = "hello";',
-    newContent: 'const greeting = "Hello, World!";',
-    oldLabel: 'Before',
-    newLabel: 'After',
+    actions: (
+      <button type="button" onClick={() => navigator.clipboard?.writeText(after)}>
+        Copy
+      </button>
+    ),
   },
 };

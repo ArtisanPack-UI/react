@@ -14,7 +14,7 @@ export { ThemeToggle } from './ThemeToggle/ThemeToggle';
 export type { ThemeToggleProps } from './ThemeToggle/ThemeToggle';
 
 export { Tooltip } from './Tooltip/Tooltip';
-export type { TooltipProps } from './Tooltip/Tooltip';
+export type { TooltipProps, TooltipPlacement, TooltipSize, TooltipPart } from './Tooltip/Tooltip';
 
 export { Clipboard } from './Clipboard/Clipboard';
 export type { ClipboardProps } from './Clipboard/Clipboard';

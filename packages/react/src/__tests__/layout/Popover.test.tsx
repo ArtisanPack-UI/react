@@ -1,247 +1,150 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Popover } from '../../components/layout/Popover/Popover';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Button } from '../../components/form/Button/Button';
+import { Popover, type PopoverProps } from '../../components/layout/Popover/Popover';
+
+const declaredProps: (keyof PopoverProps)[] = [
+  'open',
+  'defaultOpen',
+  'placement',
+  'arrow',
+  'title',
+  'actions',
+  'trigger',
+  'portal',
+  'classes',
+];
+
+const part = (root: ParentNode, name: string) =>
+  root.querySelector(`[data-scope="popover"][data-part="${name}"]`);
+
+const panel = () => document.querySelector('.apui-popover') as HTMLElement;
+
+const interact = (fire: () => void) =>
+  act(async () => {
+    fire();
+  });
 
 describe('Popover', () => {
-  it('renders trigger', () => {
-    render(<Popover trigger={<span>Hover me</span>}>Popover content</Popover>);
-    expect(screen.getByText('Hover me')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Popover, 'Popover', {
+      declared: { props: declaredProps, events: ['onOpenChange'] },
+      ignoreEffects: ['defaultOpen'],
+    });
   });
 
-  it('always renders popover content in DOM', () => {
-    render(<Popover trigger={<span>Trigger</span>}>Popover content</Popover>);
-    expect(screen.getByText('Popover content')).toBeInTheDocument();
-  });
-
-  it('adds dropdown-open class on hover', () => {
-    const { container } = render(<Popover trigger={<span>Trigger</span>}>Content</Popover>);
-    fireEvent.mouseEnter(container.firstChild as Element);
-    expect(container.firstChild).toHaveClass('dropdown-open');
-  });
-
-  it('does not add dropdown-open by default without interaction', () => {
-    const { container } = render(<Popover trigger={<span>Trigger</span>}>Content</Popover>);
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-  });
-
-  it('does not add dropdown-hover class (visibility driven by state)', () => {
-    const { container } = render(
-      <Popover trigger={<span>Click me</span>} triggerMode="click">
-        Content
+  it('renders every part on the server with portal off', () => {
+    const html = renderToStaticMarkup(
+      <Popover open portal={false} trigger="Share" title="Share report" actions="Copy link">
+        Body
       </Popover>,
     );
-    expect(container.firstChild).not.toHaveClass('dropdown-hover');
+    const host = document.createElement('div');
+    host.innerHTML = html;
+    for (const name of ['trigger', 'positioner', 'content', 'arrow', 'title', 'body', 'actions']) {
+      expect(part(host, name), name).not.toBeNull();
+    }
   });
 
-  it('adds dropdown-open class on click in click mode', () => {
-    const { container } = render(
-      <Popover trigger={<button>Click me</button>} triggerMode="click">
-        Content
-      </Popover>,
-    );
-    fireEvent.click(screen.getByText('Click me'));
-    expect(container.firstChild).toHaveClass('dropdown-open');
-  });
-
-  it('opens on Enter key in click mode', () => {
-    const { container } = render(
-      <Popover trigger={<button>Press me</button>} triggerMode="click">
-        Content
-      </Popover>,
-    );
-    fireEvent.keyDown(screen.getByText('Press me'), { key: 'Enter' });
-    expect(container.firstChild).toHaveClass('dropdown-open');
-  });
-
-  it('opens on Space key in click mode', () => {
-    const { container } = render(
-      <Popover trigger={<button>Press me</button>} triggerMode="click">
-        Content
-      </Popover>,
-    );
-    fireEvent.keyDown(screen.getByText('Press me'), { key: ' ' });
-    expect(container.firstChild).toHaveClass('dropdown-open');
-  });
-
-  it('calls onOpenChange', () => {
-    const onOpenChange = vi.fn();
-    const { container } = render(
-      <Popover trigger={<span>Trigger</span>} onOpenChange={onOpenChange}>
-        Content
-      </Popover>,
-    );
-    fireEvent.mouseEnter(container.firstChild as Element);
-    expect(onOpenChange).toHaveBeenCalledWith(true);
-  });
-
-  it('applies position class', () => {
-    const { container } = render(
-      <Popover trigger={<span>Trigger</span>} position="top">
-        Content
-      </Popover>,
-    );
-    expect(container.firstChild).toHaveClass('dropdown-top');
-  });
-
-  it('sets aria-expanded on trigger element', () => {
+  it('renders a labelled, non-modal dialog with the requested placement', () => {
     render(
-      <Popover trigger={<span data-testid="trigger">Trigger</span>} open>
-        Content
+      <Popover open portal={false} trigger="Share" title="Share report">
+        Body
       </Popover>,
     );
-    expect(screen.getByTestId('trigger')).toHaveAttribute('aria-expanded', 'true');
+    const root = panel();
+    expect(root).toHaveAttribute('data-part', 'content');
+    expect(root).toHaveAttribute('role', 'dialog');
+    expect(root).not.toHaveAttribute('aria-modal');
+    expect(root).toHaveAttribute('data-placement', 'bottom');
+    expect([...root.children].map((el) => el.getAttribute('data-part'))).toEqual([
+      'arrow',
+      'title',
+      'body',
+    ]);
+    expect(part(root, 'arrow')).toHaveAttribute('aria-hidden', 'true');
+    expect(part(root, 'title')!.tagName).toBe('H3');
   });
 
-  it('closes on Escape when not persistent', () => {
-    const onOpenChange = vi.fn();
+  it('renders a text trigger as an outline Button that controls the panel', () => {
+    render(<Popover portal={false} trigger="Share" title="Share report" />);
+    const trigger = screen.getByRole('button', { name: 'Share' });
+    expect(trigger).toHaveAttribute('data-part', 'trigger');
+    expect(trigger).toHaveAttribute('data-variant', 'outline');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveAttribute('aria-controls', panel().id);
+  });
+
+  it('uses an element trigger itself, keeping its id, name and handlers', async () => {
+    const onClick = vi.fn();
     render(
       <Popover
-        trigger={<button>Click</button>}
-        triggerMode="click"
-        open
-        onOpenChange={onOpenChange}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onOpenChange).toHaveBeenCalledWith(false);
-  });
-
-  it('closes on outside click when not persistent', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Popover
-        trigger={<button>Click</button>}
-        triggerMode="click"
-        open
-        onOpenChange={onOpenChange}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.mouseDown(document.body);
-    expect(onOpenChange).toHaveBeenCalledWith(false);
-  });
-
-  it('does not close on outside click when persistent', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Popover
-        trigger={<button>Click</button>}
-        triggerMode="click"
-        open
-        persistent
-        onOpenChange={onOpenChange}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.mouseDown(document.body);
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
-  it('does not close on Escape when persistent', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Popover
-        trigger={<button>Click</button>}
-        triggerMode="click"
-        open
-        persistent
-        onOpenChange={onOpenChange}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(
-      <Popover ref={ref} trigger={<span>Trigger</span>}>
-        Content
-      </Popover>,
-    );
-    expect(ref).toHaveBeenCalled();
-  });
-
-  it('does not call onOpenChange from a library-injected click handler in controlled mode (#37)', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Popover
-        triggerMode="click"
-        open={false}
-        onOpenChange={onOpenChange}
-        trigger={<button>Toggle</button>}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.click(screen.getByText('Toggle'));
-    // In controlled mode the consumer owns the toggle. The library must not layer
-    // its own setOpen on top, which would fire onOpenChange a second time.
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
-  it('still forwards the original onClick on a controlled trigger', () => {
-    const consumerClick = vi.fn();
-    render(
-      <Popover
-        triggerMode="click"
-        open={false}
-        onOpenChange={() => {}}
-        trigger={<button onClick={consumerClick}>Toggle</button>}
-      >
-        Content
-      </Popover>,
-    );
-    fireEvent.click(screen.getByText('Toggle'));
-    expect(consumerClick).toHaveBeenCalledOnce();
-  });
-
-  it('toggles via the library handler in uncontrolled click mode', () => {
-    const { container } = render(
-      <Popover triggerMode="click" trigger={<button>Toggle</button>}>
-        Content
-      </Popover>,
-    );
-    fireEvent.click(screen.getByText('Toggle'));
-    expect(container.firstChild).toHaveClass('dropdown-open');
-    fireEvent.click(screen.getByText('Toggle'));
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-  });
-
-  it('does not call onOpenChange from the wrapInFocusable button on a Fragment trigger in controlled mode (#37)', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Popover
-        triggerMode="click"
-        open={false}
-        onOpenChange={onOpenChange}
+        portal={false}
+        title="About visits"
         trigger={
-          <>
-            <span>Outer</span>
-          </>
+          <Button
+            id="about"
+            variant="ghost"
+            iconOnly
+            leadingIcon="info"
+            aria-label="About visits"
+            onClick={onClick}
+          />
         }
       >
-        Content
+        Text
       </Popover>,
     );
-    fireEvent.click(screen.getByText('Outer'));
-    expect(onOpenChange).not.toHaveBeenCalled();
+    const trigger = screen.getByRole('button', { name: 'About visits' });
+    expect(trigger).toHaveAttribute('id', 'about');
+    expect(trigger).toHaveAttribute('data-variant', 'ghost');
+    expect(trigger).toHaveAttribute('data-part', 'trigger');
+    expect(document.querySelectorAll('[data-part="trigger"]')).toHaveLength(1);
+    await interact(() => fireEvent.click(trigger));
+    expect(onClick).toHaveBeenCalled();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('does not call onOpenChange from the fallback button on a string trigger in controlled mode (#37)', () => {
+  it('opens on click, moves focus in, and closes on Escape back to the trigger', async () => {
     const onOpenChange = vi.fn();
     render(
-      <Popover triggerMode="click" open={false} onOpenChange={onOpenChange} trigger="Click me">
-        Content
+      <Popover portal={false} trigger="Share" title="Share report" onOpenChange={onOpenChange}>
+        <button type="button">Copy</button>
       </Popover>,
     );
-    fireEvent.click(screen.getByText('Click me'));
-    expect(onOpenChange).not.toHaveBeenCalled();
+    const trigger = screen.getByRole('button', { name: 'Share' });
+    trigger.focus();
+    await interact(() => fireEvent.click(trigger));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    const dialog = await screen.findByRole('dialog', { name: 'Share report' });
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
+    await interact(() => fireEvent.keyDown(document.activeElement!, { key: 'Escape' }));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(panel()).toHaveAttribute('hidden');
+  });
+
+  it('emits placement and drops the arrow', () => {
+    render(<Popover open portal={false} placement="end" arrow={false} title="T" />);
+    expect(panel()).toHaveAttribute('data-placement', 'end');
+    expect(part(panel(), 'arrow')).toBeNull();
+  });
+
+  it('names a title-less popover with aria-label', () => {
+    render(<Popover open portal={false} aria-label="Visits" />);
+    expect(screen.getByRole('dialog', { name: 'Visits' })).toBe(panel());
+  });
+
+  it('uses no DaisyUI classes', () => {
+    const { container } = render(
+      <Popover open portal={false} trigger="Share" title="T">
+        Body
+      </Popover>,
+    );
+    expect(container.innerHTML).not.toMatch(
+      /\b(dropdown|dropdown-content|bg-base-100|rounded-box)\b/,
+    );
   });
 });

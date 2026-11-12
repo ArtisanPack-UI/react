@@ -4,7 +4,10 @@
  * components by their manifest name.
  */
 import { registerReactHost } from '@artisanpack-ui/testing/react-host';
+import { ImageGallery } from '../src/components/data/ImageGallery/ImageGallery';
+import { ImageSlider } from '../src/components/data/ImageSlider/ImageSlider';
 
+import { Table } from '../src/components/data/Table/Table';
 import { Button } from '../src/components/form/Button/Button';
 import { Checkbox } from '../src/components/form/Checkbox/Checkbox';
 import { Input } from '../src/components/form/Input/Input';
@@ -28,9 +31,19 @@ import { Signature } from '../src/components/form/Signature/Signature';
 import { RichTextEditor } from '../src/components/form/RichTextEditor/RichTextEditor';
 import { CodeEditor } from '../src/components/form/CodeEditor/CodeEditor';
 import { Toast } from '../src/components/feedback/Toast/Toast';
+import { Alert } from '../src/components/feedback/Alert/Alert';
+import { Loading } from '../src/components/feedback/Loading/Loading';
+import { Skeleton } from '../src/components/feedback/Skeleton/Skeleton';
+import { EmptyState } from '../src/components/feedback/EmptyState/EmptyState';
+import { ErrorState } from '../src/components/feedback/ErrorState/ErrorState';
+import { Progress } from '../src/components/data/Progress/Progress';
+import { ProgressRadial } from '../src/components/data/ProgressRadial/ProgressRadial';
 import { Card } from '../src/components/layout/Card/Card';
 import { Dialog } from '../src/components/layout/Dialog/Dialog';
 import { DropdownMenu } from '../src/components/layout/DropdownMenu/DropdownMenu';
+import { Drawer } from '../src/components/layout/Drawer/Drawer';
+import { Popover } from '../src/components/layout/Popover/Popover';
+import { Tooltip } from '../src/components/utility/Tooltip/Tooltip';
 import { Tabs } from '../src/components/layout/Tabs/Tabs';
 import { Menu } from '../src/components/navigation/Menu/Menu';
 import { Navbar } from '../src/components/navigation/Navbar/Navbar';
@@ -39,13 +52,43 @@ import { Link } from '../src/components/navigation/Link/Link';
 import { Pagination } from '../src/components/navigation/Pagination/Pagination';
 import { Steps } from '../src/components/navigation/Steps/Steps';
 import { Spotlight } from '../src/components/navigation/Spotlight/Spotlight';
+import { Accordion } from '../src/components/layout/Accordion/Accordion';
+import { AppShell } from '../src/components/layout/AppShell/AppShell';
+import { Collapse } from '../src/components/layout/Collapse/Collapse';
+import { Divider } from '../src/components/layout/Divider/Divider';
+import { Grid } from '../src/components/layout/Grid/Grid';
+import { PageHeader } from '../src/components/layout/PageHeader/PageHeader';
+import { Stack } from '../src/components/layout/Stack/Stack';
 
+import { Avatar } from '../src/components/data/Avatar/Avatar';
+import { Badge } from '../src/components/data/Badge/Badge';
+import { Heading } from '../src/components/layout/Heading/Heading';
+import { ListItem } from '../src/components/layout/ListItem/ListItem';
+import { Text } from '../src/components/layout/Text/Text';
+import { UserMenu } from '../src/components/layout/UserMenu/UserMenu';
+import { Stat } from '../src/components/data/Stat/Stat';
+import { KpiCard } from '../src/components/data/KpiCard/KpiCard';
+import { Sparkline } from '../src/components/data/Sparkline/Sparkline';
+import { Timeline } from '../src/components/data/Timeline/Timeline';
+import { Diff } from '../src/components/data/Diff/Diff';
 registerReactHost({
+  Avatar,
+  Badge,
+  Heading,
+  ListItem,
+  Text,
+  UserMenu,
+  ImageGallery,
+  ImageSlider,
+  Table,
   Button,
   Card,
   Checkbox,
   Dialog,
   DropdownMenu,
+  Drawer,
+  Popover,
+  Tooltip,
   Tabs,
   Menu,
   Navbar,
@@ -58,6 +101,13 @@ registerReactHost({
   Combobox,
   DatePicker,
   Toast,
+  Alert,
+  Loading,
+  Progress,
+  ProgressRadial,
+  Skeleton,
+  EmptyState,
+  ErrorState,
   Textarea,
   Password,
   Pin,
@@ -75,4 +125,16 @@ registerReactHost({
   Signature,
   RichTextEditor,
   CodeEditor,
+  Accordion,
+  AppShell,
+  Collapse,
+  Divider,
+  Grid,
+  PageHeader,
+  Stack,
+  Stat,
+  KpiCard,
+  Sparkline,
+  Timeline,
+  Diff,
 });

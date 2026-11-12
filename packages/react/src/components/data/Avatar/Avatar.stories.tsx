@@ -1,109 +1,67 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Avatar } from './Avatar';
+import { Avatar, AvatarGroup } from './Avatar';
 
 const meta: Meta<typeof Avatar> = {
-  title: 'Data Display/Avatar',
+  title: 'Data/Avatar',
   component: Avatar,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Displays a user avatar with optional image, placeholder initials, online status indicator, and ring highlight. Supports multiple sizes and DaisyUI color variants.',
+          'A person or organization as an image, initials or an icon. Initials take a color hashed from the name; the status is announced in words.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
+    size: { control: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl'] },
+    shape: { control: 'select', options: ['circle', 'square'] },
+    status: { control: 'select', options: [undefined, 'online', 'away', 'offline'] },
   },
+  args: { name: 'Olivia Rhye' },
 };
 
 export default meta;
 type Story = StoryObj<typeof Avatar>;
 
-export const Default: Story = {
-  args: {
-    placeholder: 'JM',
-    color: 'primary',
-  },
-};
-
-export const WithImage: Story = {
-  args: {
-    image:
-      'data:image/svg+xml,' +
-      encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#6366f1"/><text x="48" y="54" text-anchor="middle" fill="#fff" font-size="32" font-family="sans-serif">JM</text></svg>',
-      ),
-    alt: 'User avatar',
-  },
-};
-
-export const WithTitleSubtitle: Story = {
-  args: {
-    placeholder: 'JM',
-    color: 'primary',
-    title: 'Jane Miller',
-    subtitle: 'Product Designer',
-  },
-};
+export const Initials: Story = {};
 
 export const Sizes: Story = {
-  render: () => (
-    <div className="flex items-center gap-4">
-      <Avatar placeholder="XS" color="primary" size="xs" />
-      <Avatar placeholder="SM" color="secondary" size="sm" />
-      <Avatar placeholder="MD" color="accent" size="md" />
-      <Avatar placeholder="LG" color="success" size="lg" />
+  render: (args) => (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((size) => (
+        <Avatar key={size} {...args} size={size} />
+      ))}
     </div>
   ),
 };
 
-export const WithRing: Story = {
-  args: {
-    placeholder: 'R',
-    color: 'primary',
-    ring: true,
-  },
-};
-
-export const OnlineStatus: Story = {
+export const StatusAndShape: Story = {
   render: () => (
-    <div className="flex items-center gap-4">
-      <Avatar placeholder="ON" color="success" online />
-      <Avatar placeholder="OF" color="neutral" offline />
+    <div style={{ display: 'flex', gap: 8 }}>
+      <Avatar name="Olivia Rhye" status="online" />
+      <Avatar name="Phoenix Baker" status="away" />
+      <Avatar name="Lana Steiner" status="offline" />
+      <Avatar name="Apexify" shape="square" color="neutral" />
+      <Avatar />
     </div>
   ),
 };
 
-export const Colors: Story = {
+export const Group: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <Avatar placeholder="P" color="primary" />
-      <Avatar placeholder="S" color="secondary" />
-      <Avatar placeholder="A" color="accent" />
-      <Avatar placeholder="Su" color="success" />
-      <Avatar placeholder="W" color="warning" />
-      <Avatar placeholder="E" color="error" />
-      <Avatar placeholder="I" color="info" />
-      <Avatar placeholder="N" color="neutral" />
-    </div>
+    <AvatarGroup
+      label="Project members"
+      size="sm"
+      max={4}
+      avatars={[
+        { name: 'Olivia Rhye' },
+        { name: 'Phoenix Baker' },
+        { name: 'Lana Steiner' },
+        { name: 'Demi Wilkinson' },
+        { name: 'Candice Wu' },
+        { name: 'Drew Cano' },
+      ]}
+    />
   ),
 };

@@ -1,51 +1,53 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { Loading } from '../../components/feedback/Loading/Loading';
+import { describe, expect, it } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Loading, type LoadingProps } from '../../components/feedback/Loading/Loading';
+
+const declaredProps: (keyof LoadingProps)[] = [
+  'variant',
+  'size',
+  'color',
+  'label',
+  'overlay',
+  'delay',
+  'classes',
+];
 
 describe('Loading', () => {
-  it('renders with role="status"', () => {
-    render(<Loading />);
-    expect(screen.getByRole('status')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Loading, 'Loading', { declared: { props: declaredProps, events: [] } });
   });
 
-  it('has aria-label', () => {
-    render(<Loading />);
-    expect(screen.getByRole('status')).toHaveAttribute('aria-label', 'Loading');
+  it('is a status with a visually hidden label by default', () => {
+    const { container } = render(<Loading />);
+    const root = screen.getByRole('status');
+    expect(root).toHaveClass('apui-loading');
+    expect(root).toHaveAttribute('data-variant', 'spinner');
+    expect(root).toHaveAttribute('data-size', 'md');
+    expect(root).toHaveAttribute('data-color', 'primary');
+    expect(root.style.getPropertyValue('--apui-_delay')).toBe('300ms');
+    const label = container.querySelector('[data-part="label"]')!;
+    expect(label).toHaveClass('apui-sr-only');
+    expect(label).toHaveTextContent('Loading');
+    expect(container.querySelector('[data-part="indicator"]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
   });
 
-  it('applies default spinner variant', () => {
-    render(<Loading />);
-    expect(screen.getByRole('status')).toHaveClass('loading-spinner');
+  it('shows children as visible text, and translates the label', () => {
+    const { container, rerender } = render(<Loading>Saving changes…</Loading>);
+    expect(container.querySelector('[data-part="label"]')).not.toHaveClass('apui-sr-only');
+    expect(screen.getByRole('status')).toHaveTextContent('Saving changes…');
+    rerender(<Loading label="Chargement" />);
+    expect(screen.getByRole('status')).toHaveTextContent('Chargement');
   });
 
-  it('applies variant class', () => {
-    const variants = ['spinner', 'dots', 'ring', 'ball', 'bars', 'infinity'] as const;
-    variants.forEach((variant) => {
-      const { unmount } = render(<Loading variant={variant} />);
-      expect(screen.getByRole('status')).toHaveClass(`loading-${variant}`);
-      unmount();
-    });
-  });
-
-  it('applies color class', () => {
-    render(<Loading color="primary" />);
-    expect(screen.getByRole('status')).toHaveClass('text-primary');
-  });
-
-  it('applies size class', () => {
-    render(<Loading size="lg" />);
-    expect(screen.getByRole('status')).toHaveClass('loading-lg');
-  });
-
-  it('applies custom className', () => {
-    render(<Loading className="custom" />);
-    expect(screen.getByRole('status')).toHaveClass('custom');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLSpanElement>();
-    render(<Loading ref={ref} />);
-    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
+  it('draws three dots, an overlay and the delay', () => {
+    const { container } = render(<Loading variant="dots" overlay delay={0} />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(container.querySelectorAll('[data-part="indicator"] > span')).toHaveLength(3);
+    expect(root).toHaveAttribute('data-overlay', '');
+    expect(root.style.getPropertyValue('--apui-_delay')).toBe('0ms');
   });
 });

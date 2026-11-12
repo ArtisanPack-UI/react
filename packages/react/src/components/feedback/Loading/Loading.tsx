@@ -1,92 +1,125 @@
 /**
  * @module Loading
  *
- * Renders an animated loading indicator using DaisyUI's loading
- * component. Supports multiple visual variants (spinner, dots, ring,
- * ball, bars, infinity), DaisyUI color schemes, and four sizes.
+ * The design-system Loading (#60): a spinner or three dots in a status
+ * region, rendering the `.apui-loading` markup contract styled by
+ * `@artisanpack-ui/css`. It waits `delay` milliseconds before showing, so
+ * fast loads don't flash.
  *
  * @packageDocumentation
  */
 
-import { forwardRef, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
+import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
 
-/**
- * Visual variant of the loading indicator animation.
- */
-type LoadingVariant = 'spinner' | 'dots' | 'ring' | 'ball' | 'bars' | 'infinity';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
-/**
- * Props for the {@link Loading} component.
- */
+/** The indicator a {@link Loading} draws. */
+export type LoadingVariant = 'spinner' | 'dots';
+
+/** The size of a {@link Loading} indicator. */
+export type LoadingSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+/** The color of a {@link Loading} indicator. */
+export type LoadingColor =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info';
+
+/** The parts a {@link Loading} accepts extra classes for. */
+export type LoadingPart = 'root' | 'indicator' | 'label';
+
+/** The default screen-reader label. */
+export const LOADING_LABEL = 'Loading';
+
+/** Props for the {@link Loading} component. Native `<span>` attributes go to the root. */
 export interface LoadingProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
-  /** The DaisyUI color variant applied to the loading indicator. */
-  color?: DaisyColor;
-  /** The size of the loading indicator. */
-  size?: Size;
-  /** The visual animation style of the loading indicator. Defaults to `"spinner"`. */
+  /** A spinning ring or three pulsing dots. @defaultValue `'spinner'` */
   variant?: LoadingVariant;
+  /** The indicator's size. @defaultValue `'md'` */
+  size?: LoadingSize;
+  /** Tints the indicator. @defaultValue `'primary'` */
+  color?: LoadingColor;
+  /**
+   * What's loading, for screen readers: rendered visually hidden when there
+   * are no `children`. Translate it. @defaultValue `'Loading'`
+   */
+  label?: string;
+  /** Covers the nearest positioned ancestor. Set `aria-busy` on that region. @defaultValue `false` */
+  overlay?: boolean;
+  /** Milliseconds to wait before showing. @defaultValue `300` */
+  delay?: number;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<LoadingPart>;
 }
 
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'text-primary',
-  secondary: 'text-secondary',
-  accent: 'text-accent',
-  success: 'text-success',
-  warning: 'text-warning',
-  error: 'text-error',
-  info: 'text-info',
-  neutral: 'text-neutral',
-};
-
-const sizeMap: Record<Size, string> = {
-  xs: 'loading-xs',
-  sm: 'loading-sm',
-  md: 'loading-md',
-  lg: 'loading-lg',
-};
-
-const variantMap: Record<LoadingVariant, string> = {
-  spinner: 'loading-spinner',
-  dots: 'loading-dots',
-  ring: 'loading-ring',
-  ball: 'loading-ball',
-  bars: 'loading-bars',
-  infinity: 'loading-infinity',
-};
-
 /**
- * Loading indicator component with multiple animation variants.
- *
- * Renders a `<span>` with `role="status"` and an `aria-label` of
- * `"Loading"` for assistive technology support.
+ * Shows that work is in progress. `children` show as visible text beside the
+ * indicator. The ref points at the root.
  *
  * @example
  * ```tsx
- * // Default spinner
- * <Loading />
- *
- * // Large colored dots
- * <Loading variant="dots" color="primary" size="lg" />
+ * <Loading size="sm">Saving changes…</Loading>
  * ```
  */
 export const Loading = forwardRef<HTMLSpanElement, LoadingProps>(
-  ({ color, size, variant = 'spinner', className, ...rest }, ref) => {
+  (
+    {
+      variant = 'spinner',
+      size = 'md',
+      color = 'primary',
+      label = LOADING_LABEL,
+      overlay = false,
+      delay = 300,
+      classes = {},
+      className,
+      style,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const visible = hasContent(children);
     return (
       <span
-        ref={ref}
-        role="status"
-        aria-label="Loading"
-        className={cn(
-          'loading',
-          variantMap[variant],
-          color && colorMap[color],
-          size && sizeMap[size],
-          className,
-        )}
         {...rest}
-      />
+        ref={ref}
+        className={cx('apui-loading', classes.root, className)}
+        data-scope="loading"
+        data-part="root"
+        role="status"
+        data-variant={variant}
+        data-size={size}
+        data-color={color}
+        data-overlay={flag(overlay)}
+        style={{ '--apui-_delay': `${delay}ms`, ...style } as CSSProperties}
+      >
+        <span
+          data-scope="loading"
+          data-part="indicator"
+          aria-hidden="true"
+          className={classes.indicator}
+        >
+          {variant === 'dots' ? (
+            <>
+              <span />
+              <span />
+              <span />
+            </>
+          ) : null}
+        </span>
+        <span
+          data-scope="loading"
+          data-part="label"
+          className={cx(visible ? undefined : 'apui-sr-only', classes.label)}
+        >
+          {visible ? children : label}
+        </span>
+      </span>
     );
   },
 );

@@ -56,6 +56,7 @@ export type {
   NavbarPart,
 } from './Navbar/Navbar';
 
+// Deprecated: replaced by AppShell (layout, #58).
 export { Sidebar } from './Sidebar/Sidebar';
 export type { SidebarProps } from './Sidebar/Sidebar';
 

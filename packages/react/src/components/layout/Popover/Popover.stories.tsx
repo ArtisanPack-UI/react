@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../form/Button/Button';
+import { Input } from '../../form/Input/Input';
 import { Popover } from './Popover';
 
 const meta: Meta<typeof Popover> = {
@@ -9,9 +11,12 @@ const meta: Meta<typeof Popover> = {
     docs: {
       description: {
         component:
-          'Floating content panel triggered by hover or click with configurable position, open/close delays, and custom content slot.',
+          'An anchored, non-modal panel for a short task tied to one control. Focus moves in when it opens and returns to the trigger when it closes; Escape and an outside click close it.',
       },
     },
+  },
+  argTypes: {
+    placement: { control: 'select', options: ['top', 'bottom', 'start', 'end'] },
   },
 };
 
@@ -20,61 +25,33 @@ type Story = StoryObj<typeof Popover>;
 
 export const Default: Story = {
   args: {
-    trigger: <button className="btn">Hover me</button>,
-    triggerMode: 'hover',
-    children: <p>This popover appears on hover.</p>,
+    trigger: 'Share',
+    title: 'Share report',
+    actions: (
+      <Button size="sm" leadingIcon="copy">
+        Copy link
+      </Button>
+    ),
+    children: <Input label="Link" readOnly value="horizon.app/r/q4-income" />,
   },
 };
 
-export const ClickTrigger: Story = {
+export const OwnTrigger: Story = {
   args: {
-    trigger: <button className="btn btn-primary">Click me</button>,
-    triggerMode: 'click',
-    children: <p>This popover appears on click. Click outside to close.</p>,
-  },
-};
-
-export const Positions: Story = {
-  render: () => (
-    <div className="flex items-center justify-center gap-8 py-32">
-      <Popover
-        trigger={<button className="btn btn-sm">Top</button>}
-        triggerMode="click"
-        position="top"
-      >
-        <p>Top popover</p>
-      </Popover>
-      <Popover
-        trigger={<button className="btn btn-sm">Bottom</button>}
-        triggerMode="click"
-        position="bottom"
-      >
-        <p>Bottom popover</p>
-      </Popover>
-      <Popover
-        trigger={<button className="btn btn-sm">Left</button>}
-        triggerMode="click"
-        position="left"
-      >
-        <p>Left popover</p>
-      </Popover>
-      <Popover
-        trigger={<button className="btn btn-sm">Right</button>}
-        triggerMode="click"
-        position="right"
-      >
-        <p>Right popover</p>
-      </Popover>
-    </div>
-  ),
-};
-
-export const WithDelay: Story = {
-  args: {
-    trigger: <button className="btn btn-secondary">Hover (with delay)</button>,
-    triggerMode: 'hover',
-    showDelay: 200,
-    hideDelay: 500,
-    children: <p>Shows after 200ms, hides after 500ms.</p>,
+    placement: 'top',
+    title: 'What counts as a visit?',
+    trigger: (
+      <Button
+        variant="ghost"
+        color="neutral"
+        size="sm"
+        iconOnly
+        leadingIcon="info"
+        aria-label="About visits"
+      />
+    ),
+    children: (
+      <p>A unique person who opened the listing for at least 5 seconds, counted once a day.</p>
+    ),
   },
 };
