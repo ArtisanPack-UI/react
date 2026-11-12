@@ -1,139 +1,120 @@
 /**
  * @module Collapse
  *
- * An expandable/collapsible content section built on DaisyUI's collapse
- * component. Supports controlled and uncontrolled open state, arrow or
- * plus indicator icons. The `name` prop switches to a radio input for
- * semantic grouping but does not coordinate sibling state — use
- * {@link Accordion} or a parent with controlled `open` + `onOpenChange`
- * for exclusive one-open-at-a-time behaviour.
+ * The design-system Collapse (#58): a single disclosure on the behavior
+ * engine's collapsible machine (`useCollapse`), rescoped `collapse`. Renders
+ * the `.apui-collapse` markup contract styled by `@artisanpack-ui/css`.
+ * A `section` hides its region while closed; a `read-more` clamps it behind
+ * a fade and puts the trigger after it.
  *
  * @packageDocumentation
  */
 
-import { forwardRef, useId, useState, type HTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { type CollapseApi, useCollapse } from '@artisanpack-ui/behavior/react';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
-/**
- * Props for the {@link Collapse} component.
- */
-export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
-  /** Heading content displayed as the clickable trigger. */
-  title: ReactNode;
-  /** Style of the open/close indicator icon. @defaultValue `'arrow'` */
-  icon?: 'arrow' | 'plus' | 'none';
-  /** Whether the panel is open (controlled mode). */
+import { IconSvg } from '../../../internal/icon';
+import { mergePartProps } from '../../../internal/merge';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** The two Collapse layouts. */
+export type CollapseVariant = 'section' | 'read-more';
+
+/** The parts a {@link Collapse} accepts extra classes for. */
+export type CollapsePart = 'root' | 'trigger' | 'icon' | 'content' | 'fade';
+
+/** Props for the {@link Collapse} component. Native `<div>` attributes go to the root. */
+export interface CollapseProps extends HTMLAttributes<HTMLDivElement> {
+  /** Whether the region shows (controlled). Pair it with `onOpenChange`. */
   open?: boolean;
-  /** Initial open state when used in uncontrolled mode. @defaultValue `false` */
+  /** Whether an uncontrolled collapse starts open. */
   defaultOpen?: boolean;
-  /** Callback fired when the open state changes. */
+  /** Called when the trigger opens or closes the region. Setting `open` doesn't call it. */
   onOpenChange?: (open: boolean) => void;
-  /** HTML `name` attribute — switches to a radio input for semantic grouping. Does not auto-coordinate siblings; use {@link Accordion} or controlled `open` + `onOpenChange` for exclusive open behaviour. */
-  name?: string;
-  /** Add a border around the collapse section. */
-  bordered?: boolean;
-  /** Disable interaction, preventing the user from toggling the panel. */
+  /** Emitted as `data-variant`. @defaultValue `'section'` */
+  variant?: CollapseVariant;
+  /** The trigger's text. A read-more defaults it to `Read more`. */
+  label?: ReactNode;
+  /** The trigger's text while open. A read-more defaults it to `Show less`. */
+  openLabel?: string;
+  /** The trigger can't be focused or toggled. */
   disabled?: boolean;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CollapsePart>;
 }
 
 /**
- * Expandable/collapsible content section.
- *
- * Uses a hidden checkbox (or radio input when `name` is set) to drive the
- * DaisyUI collapse behaviour. Provides proper ARIA attributes for
- * accessibility (`aria-expanded`, `aria-controls`, `aria-labelledby`).
+ * A single disclosure: show and hide one region.
  *
  * @example
  * ```tsx
- * <Collapse title="Click to expand">
- *   <p>Hidden content revealed on toggle.</p>
- * </Collapse>
- * ```
- *
- * @example
- * ```tsx
- * // Controlled usage
- * const [open, setOpen] = useState(false);
- * <Collapse title="Details" open={open} onOpenChange={setOpen}>
- *   <p>Controlled panel content.</p>
- * </Collapse>
+ * <Collapse label="Advanced settings">…</Collapse>
+ * <Collapse variant="read-more">Long text…</Collapse>
  * ```
  */
 export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
   (
     {
-      title,
-      icon = 'arrow',
       open,
-      defaultOpen = false,
+      defaultOpen,
       onOpenChange,
-      name,
-      bordered = false,
+      variant = 'section',
+      label,
+      openLabel,
       disabled = false,
+      classes = {},
       className,
       children,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const [internalOpen, setInternalOpen] = useState(defaultOpen);
-    const isControlled = open !== undefined;
-    const isOpen = isControlled ? open : internalOpen;
+    const readMore = variant === 'read-more';
+    const api: CollapseApi = useCollapse({
+      ...(open !== undefined ? { open } : { defaultOpen }),
+      variant,
+      disabled: disabled || undefined,
+      onOpenChange: ({ open: next }) => onOpenChange?.(next),
+    });
+    const closedText = hasContent(label) ? label : readMore ? 'Read more' : undefined;
+    const openText = openLabel ?? (readMore ? 'Show less' : undefined);
+    const text = api.open && hasContent(openText) ? openText : closedText;
 
-    const iconClass = icon === 'arrow' ? 'collapse-arrow' : icon === 'plus' ? 'collapse-plus' : '';
-
-    const handleToggle = () => {
-      if (disabled) return;
-      const next = !isOpen;
-      if (!isControlled) {
-        setInternalOpen(next);
-      }
-      onOpenChange?.(next);
-    };
+    const trigger = (
+      <button
+        {...api.getTriggerProps()}
+        disabled={disabled || undefined}
+        className={classes.trigger}
+      >
+        {text}
+        <span {...api.getIndicatorProps()} aria-hidden="true" className={classes.icon}>
+          <IconSvg name="chevron-down" />
+        </span>
+      </button>
+    );
+    const content = (
+      <div {...api.getContentProps()} className={classes.content}>
+        {children}
+        {readMore ? (
+          <span
+            data-scope="collapse"
+            data-part="fade"
+            aria-hidden="true"
+            className={classes.fade}
+          />
+        ) : null}
+      </div>
+    );
 
     return (
       <div
+        {...mergePartProps(rest, api.getRootProps())}
         ref={ref}
-        className={cn(
-          'collapse',
-          iconClass,
-          bordered && 'border-base-300 border',
-          isOpen && 'collapse-open',
-          !isOpen && 'collapse-close',
-          disabled && 'opacity-50',
-          className,
-        )}
-        {...rest}
+        className={cx('apui-collapse', classes.root, className)}
+        data-variant={variant}
       >
-        {name ? (
-          <input
-            type="radio"
-            name={name}
-            checked={isOpen}
-            onChange={handleToggle}
-            aria-expanded={isOpen}
-            aria-controls={`collapse-content-${autoId}`}
-            aria-labelledby={`collapse-title-${autoId}`}
-            disabled={disabled}
-          />
-        ) : (
-          <input
-            type="checkbox"
-            checked={isOpen}
-            onChange={handleToggle}
-            aria-expanded={isOpen}
-            aria-controls={`collapse-content-${autoId}`}
-            aria-labelledby={`collapse-title-${autoId}`}
-            disabled={disabled}
-          />
-        )}
-        <div id={`collapse-title-${autoId}`} className="collapse-title font-semibold">
-          {title}
-        </div>
-        <div className="collapse-content" id={`collapse-content-${autoId}`}>
-          {children}
-        </div>
+        {readMore ? content : trigger}
+        {readMore ? trigger : content}
       </div>
     );
   },

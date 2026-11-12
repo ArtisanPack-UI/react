@@ -1,50 +1,75 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { Divider } from '../../components/layout/Divider/Divider';
+import { describe, it, expect } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Divider, type DividerProps } from '../../components/layout/Divider/Divider';
+
+const declaredProps: (keyof DividerProps)[] = [
+  'orientation',
+  'label',
+  'align',
+  'strength',
+  'decorative',
+  'classes',
+];
 
 describe('Divider', () => {
-  it('renders a horizontal separator by default', () => {
-    render(<Divider />);
-    const el = screen.getByRole('separator');
-    expect(el).toHaveAttribute('aria-orientation', 'horizontal');
-    expect(el).toHaveClass('divider');
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Divider, 'Divider', { declared: { props: declaredProps, events: [] } });
   });
 
-  it('renders vertical orientation', () => {
-    render(<Divider vertical />);
-    const el = screen.getByRole('separator');
-    expect(el).toHaveAttribute('aria-orientation', 'vertical');
-    expect(el).toHaveClass('divider-vertical');
+  it('renders an hr for a plain horizontal rule', () => {
+    const { container } = render(<Divider />);
+    const hr = container.querySelector('hr.apui-divider')!;
+    expect(hr.getAttribute('data-orientation')).toBe('horizontal');
+    expect(hr.getAttribute('data-strength')).toBe('subtle');
+    expect(screen.getByRole('separator')).toBe(hr);
   });
 
-  it('renders label text', () => {
-    render(<Divider label="OR" />);
-    expect(screen.getByText('OR')).toBeInTheDocument();
+  it('renders a vertical separator div', () => {
+    render(<Divider orientation="vertical" strength="strong" />);
+    const separator = screen.getByRole('separator');
+    expect(separator.tagName).toBe('DIV');
+    expect(separator.getAttribute('aria-orientation')).toBe('vertical');
+    expect(separator.getAttribute('data-strength')).toBe('strong');
   });
 
-  it('renders children as content', () => {
-    render(<Divider>Section Break</Divider>);
-    expect(screen.getByText('Section Break')).toBeInTheDocument();
+  it('names a labelled divider by its label, from the prop or children', () => {
+    render(<Divider label="or continue with" align="start" />);
+    const separator = screen.getByRole('separator', { name: 'or continue with' });
+    expect(separator.getAttribute('data-align')).toBe('start');
+    expect(separator.querySelector('[data-scope="divider"][data-part="label"]')).toBeTruthy();
   });
 
-  it('applies color variant', () => {
-    render(<Divider color="primary" />);
-    expect(screen.getByRole('separator')).toHaveClass('divider-primary');
+  it('takes children as the label', () => {
+    render(<Divider>Older activity</Divider>);
+    expect(screen.getByRole('separator', { name: 'Older activity' })).toBeTruthy();
   });
 
-  it('applies label position', () => {
-    render(<Divider label="Start" labelPosition="start" />);
-    expect(screen.getByRole('separator')).toHaveClass('divider-start');
+  it('hides a decorative divider from assistive technology', () => {
+    const { container } = render(<Divider decorative />);
+    expect(container.querySelector('hr')?.getAttribute('aria-hidden')).toBe('true');
+    expect(screen.queryByRole('separator')).toBeNull();
   });
 
-  it('applies custom className', () => {
-    render(<Divider className="my-custom" />);
-    expect(screen.getByRole('separator')).toHaveClass('my-custom');
+  it('reads a decorative label as plain text', () => {
+    render(<Divider decorative label="Or" />);
+    expect(screen.queryByRole('separator')).toBeNull();
+    expect(screen.getByText('Or')).toBeTruthy();
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Divider ref={ref} />);
-    expect(ref).toHaveBeenCalled();
+  it('forwards the ref and merges classes', () => {
+    const ref = createRef<HTMLElement>();
+    render(<Divider ref={ref} className="x" classes={{ root: 'r' }} />);
+    expect(ref.current?.className).toBe('apui-divider r x');
+  });
+
+  it('prefers the label prop over children, and falls back to it when children are empty', () => {
+    const both = render(<Divider label="Prop">Slot</Divider>);
+    expect(both.container.querySelector('[data-part="label"]')!.textContent).toBe('Prop');
+    both.unmount();
+    const empty = render(<Divider label="or">{null}</Divider>);
+    expect(empty.container.querySelector('[data-part="label"]')!.textContent).toBe('or');
+    expect(empty.container.querySelector('hr')).toBeNull();
   });
 });

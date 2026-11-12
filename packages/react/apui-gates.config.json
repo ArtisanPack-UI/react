@@ -33,11 +33,44 @@
     "Spotlight",
     "Signature",
     "RichTextEditor",
-    "CodeEditor"
+    "CodeEditor",
+    "Accordion",
+    "Collapse",
+    "AppShell",
+    "PageHeader",
+    "Divider",
+    "Grid",
+    "Stack",
+    "Drawer",
+    "Popover",
+    "Tooltip",
+    "Heading",
+    "Text",
+    "ListItem",
+    "UserMenu",
+    "Avatar",
+    "Badge",
+    "Alert",
+    "Loading",
+    "Progress",
+    "ProgressRadial",
+    "Skeleton",
+    "EmptyState",
+    "ErrorState",
+    "Stat",
+    "KpiCard",
+    "Sparkline",
+    "Timeline",
+    "Diff",
+    "ImageGallery",
+    "ImageSlider",
+    "Table"
   ],
   "css": ["../../node_modules/@artisanpack-ui/css/dist/index.css"],
   "stacks": {
-    "react": { "host": "test/fixture-host.tsx" }
+    "react": {
+      "host": "test/fixture-host.tsx"
+    }
   },
   "baselines": "../../node_modules/@artisanpack-ui/testing/baselines",
   "out": "build/gates"

@@ -102,19 +102,25 @@ export type DropdownMenuItemData =
   | DropdownMenuSeparatorData
   | DropdownMenuGroupData;
 
-interface RegisteredItem {
+/** An item registered with its menu, so `onSelect` knows its type. @internal */
+export interface RegisteredItem {
   type: DropdownMenuItemType;
   onSelect?: (value: string) => void;
 }
 
-interface DropdownMenuContextValue {
+/** What a menu shares with its items. @internal */
+export interface DropdownMenuContextValue {
   api: DropdownMenuApi;
   classes: PartClasses<DropdownMenuPart>;
   register(value: string, item: RegisteredItem): () => void;
   onCheckedChange?: (change: DropdownMenuCheckedChange) => void;
 }
 
-const DropdownMenuContext = createContext<DropdownMenuContextValue | null>(null);
+/**
+ * The menu's context. Exported for components composed on the same machine
+ * (UserMenu), not from the package index. @internal
+ */
+export const DropdownMenuContext = createContext<DropdownMenuContextValue | null>(null);
 
 function useMenuContext(component: string): DropdownMenuContextValue {
   const context = useContext(DropdownMenuContext);

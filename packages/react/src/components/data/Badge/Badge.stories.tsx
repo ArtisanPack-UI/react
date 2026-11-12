@@ -1,100 +1,73 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from './Badge';
 
+const COLORS = [
+  'primary',
+  'secondary',
+  'accent',
+  'neutral',
+  'success',
+  'warning',
+  'error',
+  'info',
+] as const;
+
 const meta: Meta<typeof Badge> = {
-  title: 'Data Display/Badge',
+  title: 'Data/Badge',
   component: Badge,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Inline status descriptor for labeling, categorizing, or counting items. Supports color variants, outline style, and multiple sizes.',
+          'A small, non-interactive label for a status, category or count. The text is always there; a dot or an icon can lead it.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-        'ghost',
-      ],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
+    variant: { control: 'select', options: ['solid', 'soft', 'outline', 'ghost'] },
+    color: { control: 'select', options: COLORS },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
+  args: { children: 'Active' },
 };
 
 export default meta;
 type Story = StoryObj<typeof Badge>;
 
-export const Default: Story = {
-  args: {
-    value: 'Badge',
-  },
-};
+export const Default: Story = {};
 
-export const Colors: Story = {
+export const Matrix: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-2">
-      <Badge value="Default" />
-      <Badge value="Primary" color="primary" />
-      <Badge value="Secondary" color="secondary" />
-      <Badge value="Accent" color="accent" />
-      <Badge value="Success" color="success" />
-      <Badge value="Warning" color="warning" />
-      <Badge value="Error" color="error" />
-      <Badge value="Info" color="info" />
-      <Badge value="Neutral" color="neutral" />
-      <Badge value="Ghost" color="ghost" />
+    <div style={{ display: 'grid', gap: 8 }}>
+      {(['solid', 'soft', 'outline', 'ghost'] as const).map((variant) => (
+        <div key={variant} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {COLORS.map((color) => (
+            <Badge key={color} variant={variant} color={color} dot={variant === 'ghost'}>
+              {color}
+            </Badge>
+          ))}
+        </div>
+      ))}
     </div>
   ),
 };
 
-export const Outline: Story = {
+export const DotIconAndSize: Story = {
   render: () => (
-    <div className="flex flex-wrap gap-2">
-      <Badge value="Primary" color="primary" outline />
-      <Badge value="Secondary" color="secondary" outline />
-      <Badge value="Accent" color="accent" outline />
-      <Badge value="Success" color="success" outline />
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <Badge color="primary" size="sm">
+        Small
+      </Badge>
+      <Badge color="success" dot>
+        Active
+      </Badge>
+      <Badge color="success" leadingIcon="arrow-right">
+        +11.01%
+      </Badge>
+      <Badge color="info" variant="solid" size="lg">
+        New
+      </Badge>
     </div>
-  ),
-};
-
-export const Sizes: Story = {
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Badge value="XS" color="primary" size="xs" />
-      <Badge value="SM" color="primary" size="sm" />
-      <Badge value="MD" color="primary" size="md" />
-      <Badge value="LG" color="primary" size="lg" />
-    </div>
-  ),
-};
-
-export const WithChildren: Story = {
-  args: {
-    color: 'primary',
-    children: <span>Custom Content</span>,
-  },
-};
-
-export const InText: Story = {
-  render: () => (
-    <p className="text-lg">
-      Notifications <Badge value="12" color="error" size="sm" /> pending
-    </p>
   ),
 };

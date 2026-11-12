@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Table } from './Table';
-import type { TableSortConfig } from './Table';
-import { Badge } from '../Badge/Badge';
-import { Button } from '../../form/Button/Button';
+import type { TableKey, TableSort } from './Table';
 
 const meta: Meta<typeof Table> = {
   title: 'Data Display/Table',
@@ -13,7 +11,7 @@ const meta: Meta<typeof Table> = {
     docs: {
       description: {
         component:
-          'Data table with sortable columns, row selection, custom cell renderers, striped and compact variants, and an empty state fallback.',
+          'The design-system Table (#62): sortable headers with aria-sort, row selection with a mixed select-all box, expandable rows, loading and empty states, and Pagination in the footer. Renders the `.apui-table` markup contract.',
       },
     },
   },
@@ -22,125 +20,93 @@ const meta: Meta<typeof Table> = {
 export default meta;
 type Story = StoryObj<typeof Table>;
 
-const users = [
-  { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin', status: 'Active' },
-  { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'Editor', status: 'Active' },
-  { id: 3, name: 'Carol Davis', email: 'carol@example.com', role: 'Viewer', status: 'Inactive' },
-  { id: 4, name: 'Dan Wilson', email: 'dan@example.com', role: 'Editor', status: 'Active' },
-  { id: 5, name: 'Eve Brown', email: 'eve@example.com', role: 'Admin', status: 'Active' },
+const headers = [
+  { key: 'symbol', label: 'Product name', secondary: 'company', sortable: true },
+  { key: 'amount', label: 'Order amount', numeric: true },
+  { key: 'date', label: 'Date', sortable: true },
+  { key: 'status', label: 'Status' },
+  { key: 'owner', label: 'Executed by' },
 ];
 
-const headers = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'email', label: 'Email', sortable: true },
-  { key: 'role', label: 'Role' },
+const rows = [
   {
-    key: 'status',
-    label: 'Status',
-    render: (value: unknown) => (
-      <Badge value={value as string} color={value === 'Active' ? 'success' : 'neutral'} size="sm" />
-    ),
+    id: 1,
+    symbol: 'TSLA',
+    company: 'Tesla, Inc.',
+    amount: '$30,021.23',
+    date: 'Dec 13, 2023',
+    status: 'Processing',
+    owner: 'Olivia Rhye',
+  },
+  {
+    id: 2,
+    symbol: 'MTCH',
+    company: 'Match Group, Inc.',
+    amount: '$10,045.00',
+    date: 'Dec 13, 2023',
+    status: 'Success',
+    owner: 'Phoenix Baker',
+  },
+  {
+    id: 3,
+    symbol: 'DDOG',
+    company: 'Datadog Inc.',
+    amount: '$40,132.16',
+    date: 'Dec 13, 2023',
+    status: 'Success',
+    owner: 'Lana Steiner',
+  },
+  {
+    id: 4,
+    symbol: 'ARKG',
+    company: 'ARK Genomic Revolution ETF',
+    amount: '$22,665.12',
+    date: 'Dec 28, 2023',
+    status: 'Declined',
+    owner: 'Demi Wilkinson',
   },
 ];
 
 export const Default: Story = {
-  args: {
-    headers,
-    rows: users,
-    keyBy: 'id',
-  },
+  args: { title: 'Transaction history', headers, rows },
 };
 
-export const Striped: Story = {
-  args: {
-    headers,
-    rows: users,
-    keyBy: 'id',
-    striped: true,
-  },
-};
-
-export const Hoverable: Story = {
-  args: {
-    headers,
-    rows: users,
-    keyBy: 'id',
-    hoverable: true,
+export const Interactive: Story = {
+  render: () => {
+    const [selected, setSelected] = useState<TableKey[]>([2]);
+    const [sort, setSort] = useState<TableSort>({ column: 'date', direction: 'desc' });
+    const [page, setPage] = useState(3);
+    return (
+      <Table
+        title="Transaction history"
+        headers={headers}
+        rows={rows}
+        selectable
+        value={selected}
+        onValueChange={setSelected}
+        sortBy={sort}
+        onSortChange={setSort}
+        expandable
+        renderExpansion={(row) => `${String(row.company)} — order details`}
+        footer={`${selected.length} selected · 4 of 128 transactions`}
+        pagination={{ page, total: 128, perPage: 4, onPageChange: setPage }}
+      />
+    );
   },
 };
 
 export const Compact: Story = {
-  args: {
-    headers,
-    rows: users,
-    keyBy: 'id',
-    compact: true,
-  },
+  args: { title: 'Transaction history', headers, rows, density: 'compact' },
 };
 
-export const WithActions: Story = {
-  args: {
-    headers,
-    rows: users,
-    keyBy: 'id',
-    renderActions: (_row: Record<string, unknown>) => (
-      <div className="flex gap-1">
-        <Button size="xs" variant="ghost">
-          Edit
-        </Button>
-        <Button size="xs" color="error">
-          Delete
-        </Button>
-      </div>
-    ),
-  },
-};
-
-export const Sortable: Story = {
-  render: () => {
-    const [sort, setSort] = useState<TableSortConfig>({ key: 'name', direction: 'asc' });
-    const sorted = [...users].sort((a, b) => {
-      const aVal = a[sort.key as keyof typeof a];
-      const bVal = b[sort.key as keyof typeof b];
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-      }
-      return sort.direction === 'asc'
-        ? String(aVal).localeCompare(String(bVal))
-        : String(bVal).localeCompare(String(aVal));
-    });
-    return (
-      <Table headers={headers} rows={sorted} keyBy="id" sortBy={sort} onSort={setSort} hoverable />
-    );
-  },
-};
-
-export const Selectable: Story = {
-  render: () => {
-    const [selected, setSelected] = useState<Set<string | number>>(new Set());
-    return (
-      <div>
-        <p className="mb-2 text-sm">Selected: {selected.size} rows</p>
-        <Table
-          headers={headers}
-          rows={users}
-          keyBy="id"
-          selectable
-          selectableKey="id"
-          selectedKeys={selected}
-          onSelectionChange={setSelected}
-          hoverable
-        />
-      </div>
-    );
-  },
+export const Loading: Story = {
+  args: { title: 'Transaction history', headers, rows, loading: true },
 };
 
 export const Empty: Story = {
-  args: {
-    headers,
-    rows: [],
-    keyBy: 'id',
-    emptyText: 'No users found.',
-  },
+  args: { title: 'Transaction history', headers, rows: [] },
+};
+
+export const Glass: Story = {
+  args: { title: 'Transaction history', headers, rows, surface: 'glass' },
 };

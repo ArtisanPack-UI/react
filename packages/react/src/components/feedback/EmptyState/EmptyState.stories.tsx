@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { EmptyState } from './EmptyState';
 import { Button } from '../../form/Button/Button';
+import { EmptyState } from './EmptyState';
 
 const meta: Meta<typeof EmptyState> = {
   title: 'Feedback/EmptyState',
@@ -10,56 +10,46 @@ const meta: Meta<typeof EmptyState> = {
     docs: {
       description: {
         component:
-          'Placeholder shown when a list, table, or section has no content. Accepts an icon, heading, description, and action slot to guide the user.',
+          "Explains why there's nothing here and what to do next. The variant picks the tile's tint and default icon.",
       },
     },
   },
   argTypes: {
-    heading: {
-      control: 'text',
-    },
-    description: {
-      control: 'text',
-    },
-    headingAs: {
-      control: 'select',
-      options: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'],
-    },
+    variant: { control: 'select', options: ['first-use', 'no-results', 'cleared'] },
+    size: { control: 'select', options: ['sm', 'md'] },
+    align: { control: 'select', options: ['center', 'start'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof EmptyState>;
 
-export const Default: Story = {
+export const FirstUse: Story = {
   args: {
-    heading: 'No results found',
-    description: 'Try adjusting your search or filter to find what you are looking for.',
+    title: 'No properties yet',
+    description: 'Add your first property to start tracking visits, offers and revenue.',
+    actions: <Button leadingIcon="plus">Add property</Button>,
   },
 };
 
-export const WithIcon: Story = {
+export const NoResults: Story = {
   args: {
-    icon: <span className="text-4xl">📭</span>,
-    heading: 'Your inbox is empty',
-    description: 'Messages you receive will appear here.',
+    variant: 'no-results',
+    title: 'No results for “Lakw”',
+    description: 'Check the spelling, or clear filters to see all 318 properties.',
+    actions: (
+      <Button variant="outline" color="neutral">
+        Clear filters
+      </Button>
+    ),
   },
 };
 
-export const WithAction: Story = {
+export const Cleared: Story = {
   args: {
-    icon: <span className="text-4xl">📝</span>,
-    heading: 'No posts yet',
-    description: 'Get started by creating your first post.',
-    action: <Button color="primary">Create Post</Button>,
-  },
-};
-
-export const NoData: Story = {
-  args: {
-    icon: <span className="text-4xl">📊</span>,
-    heading: 'No data available',
-    description: 'Data will appear here once records are added to the system.',
-    action: <Button color="secondary">Import Data</Button>,
+    variant: 'cleared',
+    size: 'sm',
+    title: 'You’re all caught up',
+    description: 'New offers will appear here.',
   },
 };

@@ -1,63 +1,60 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { EmptyState } from '../../components/feedback/EmptyState/EmptyState';
+import { describe, expect, it } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { EmptyState, type EmptyStateProps } from '../../components/feedback/EmptyState/EmptyState';
+
+const declaredProps: (keyof EmptyStateProps)[] = [
+  'variant',
+  'size',
+  'align',
+  'icon',
+  'title',
+  'description',
+  'actions',
+  'headingLevel',
+  'classes',
+];
+
+const part = (root: ParentNode, name: string) =>
+  root.querySelector(`[data-scope="empty-state"][data-part="${name}"]`);
 
 describe('EmptyState', () => {
-  it('renders heading', () => {
-    render(<EmptyState heading="No items found" />);
-    expect(screen.getByText('No items found')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(EmptyState, 'EmptyState', {
+      declared: { props: declaredProps, events: [] },
+    });
   });
 
-  it('renders description', () => {
-    render(<EmptyState description="Try adjusting your filters" />);
-    expect(screen.getByText('Try adjusting your filters')).toBeInTheDocument();
-  });
-
-  it('renders icon', () => {
-    render(<EmptyState icon={<span data-testid="icon">📭</span>} />);
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
-  });
-
-  it('renders action element', () => {
-    render(<EmptyState action={<button>Add item</button>} />);
-    expect(screen.getByText('Add item')).toBeInTheDocument();
-  });
-
-  it('renders children', () => {
-    render(<EmptyState>Custom content</EmptyState>);
-    expect(screen.getByText('Custom content')).toBeInTheDocument();
-  });
-
-  it('renders all parts together', () => {
-    render(
-      <EmptyState
-        icon={<span data-testid="icon">📭</span>}
-        heading="No results"
-        description="Nothing here yet"
-        action={<button>Create</button>}
-      />,
+  it('renders the contract anatomy with a level-3 heading', () => {
+    const { container } = render(
+      <EmptyState title="No properties yet" description="Add one." actions="Add property" />,
     );
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
-    expect(screen.getByText('No results')).toBeInTheDocument();
-    expect(screen.getByText('Nothing here yet')).toBeInTheDocument();
-    expect(screen.getByText('Create')).toBeInTheDocument();
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('apui-empty-state');
+    expect(root).toHaveAttribute('data-variant', 'first-use');
+    expect(root).toHaveAttribute('data-size', 'md');
+    expect(root).toHaveAttribute('data-align', 'center');
+    expect([...root.children].map((el) => el.getAttribute('data-part'))).toEqual([
+      'icon',
+      'title',
+      'description',
+      'actions',
+    ]);
+    expect(screen.getByRole('heading', { level: 3, name: 'No properties yet' })).toBeTruthy();
+    expect(part(root, 'icon')).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('renders correct element via headingAs prop', () => {
-    render(<EmptyState heading="Custom Heading" headingAs="h2" />);
-    const heading = screen.getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Custom Heading');
+  it('changes the default icon with the variant, and clamps headingLevel', () => {
+    const { container, rerender } = render(<EmptyState title="Empty" />);
+    const icon = () => part(container, 'icon')!.innerHTML;
+    const first = icon();
+    rerender(<EmptyState variant="no-results" title="Empty" headingLevel={1} />);
+    expect(icon()).not.toBe(first);
+    expect(screen.getByRole('heading', { level: 2 })).toBeTruthy();
   });
 
-  it('applies custom className', () => {
-    const { container } = render(<EmptyState className="custom" />);
-    expect(container.firstChild).toHaveClass('custom');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<EmptyState ref={ref} heading="Empty" />);
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  it('fills the description from children', () => {
+    const { container } = render(<EmptyState title="Empty">Nothing yet.</EmptyState>);
+    expect(part(container, 'description')).toHaveTextContent('Nothing yet.');
   });
 });

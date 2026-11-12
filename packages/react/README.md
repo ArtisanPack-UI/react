@@ -89,7 +89,7 @@ import { Icon, ThemeToggle, Tooltip } from '@artisanpack-ui/react/utility';
 - **Form** - Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
 - **Layout** - Card, Dialog, DropdownMenu, Tabs, Accordion, Drawer, Grid, Stack, Popover
 - **Navigation** - Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
-- **Data Display** - Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
+- **Data Display** - Table, Chart, Calendar, Avatar, Badge, Progress, Stat, KpiCard, Sparkline, Timeline, Carousel, Code, Diff
 - **Feedback** - Alert, Toast and Toaster, Loading, Skeleton, EmptyState, ErrorDisplay
 - **Utility** - Icon, ThemeToggle, Tooltip, Clipboard, Markdown
 

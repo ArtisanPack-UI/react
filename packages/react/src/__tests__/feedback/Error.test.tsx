@@ -1,69 +1,38 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { ErrorDisplay as ErrorComponent } from '../../components/feedback/Error/Error';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { ErrorDisplay } from '../../components/feedback/Error/Error';
 
-describe('Error', () => {
-  it('renders default title', () => {
-    render(<ErrorComponent />);
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+describe('ErrorDisplay (deprecated alias of ErrorState)', () => {
+  it('renders an ErrorState with the old defaults', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { container } = render(<ErrorDisplay message="The server didn't respond." />);
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('apui-error-state');
+    expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeTruthy();
+    expect(root.querySelector('[data-part="description"]')).toHaveTextContent(
+      "The server didn't respond.",
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('ErrorDisplay is deprecated'));
+    warn.mockRestore();
   });
 
-  it('renders custom title', () => {
-    render(<ErrorComponent title="404 Not Found" />);
-    expect(screen.getByText('404 Not Found')).toBeInTheDocument();
-  });
-
-  it('renders message', () => {
-    render(<ErrorComponent message="Please try again later" />);
-    expect(screen.getByText('Please try again later')).toBeInTheDocument();
-  });
-
-  it('has role="alert"', () => {
-    render(<ErrorComponent />);
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-  });
-
-  it('renders icon', () => {
-    render(<ErrorComponent icon={<span data-testid="error-icon">⚠</span>} />);
-    expect(screen.getByTestId('error-icon')).toBeInTheDocument();
-  });
-
-  it('shows retry button when onRetry is provided', () => {
-    render(<ErrorComponent onRetry={() => {}} />);
-    expect(screen.getByText('Try again')).toBeInTheDocument();
-  });
-
-  it('does not show retry button without onRetry', () => {
-    render(<ErrorComponent />);
-    expect(screen.queryByText('Try again')).not.toBeInTheDocument();
-  });
-
-  it('calls onRetry when retry button is clicked', () => {
+  it('maps onRetry and retryLabel to a button in the actions', () => {
     const onRetry = vi.fn();
-    render(<ErrorComponent onRetry={onRetry} />);
-    fireEvent.click(screen.getByText('Try again'));
+    render(<ErrorDisplay title="Failed" onRetry={onRetry} retryLabel="Retry" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
-  it('renders custom retry label', () => {
-    render(<ErrorComponent onRetry={() => {}} retryLabel="Reload" />);
-    expect(screen.getByText('Reload')).toBeInTheDocument();
-  });
-
-  it('renders children', () => {
-    render(<ErrorComponent>Extra details</ErrorComponent>);
-    expect(screen.getByText('Extra details')).toBeInTheDocument();
-  });
-
-  it('applies custom className', () => {
-    render(<ErrorComponent className="custom" />);
-    expect(screen.getByRole('alert')).toHaveClass('custom');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<ErrorComponent ref={ref} />);
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  it('renders the message and children together in the description', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { container } = render(
+      <ErrorDisplay message="Try later.">
+        <a href="/status">Status</a>
+      </ErrorDisplay>,
+    );
+    expect(container.querySelector('[data-part="description"]')!.innerHTML).toBe(
+      'Try later.<a href="/status">Status</a>',
+    );
+    warn.mockRestore();
   });
 });

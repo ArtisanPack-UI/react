@@ -1,12 +1,6 @@
-import type { Meta, StoryObj, Decorator } from '@storybook/react-vite';
-import { Tooltip } from './Tooltip';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../../form/Button/Button';
-
-const centeredDecorator: Decorator = (Story) => (
-  <div className="p-16 flex justify-center">
-    <Story />
-  </div>
-);
+import { Tooltip } from './Tooltip';
 
 const meta: Meta<typeof Tooltip> = {
   title: 'Utility/Tooltip',
@@ -16,29 +10,13 @@ const meta: Meta<typeof Tooltip> = {
     docs: {
       description: {
         component:
-          'Hover tooltip overlay with configurable position (top, bottom, left, right), DaisyUI color variants, and always-open pinned mode.',
+          'A short label on hover and keyboard focus. The child is the trigger; the tooltip describes it with aria-describedby. Hoverable, and Escape hides it. Never the only name of an icon button.',
       },
     },
   },
   argTypes: {
-    position: {
-      control: 'select',
-      options: ['top', 'bottom', 'left', 'right'],
-    },
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
+    placement: { control: 'select', options: ['top', 'bottom', 'start', 'end'] },
+    size: { control: 'select', options: ['md', 'lg'] },
   },
 };
 
@@ -47,67 +25,39 @@ type Story = StoryObj<typeof Tooltip>;
 
 export const Default: Story = {
   args: {
-    tip: 'Hello, I am a tooltip!',
-    children: <Button color="primary">Hover me</Button>,
+    content: 'Edit',
+    shortcut: 'E',
+    children: (
+      <Button
+        variant="outline"
+        color="neutral"
+        size="sm"
+        iconOnly
+        leadingIcon="pencil"
+        aria-label="Edit"
+      />
+    ),
   },
-  decorators: [centeredDecorator],
 };
 
-export const Positions: Story = {
-  render: () => (
-    <div className="flex gap-4 p-16 justify-center">
-      <Tooltip tip="Top tooltip" position="top">
-        <Button>Top</Button>
-      </Tooltip>
-      <Tooltip tip="Bottom tooltip" position="bottom">
-        <Button>Bottom</Button>
-      </Tooltip>
-      <Tooltip tip="Left tooltip" position="left">
-        <Button>Left</Button>
-      </Tooltip>
-      <Tooltip tip="Right tooltip" position="right">
-        <Button>Right</Button>
-      </Tooltip>
-    </div>
-  ),
-};
-
-export const Colors: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-4 p-12 justify-center">
-      <Tooltip tip="Primary" color="primary">
-        <Button color="primary">Primary</Button>
-      </Tooltip>
-      <Tooltip tip="Secondary" color="secondary">
-        <Button color="secondary">Secondary</Button>
-      </Tooltip>
-      <Tooltip tip="Accent" color="accent">
-        <Button color="accent">Accent</Button>
-      </Tooltip>
-      <Tooltip tip="Success" color="success">
-        <Button color="success">Success</Button>
-      </Tooltip>
-      <Tooltip tip="Warning" color="warning">
-        <Button color="warning">Warning</Button>
-      </Tooltip>
-      <Tooltip tip="Error" color="error">
-        <Button color="error">Error</Button>
-      </Tooltip>
-      <Tooltip tip="Info" color="info">
-        <Button color="info">Info</Button>
-      </Tooltip>
-      <Tooltip tip="Neutral" color="neutral">
-        <Button color="neutral">Neutral</Button>
-      </Tooltip>
-    </div>
-  ),
-};
-
-export const AlwaysOpen: Story = {
+export const LongText: Story = {
   args: {
-    tip: 'Always visible',
-    open: true,
-    children: <Button color="primary">Pinned tooltip</Button>,
+    size: 'lg',
+    placement: 'end',
+    content: 'Conversion is completed deals divided by unique visits in the period.',
+    children: (
+      <Button
+        variant="ghost"
+        color="neutral"
+        size="sm"
+        iconOnly
+        leadingIcon="info"
+        aria-label="About conversion"
+      />
+    ),
   },
-  decorators: [centeredDecorator],
+};
+
+export const Forced: Story = {
+  args: { ...Default.args, open: true, placement: 'bottom' },
 };

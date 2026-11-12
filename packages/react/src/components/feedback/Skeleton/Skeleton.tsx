@@ -1,56 +1,56 @@
 /**
  * @module Skeleton
  *
- * A placeholder loading animation used to indicate that content is being
- * loaded. Renders a pulsing rectangle (or circle) at the specified
- * dimensions, replacing actual content until it is ready.
+ * The design-system Skeleton (#60): a placeholder shape (`.apui-skeleton`)
+ * that matches the layout while content loads. Skeletons are hidden from
+ * assistive technology; the container that is loading sets `aria-busy`.
  *
  * @packageDocumentation
  */
 
-import { forwardRef, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
 
-/**
- * Props for the {@link Skeleton} component.
- */
-export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
-  /** Width of the skeleton as a CSS value (e.g. `"200px"`, `"100%"`). */
-  width?: string;
-  /** Height of the skeleton as a CSS value (e.g. `"1rem"`, `"40px"`). */
-  height?: string;
-  /** When `true`, renders the skeleton as a circle. If only one of `width`/`height` is set, it is used for both dimensions. When both are set, each is applied independently. */
-  circle?: boolean;
+import { cx } from '../../../internal/parts';
+
+/** The shape of a {@link Skeleton}. */
+export type SkeletonShape = 'block' | 'text' | 'circle';
+
+/** Props for the {@link Skeleton} component. Native `<span>` attributes go to the root. */
+export interface SkeletonProps extends HTMLAttributes<HTMLSpanElement> {
+  /** A block, a line of text or a circle. @defaultValue `'block'` */
+  shape?: SkeletonShape;
+  /** A CSS length, or a number of px. */
+  width?: string | number;
+  /** A CSS length, or a number of px. A text line keeps its own height unless set. */
+  height?: string | number;
 }
 
+const length = (value: string | number | undefined) =>
+  typeof value === 'number' ? `${value}px` : value;
+
 /**
- * Skeleton placeholder for content that is still loading.
- *
- * The element is hidden from assistive technologies via `aria-hidden` by default.
- * This can be overridden by passing `aria-hidden={false}` through props.
+ * A placeholder shape. The ref points at the root.
  *
  * @example
  * ```tsx
- * // Rectangular skeleton for a text block
- * <Skeleton width="100%" height="1rem" />
- *
- * // Circular skeleton for an avatar
- * <Skeleton circle width="48px" />
+ * <Skeleton shape="text" width="80%" />
  * ```
  */
-export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
-  ({ width, height, circle = false, className, style, ...rest }, ref) => {
+export const Skeleton = forwardRef<HTMLSpanElement, SkeletonProps>(
+  ({ shape = 'block', width, height, className, style, ...rest }, ref) => {
+    const size: CSSProperties = {};
+    if (width !== undefined && width !== '') size.width = length(width);
+    if (height !== undefined && height !== '') size.height = length(height);
     return (
-      <div
-        ref={ref}
-        aria-hidden="true"
-        className={cn('skeleton', circle && 'rounded-full', className)}
-        style={{
-          width: circle ? (width ?? height) : width,
-          height: circle ? (height ?? width) : height,
-          ...style,
-        }}
+      <span
         {...rest}
+        ref={ref}
+        className={cx('apui-skeleton', className)}
+        data-scope="skeleton"
+        data-part="root"
+        data-shape={shape}
+        aria-hidden="true"
+        style={{ ...size, ...style }}
       />
     );
   },

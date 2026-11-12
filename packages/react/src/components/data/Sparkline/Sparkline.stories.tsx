@@ -9,91 +9,28 @@ const meta: Meta<typeof Sparkline> = {
     docs: {
       description: {
         component:
-          'Compact inline chart for showing data trends at a glance. Supports line, area, and bar visualization types with DaisyUI color theming.',
+          'A word-sized trend with no axes, drawn as inline SVG. Its label states the first and latest values; keep the values themselves in a table or tooltip nearby.',
       },
     },
   },
   argTypes: {
-    type: {
-      control: 'select',
-      options: ['line', 'area', 'bar'],
-    },
-    color: {
-      control: 'select',
-      options: ['primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info', 'neutral'],
-    },
+    variant: { control: 'select', options: ['line', 'area', 'bar'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Sparkline>;
 
-const sampleData = [5, 10, 5, 20, 8, 15, 12, 18];
+export const Line: Story = { args: { data: [2, 4, 3, 7, 6, 9, 12, 11, 14] } };
 
-export const Default: Story = {
-  args: {
-    data: sampleData,
-  },
+export const Area: Story = { args: { data: [2, 6, 4, 7, 5, 8, 10, 7, 12], variant: 'area' } };
+
+export const Bar: Story = { args: { data: [2, 6, 4, 7, 5, 8, 10, 7, 12], variant: 'bar' } };
+
+export const Large: Story = {
+  args: { data: [2, 4, 3, 7, 6, 9, 12, 11, 14], variant: 'area', width: 160, height: 40 },
 };
 
-export const AreaType: Story = {
-  args: {
-    data: sampleData,
-    type: 'area',
-  },
-};
-
-export const BarType: Story = {
-  args: {
-    data: sampleData,
-    type: 'bar',
-  },
-};
-
-export const ColorVariants: Story = {
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Primary</span>
-        <Sparkline data={sampleData} color="primary" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Success</span>
-        <Sparkline data={sampleData} color="success" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Warning</span>
-        <Sparkline data={sampleData} color="warning" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Error</span>
-        <Sparkline data={sampleData} color="error" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Info</span>
-        <Sparkline data={sampleData} color="info" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Secondary</span>
-        <Sparkline data={sampleData} color="secondary" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Accent</span>
-        <Sparkline data={sampleData} color="accent" />
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="w-20 text-sm">Neutral</span>
-        <Sparkline data={sampleData} color="neutral" />
-      </div>
-    </div>
-  ),
-};
-
-export const CustomSize: Story = {
-  args: {
-    data: sampleData,
-    height: 60,
-    width: 200,
-    color: 'accent',
-  },
+export const CrossingZero: Story = {
+  args: { data: [-4, -2, 1, 3, -1, 2, 5, 4, 6], variant: 'bar' },
 };
