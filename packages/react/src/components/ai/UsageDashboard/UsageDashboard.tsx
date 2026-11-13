@@ -1,6 +1,6 @@
 /** @module ai/UsageDashboard */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Stat } from '../../data/Stat/Stat';
 import { Table, type TableColumn } from '../../data/Table/Table';
 import { Alert } from '../../feedback/Alert/Alert';
@@ -81,45 +81,47 @@ export function UsageDashboard({
   const [usage, setUsage] = useState<AiUsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const cancelledRef = useRef(false);
-  const requestSeqRef = useRef(0);
 
-  const load = useCallback(async () => {
-    const seq = ++requestSeqRef.current;
-    try {
-      const response = await client.getUsage({ from, to });
-      // Discard responses that lost the race to a newer request — otherwise
-      // a slow-poll response can clobber a fresher one under high latency.
-      if (cancelledRef.current || seq !== requestSeqRef.current) return;
-      setUsage(response);
-      setError(null);
-    } catch (err) {
-      if (cancelledRef.current || seq !== requestSeqRef.current) return;
-      setError((err as Error).message);
-    } finally {
-      if (!cancelledRef.current && seq === requestSeqRef.current) {
-        setLoading(false);
-      }
-    }
+  // A new client or date range makes the current figures wrong, so drop them
+  // rather than show the previous range's totals under a failed reload.
+  useEffect(() => {
+    setUsage(null);
+    setError(null);
+    setLoading(true);
   }, [client, from, to]);
 
   useEffect(() => {
-    cancelledRef.current = false;
-    setLoading(true);
-    load();
+    // `active` belongs to this run of the effect: any change to the client,
+    // range or interval starts a new run and retires this one's responses.
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    if (refreshInterval > 0) {
-      const id = setInterval(load, refreshInterval);
-      return () => {
-        cancelledRef.current = true;
-        clearInterval(id);
-      };
-    }
+    const poll = async () => {
+      try {
+        const response = await client.getUsage({ from, to });
+        if (!active) return;
+        setUsage(response);
+        setError(null);
+      } catch (err) {
+        if (!active) return;
+        setError((err as Error).message);
+      } finally {
+        if (active) {
+          setLoading(false);
+          // Schedule the next poll only once this one has settled, so a slow
+          // response is never superseded by the poll after it.
+          if (refreshInterval > 0) timer = setTimeout(poll, refreshInterval);
+        }
+      }
+    };
+
+    poll();
 
     return () => {
-      cancelledRef.current = true;
+      active = false;
+      clearTimeout(timer);
     };
-  }, [load, refreshInterval]);
+  }, [client, from, to, refreshInterval]);
 
   if (loading && !usage) {
     return <Loading size="sm">Loading usage…</Loading>;
@@ -136,6 +138,14 @@ export function UsageDashboard({
   return (
     <Stack gap="6" data-testid="ai-usage-dashboard">
       {heading ? <Heading level={2}>{heading}</Heading> : null}
+
+      {error ? (
+        <Alert
+          color="warning"
+          title="Couldn't refresh usage. Showing the last figures loaded."
+          description={error}
+        />
+      ) : null}
 
       <Stack orientation="horizontal" gap="4" wrap>
         <Stat label="Requests" value={formatNumber(usage.totals.requests)} />

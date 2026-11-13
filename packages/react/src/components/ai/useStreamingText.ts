@@ -58,6 +58,18 @@ export function useStreamingText(): UseStreamingTextResult {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
+    // Only the active, unaborted stream may write state: an aborted read can
+    // still settle after a newer stream has started.
+    const isCurrent = () => controllerRef.current === controller && !controller.signal.aborted;
+
+    // Honor the caller's own signal (timeouts, cancellation) alongside ours.
+    const callerSignal = init?.signal ?? null;
+    const abortFromCaller = () => controller.abort(callerSignal?.reason);
+    if (callerSignal?.aborted) {
+      controller.abort(callerSignal.reason);
+    } else {
+      callerSignal?.addEventListener('abort', abortFromCaller, { once: true });
+    }
 
     setText('');
     setError(null);
@@ -71,17 +83,26 @@ export function useStreamingText(): UseStreamingTextResult {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       // Read until the stream closes; append decoded chunks to accumulated text.
+      // Decoding happens outside the state updater: the decoder is stateful,
+      // and React may run an updater twice.
       while (true) {
         const { value, done } = await reader.read();
+        if (!isCurrent()) {
+          reader.cancel().catch(() => {});
+          return;
+        }
         if (done) break;
-        setText((prev) => prev + decoder.decode(value, { stream: true }));
+        const chunk = decoder.decode(value, { stream: true });
+        if (chunk !== '') setText((prev) => prev + chunk);
       }
-      setText((prev) => prev + decoder.decode());
+      const tail = decoder.decode();
+      if (tail !== '') setText((prev) => prev + tail);
     } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
+      if (isCurrent() && (err as Error).name !== 'AbortError') {
         setError(err as Error);
       }
     } finally {
+      callerSignal?.removeEventListener('abort', abortFromCaller);
       // Only flip streaming off if we're still the active stream. Otherwise
       // a rapid second start() would race: this stream's finally would clear
       // the flag while the newer stream is still reading, and consumers gating

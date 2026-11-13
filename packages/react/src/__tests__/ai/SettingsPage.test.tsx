@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { SettingsPage } from '../../components/ai/SettingsPage/SettingsPage';
 import { AiApiError } from '../../components/ai/createAiApiClient';
-import { createMockClient } from './testClient';
+import { createMockClient, deferred } from './testClient';
 import type { AiSettingsResponse } from '../../components/ai/types';
 
 const baseResponse: AiSettingsResponse = {
@@ -44,13 +44,14 @@ describe('SettingsPage', () => {
     fireEvent.change(modelInput, { target: { value: 'gpt-4o' } });
 
     await act(async () => {
-      fireEvent.submit(screen.getByTestId('ai-settings-page'));
+      fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
     });
 
     await waitFor(() => expect(update).toHaveBeenCalled());
     const payload = update.mock.calls[0][0];
     expect(payload.default_model).toBe('gpt-4o');
-    expect(payload.api_key).toBeNull();
+    // A blank key field means "keep the stored key", so the key is omitted.
+    expect(payload).not.toHaveProperty('api_key');
     expect(await screen.findByText('Settings saved.')).toBeInTheDocument();
   });
 
@@ -72,7 +73,7 @@ describe('SettingsPage', () => {
     await screen.findByDisplayValue('gpt-4o-mini');
 
     await act(async () => {
-      fireEvent.submit(screen.getByTestId('ai-settings-page'));
+      fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
     });
 
     expect(await screen.findByText('An API key is required.')).toBeInTheDocument();
@@ -129,7 +130,7 @@ describe('SettingsPage', () => {
     });
     const lastCall = testConnection.mock.calls.at(-1)?.[0];
     expect(lastCall.provider).toBe('ollama');
-    expect(lastCall.api_key).toBeNull();
+    expect(lastCall).not.toHaveProperty('api_key');
   });
 
   it('renders a network error inside an error alert, not a success alert', async () => {
@@ -142,11 +143,85 @@ describe('SettingsPage', () => {
     await screen.findByDisplayValue('gpt-4o-mini');
 
     await act(async () => {
-      fireEvent.submit(screen.getByTestId('ai-settings-page'));
+      fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
     });
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Network down');
     expect(alert).toHaveAttribute('data-color', 'error');
+  });
+
+  it('shows a retry instead of an editable form when settings fail to load', async () => {
+    const getSettings = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Server unavailable'))
+      .mockResolvedValueOnce(baseResponse);
+    const updateSettings = vi.fn();
+    const client = createMockClient({ getSettings, updateSettings });
+
+    render(<SettingsPage client={client} />);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Server unavailable');
+    expect(screen.queryByRole('button', { name: 'Save settings' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ai-settings-page')).not.toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    });
+
+    expect(await screen.findByDisplayValue('gpt-4o-mini')).toBeInTheDocument();
+    expect(getSettings).toHaveBeenCalledTimes(2);
+    expect(updateSettings).not.toHaveBeenCalled();
+  });
+
+  it('sends a typed api_key and locks the fields while a save is pending', async () => {
+    const save = deferred<AiSettingsResponse>();
+    const updateSettings = vi.fn().mockReturnValue(save.promise);
+    const client = createMockClient({
+      getSettings: vi.fn().mockResolvedValue(baseResponse),
+      updateSettings,
+    });
+
+    render(<SettingsPage client={client} />);
+    await screen.findByDisplayValue('gpt-4o-mini');
+
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'sk-new' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    });
+
+    expect(updateSettings.mock.calls[0][0].api_key).toBe('sk-new');
+    expect(screen.getByDisplayValue('gpt-4o-mini')).toBeDisabled();
+    expect(screen.getByRole('combobox')).toBeDisabled();
+
+    await act(async () => {
+      save.resolve(baseResponse);
+    });
+
+    expect(await screen.findByText('Settings saved.')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('gpt-4o-mini')).not.toBeDisabled();
+  });
+
+  it('discards a connection result for credentials that changed mid-test', async () => {
+    const probe = deferred<{ result: 'ok'; message: string }>();
+    const client = createMockClient({
+      getSettings: vi.fn().mockResolvedValue(baseResponse),
+      testConnection: vi.fn().mockReturnValue(probe.promise),
+    });
+
+    render(<SettingsPage client={client} />);
+    await screen.findByDisplayValue('gpt-4o-mini');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Test connection/ }));
+    });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'ollama' } });
+
+    await act(async () => {
+      probe.resolve({ result: 'ok', message: 'Connected' });
+    });
+
+    expect(screen.queryByText('Connected')).not.toBeInTheDocument();
   });
 });

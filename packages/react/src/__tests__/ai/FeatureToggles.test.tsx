@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { FeatureToggles } from '../../components/ai/FeatureToggles/FeatureToggles';
-import { createMockClient } from './testClient';
+import { createMockClient, deferred } from './testClient';
 import type { AiFeature } from '../../components/ai/types';
 
 const features: AiFeature[] = [
@@ -110,5 +110,63 @@ describe('FeatureToggles', () => {
     render(<FeatureToggles client={client} />);
 
     expect(await screen.findByText('No AI features registered.')).toBeInTheDocument();
+  });
+
+  it('keeps the switch on when onToggle throws after a successful save', async () => {
+    const client = createMockClient({
+      getFeatures: vi.fn().mockResolvedValue({ features }),
+      toggleFeature: vi
+        .fn()
+        .mockResolvedValue({ feature: { key: 'chat', package: 'core', enabled: true } }),
+    });
+    const onToggle = vi.fn(() => {
+      throw new Error('callback failed');
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<FeatureToggles client={client} onToggle={onToggle} />);
+    const chatToggle = (await screen.findByRole('switch', { name: 'Chat' })) as HTMLInputElement;
+    await act(async () => {
+      fireEvent.click(chatToggle);
+    });
+
+    await waitFor(() => expect(onToggle).toHaveBeenCalled());
+    expect(chatToggle.checked).toBe(true);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("hides the previous client's features and ignores its late toggle results", async () => {
+    const pendingToggle = deferred<never>();
+    const first = createMockClient({
+      getFeatures: vi.fn().mockResolvedValue({ features }),
+      toggleFeature: vi.fn().mockReturnValue(pendingToggle.promise),
+    });
+    const secondFeatures = deferred<{ features: AiFeature[] }>();
+    const second = createMockClient({
+      getFeatures: vi.fn().mockReturnValue(secondFeatures.promise),
+    });
+
+    const { rerender } = render(<FeatureToggles client={first} />);
+    const chatToggle = await screen.findByRole('switch', { name: 'Chat' });
+    await act(async () => {
+      fireEvent.click(chatToggle);
+    });
+
+    rerender(<FeatureToggles client={second} />);
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+
+    await act(async () => {
+      secondFeatures.resolve({ features: [{ ...features[1], enabled: true }] });
+    });
+    const secondChat = (await screen.findByRole('switch', { name: 'Chat' })) as HTMLInputElement;
+
+    await act(async () => {
+      pendingToggle.reject(new Error('stale failure'));
+    });
+
+    expect(secondChat.checked).toBe(true);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

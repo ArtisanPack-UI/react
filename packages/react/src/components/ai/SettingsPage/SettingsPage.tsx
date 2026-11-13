@@ -1,6 +1,6 @@
 /** @module ai/SettingsPage */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from '../../feedback/Alert/Alert';
 import { Loading } from '../../feedback/Loading/Loading';
 import { Button } from '../../form/Button/Button';
@@ -68,12 +68,22 @@ function toFormState(response: AiSettingsResponse): FormState {
   };
 }
 
-function toUpdatePayload(form: FormState): AiSettingsUpdate {
+/**
+ * The credential fields shared by save and test-connection. A blank API key is
+ * omitted, which the API reads as "keep the stored key".
+ */
+function toCredentials(form: FormState): Omit<AiSettingsUpdate, 'feature_overrides'> {
   return {
     provider: form.provider,
-    api_key: form.api_key === '' ? null : form.api_key,
+    ...(form.api_key === '' ? {} : { api_key: form.api_key }),
     base_url: form.base_url === '' ? null : form.base_url,
     default_model: form.default_model === '' ? null : form.default_model,
+  };
+}
+
+function toUpdatePayload(form: FormState): AiSettingsUpdate {
+  return {
+    ...toCredentials(form),
     feature_overrides: form.overrides.map((override) => ({
       feature_key: override.feature_key,
       model: override.model,
@@ -95,45 +105,65 @@ export function SettingsPage({
   const [initial, setInitial] = useState<AiSettingsResponse | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<string | null>(null);
   const [statusVariant, setStatusVariant] = useState<'success' | 'error'>('success');
   const [testResult, setTestResult] = useState<AiConnectionTestResult | null>(null);
+  // Bumped on every load, so a slower earlier load can't overwrite a newer one.
+  const loadSeqRef = useRef(0);
+  // Bumped whenever the credentials change, so a probe only reports on the
+  // credentials it actually tested.
+  const testSeqRef = useRef(0);
+
+  const loadSettings = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const response = await client.getSettings();
+      if (seq !== loadSeqRef.current) return;
+      setInitial(response);
+      setForm(toFormState(response));
+    } catch (err) {
+      if (seq !== loadSeqRef.current) return;
+      setLoadError((err as Error).message);
+    } finally {
+      if (seq === loadSeqRef.current) setLoading(false);
+    }
+  }, [client]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    client
-      .getSettings()
-      .then((response) => {
-        if (cancelled) return;
-        setInitial(response);
-        setForm(toFormState(response));
-      })
-      .catch((err: Error) => {
-        if (cancelled) return;
-        setStatus(err.message);
-        setStatusVariant('error');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const counter = loadSeqRef;
+    loadSettings();
     return () => {
-      cancelled = true;
+      counter.current++;
     };
-  }, [client]);
+  }, [loadSettings]);
 
   const apiKeyPresent = initial?.credentials.api_key_present ?? false;
   const isOllama = form.provider === 'ollama';
 
-  const handleProviderChange = useCallback((provider: string) => {
-    // Reset the typed key + last probe result so we don't silently ship
-    // an OpenAI key to an Ollama base URL (or the other way around).
-    setForm((prev) => ({ ...prev, provider, api_key: '' }));
-    setTestResult(null);
-  }, []);
+  const updateCredentials = useCallback(
+    (patch: Partial<Pick<FormState, 'provider' | 'api_key' | 'base_url' | 'default_model'>>) => {
+      testSeqRef.current++;
+      setForm((prev) => ({ ...prev, ...patch }));
+      setTestResult(null);
+      setTesting(false);
+    },
+    [],
+  );
+
+  const handleProviderChange = useCallback(
+    (provider: string) => {
+      // Reset the typed key + last probe result so we don't silently ship
+      // an OpenAI key to an Ollama base URL (or the other way around).
+      updateCredentials({ provider, api_key: '' });
+    },
+    [updateCredentials],
+  );
 
   const updateOverride = useCallback(
     (key: string, patch: Partial<Pick<AiFeatureOverride, 'model' | 'instructions'>>) => {
@@ -176,30 +206,42 @@ export function SettingsPage({
   );
 
   const handleTest = useCallback(async () => {
+    const seq = ++testSeqRef.current;
     setTesting(true);
     setTestResult(null);
+    let result: AiConnectionTestResult;
     try {
-      const result = await client.testConnection({
-        provider: form.provider,
-        api_key: form.api_key === '' ? null : form.api_key,
-        base_url: form.base_url === '' ? null : form.base_url,
-        default_model: form.default_model === '' ? null : form.default_model,
-      });
-      setTestResult(result);
+      result = await client.testConnection(toCredentials(form));
     } catch (err) {
       if (err instanceof AiApiError) {
         const body = err.body as AiConnectionTestResult | null;
-        setTestResult(body ?? { result: 'error', message: err.message });
+        result = body ?? { result: 'error', message: err.message };
       } else {
-        setTestResult({ result: 'error', message: (err as Error).message });
+        result = { result: 'error', message: (err as Error).message };
       }
-    } finally {
-      setTesting(false);
     }
-  }, [client, form.api_key, form.base_url, form.default_model, form.provider]);
+    if (seq !== testSeqRef.current) return;
+    setTestResult(result);
+    setTesting(false);
+  }, [client, form]);
 
   if (loading) {
     return <Loading size="sm">Loading AI settings…</Loading>;
+  }
+
+  if (loadError !== null) {
+    return (
+      <Alert
+        color="error"
+        title="The AI settings couldn't be loaded."
+        description={loadError}
+        actions={
+          <Button variant="outline" color="neutral" size="sm" onClick={loadSettings}>
+            Retry
+          </Button>
+        }
+      />
+    );
   }
 
   return (
@@ -219,7 +261,7 @@ export function SettingsPage({
         <Alert color={statusVariant === 'error' ? 'error' : 'success'} description={status} />
       ) : null}
 
-      <Fieldset title="Credentials">
+      <Fieldset title="Credentials" disabled={saving}>
         <Select
           label="Provider"
           options={providers}
@@ -234,7 +276,7 @@ export function SettingsPage({
             hint={apiKeyPresent ? 'Leave blank to keep the stored key.' : undefined}
             autocomplete="new-password"
             value={form.api_key}
-            onValueChange={(api_key) => setForm((prev) => ({ ...prev, api_key }))}
+            onValueChange={(api_key) => updateCredentials({ api_key })}
             placeholder={apiKeyPresent ? '••••••••' : 'sk-…'}
             error={fieldError(errors, 'api_key')}
           />
@@ -246,7 +288,7 @@ export function SettingsPage({
           hint={isOllama ? 'Required for Ollama.' : 'Optional.'}
           required={isOllama}
           value={form.base_url}
-          onValueChange={(base_url) => setForm((prev) => ({ ...prev, base_url }))}
+          onValueChange={(base_url) => updateCredentials({ base_url })}
           placeholder={isOllama ? 'http://localhost:11434' : 'https://api.example.com/v1'}
           error={fieldError(errors, 'base_url')}
         />
@@ -254,7 +296,7 @@ export function SettingsPage({
         <Input
           label="Default model"
           value={form.default_model}
-          onValueChange={(default_model) => setForm((prev) => ({ ...prev, default_model }))}
+          onValueChange={(default_model) => updateCredentials({ default_model })}
           placeholder="gpt-4o-mini"
           error={fieldError(errors, 'default_model')}
         />
@@ -283,7 +325,7 @@ export function SettingsPage({
       </Fieldset>
 
       {form.overrides.length > 0 ? (
-        <Fieldset title="Per-feature overrides">
+        <Fieldset title="Per-feature overrides" disabled={saving}>
           {form.overrides.map((override) => (
             <Card
               key={override.feature_key}

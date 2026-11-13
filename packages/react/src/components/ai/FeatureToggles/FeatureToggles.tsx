@@ -1,6 +1,6 @@
 /** @module ai/FeatureToggles */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from '../../feedback/Alert/Alert';
 import { EmptyState } from '../../feedback/EmptyState/EmptyState';
 import { Loading } from '../../feedback/Loading/Loading';
@@ -32,47 +32,71 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
   const [features, setFeatures] = useState<AiFeature[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Record<string, boolean>>({});
+  // Bumped whenever `client` changes or the component unmounts, so a request
+  // started against an earlier client can never write into the current state.
+  const generationRef = useRef(0);
 
   useEffect(() => {
-    let cancelled = false;
+    const counter = generationRef;
+    const generation = ++counter.current;
+    setFeatures(null);
+    setError(null);
+    setPending({});
     client
       .getFeatures()
       .then((response) => {
-        if (!cancelled) setFeatures(response.features);
+        if (generation === generationRef.current) setFeatures(response.features);
       })
       .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
+        if (generation === generationRef.current) setError(err.message);
       });
     return () => {
-      cancelled = true;
+      counter.current++;
     };
   }, [client]);
 
   const handleToggle = useCallback(
     async (feature: AiFeature) => {
+      const generation = generationRef.current;
+      const isCurrent = () => generation === generationRef.current;
       const target = !feature.enabled;
       setPending((prev) => ({ ...prev, [feature.key]: true }));
       setFeatures(
         (prev) => prev?.map((f) => (f.key === feature.key ? { ...f, enabled: target } : f)) ?? prev,
       );
+
+      let response: Awaited<ReturnType<AiApiClient['toggleFeature']>>;
       try {
-        const response = await client.toggleFeature(feature.key, target);
-        setError(null);
-        onToggle?.(response.feature);
+        response = await client.toggleFeature(feature.key, target);
       } catch (err) {
-        // Roll back on failure.
-        setFeatures(
-          (prev) =>
-            prev?.map((f) => (f.key === feature.key ? { ...f, enabled: feature.enabled } : f)) ??
-            prev,
-        );
-        setError((err as Error).message);
+        if (isCurrent()) {
+          // Roll back on failure.
+          setFeatures(
+            (prev) =>
+              prev?.map((f) => (f.key === feature.key ? { ...f, enabled: feature.enabled } : f)) ??
+              prev,
+          );
+          setError((err as Error).message);
+        }
+        return;
       } finally {
-        setPending((prev) => {
-          const next = { ...prev };
-          delete next[feature.key];
-          return next;
-        });
+        if (isCurrent()) {
+          setPending((prev) => {
+            const next = { ...prev };
+            delete next[feature.key];
+            return next;
+          });
+        }
+      }
+
+      if (!isCurrent()) return;
+      setError(null);
+      // Outside the request's try: the server has saved the change, so a
+      // throwing callback must not roll the switch back or show as a failure.
+      try {
+        onToggle?.(response.feature);
+      } catch (callbackError) {
+        console.error('FeatureToggles: onToggle threw', callbackError);
       }
     },
     [client, onToggle],
