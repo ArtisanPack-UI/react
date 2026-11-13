@@ -43,7 +43,12 @@ jobs:
 
           for IMPORT in import-docs import-changelog; do
             echo "Triggering $IMPORT for $DOCS_PACKAGE_SLUG"
-            if ! curl --fail-with-body -sS --retry 3 -X POST \
+            # Bounded so a stalled first import can't use up the job timeout
+            # before the second one runs: at most 2 x 120 s.
+            if ! curl --fail-with-body -sS \
+              --connect-timeout 10 --max-time 45 \
+              --retry 3 --retry-max-time 120 \
+              -X POST \
               "https://docs.artisanpackui.dev/api/v1/packages/${DOCS_PACKAGE_SLUG}/${IMPORT}" \
               -H @"$HEADER_FILE" \
               -H "Accept: application/json"; then
