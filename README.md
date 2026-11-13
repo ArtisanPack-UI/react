@@ -41,6 +41,27 @@ Import the tokens CSS in your Tailwind entry file:
 @import "@artisanpack-ui/tokens/css";
 ```
 
+### Load the Design-System CSS
+
+The design-system components (Button, Input, Select, Checkbox, Card, Dialog, DropdownMenu, Toast and Toaster) are styled by `@artisanpack-ui/css`. Install it and load it once, in your app's entry:
+
+```bash
+npm install @artisanpack-ui/css
+```
+
+```tsx
+import '@artisanpack-ui/css';
+```
+
+With Tailwind, import it from your Tailwind entry file instead, between Tailwind's base and components layers, so Preflight never overrides a component and Tailwind utilities still win:
+
+```css
+@layer theme, base, apui, components, utilities;
+@import "tailwindcss";
+@import "@artisanpack-ui/css";
+@import "@artisanpack-ui/tokens/css";
+```
+
 ### Use Components
 
 ```tsx
@@ -83,10 +104,10 @@ LoginPage.layout = createLayout(AppLayout);
 ## Component Categories
 
 - **Form** — Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
-- **Layout** — Card, Modal, Tabs, Accordion, Drawer, Dropdown, Grid, Stack, Popover
+- **Layout** — Card, Dialog, DropdownMenu, Tabs, Accordion, Drawer, Grid, Stack, Popover
 - **Navigation** — Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
 - **Data Display** — Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
-- **Feedback** — Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
+- **Feedback** — Alert, Toast and Toaster, Loading, Skeleton, EmptyState, ErrorDisplay
 - **Utility** — Icon, ThemeToggle, Tooltip, Clipboard, Markdown
 
 ## Theming

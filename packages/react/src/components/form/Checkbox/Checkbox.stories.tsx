@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Checkbox } from './Checkbox';
 
@@ -9,14 +10,8 @@ const meta: Meta<typeof Checkbox> = {
     docs: {
       description: {
         component:
-          'Labeled checkbox input with DaisyUI color variants, hint text, error state, right-aligned label option, and card-style variant.',
+          'Turns one option on or off, with a description, error and the indeterminate (mixed) state.',
       },
-    },
-  },
-  argTypes: {
-    color: {
-      control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
     },
   },
 };
@@ -25,65 +20,52 @@ export default meta;
 type Story = StoryObj<typeof Checkbox>;
 
 export const Default: Story = {
-  args: {
-    label: 'Accept terms and conditions',
-  },
+  args: { label: 'Send me the monthly newsletter' },
 };
 
-export const Checked: Story = {
+export const WithDescription: Story = {
   args: {
-    label: 'Subscribed to newsletter',
+    label: 'Email me when a property gets a new offer',
+    description: 'Sent at most once a day, as a summary.',
     defaultChecked: true,
-  },
-};
-
-export const Colors: Story = {
-  render: () => (
-    <div className="flex flex-col gap-2">
-      <Checkbox label="Primary" color="primary" defaultChecked />
-      <Checkbox label="Secondary" color="secondary" defaultChecked />
-      <Checkbox label="Accent" color="accent" defaultChecked />
-      <Checkbox label="Success" color="success" defaultChecked />
-      <Checkbox label="Warning" color="warning" defaultChecked />
-      <Checkbox label="Error" color="error" defaultChecked />
-      <Checkbox label="Info" color="info" defaultChecked />
-    </div>
-  ),
-};
-
-export const RightAligned: Story = {
-  args: {
-    label: 'Label on the left',
-    right: true,
-  },
-};
-
-export const WithHint: Story = {
-  args: {
-    label: 'Enable notifications',
-    hint: 'You will receive email notifications for new updates.',
   },
 };
 
 export const WithError: Story = {
-  args: {
-    label: 'I agree to the terms',
-    error: 'You must accept the terms to continue.',
-  },
-};
-
-export const Card: Story = {
-  args: {
-    label: 'Premium Plan',
-    card: true,
-    color: 'primary',
-  },
+  args: { label: 'I agree to the listing terms', error: 'Required to publish.', required: true },
 };
 
 export const Disabled: Story = {
-  args: {
-    label: 'Cannot change',
-    disabled: true,
-    defaultChecked: true,
-  },
+  args: { label: 'Managed by your organization', checked: true, disabled: true },
+};
+
+const rows = ['Invoices', 'Receipts', 'Contracts'];
+
+function IndeterminateDemo() {
+  const [selected, setSelected] = useState<string[]>(['Invoices']);
+  const all = selected.length === rows.length;
+  return (
+    <div style={{ display: 'grid', gap: '0.5rem' }}>
+      <Checkbox
+        label="Select all"
+        checked={all}
+        indeterminate={selected.length > 0 && !all}
+        onCheckedChange={(checked) => setSelected(checked ? rows : [])}
+      />
+      {rows.map((row) => (
+        <Checkbox
+          key={row}
+          label={row}
+          checked={selected.includes(row)}
+          onCheckedChange={(checked) =>
+            setSelected(checked ? [...selected, row] : selected.filter((item) => item !== row))
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+export const Indeterminate: Story = {
+  render: () => <IndeterminateDemo />,
 };

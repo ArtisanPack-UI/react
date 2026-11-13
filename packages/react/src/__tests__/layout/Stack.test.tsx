@@ -1,57 +1,48 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { Stack } from '../../components/layout/Stack/Stack';
+import { createRef } from 'react';
+import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Stack, type StackProps } from '../../components/layout/Stack/Stack';
+
+const declaredProps: (keyof StackProps)[] = ['orientation', 'gap', 'align', 'justify', 'wrap'];
 
 describe('Stack', () => {
-  it('renders children', () => {
-    render(
-      <Stack>
-        <div>Item 1</div>
-        <div>Item 2</div>
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Stack, 'Stack', { declared: { props: declaredProps, events: [] } });
+  });
+
+  it('emits its defaults as data attributes', () => {
+    const { container } = render(<Stack>a</Stack>);
+    const stack = container.firstElementChild!;
+    expect(stack.className).toBe('apui-stack');
+    expect(stack.getAttribute('data-orientation')).toBe('vertical');
+    expect(stack.getAttribute('data-gap')).toBe('2');
+    expect(stack.getAttribute('data-align')).toBe('stretch');
+    expect(stack.getAttribute('data-justify')).toBe('start');
+    expect(stack.hasAttribute('data-wrap')).toBe(false);
+  });
+
+  it('renders a wrapping row', () => {
+    const { container } = render(
+      <Stack orientation="horizontal" gap={4} justify="between" wrap>
+        a
       </Stack>,
     );
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
-    expect(screen.getByText('Item 2')).toBeInTheDocument();
+    const stack = container.firstElementChild!;
+    expect(stack.getAttribute('data-orientation')).toBe('horizontal');
+    expect(stack.getAttribute('data-gap')).toBe('4');
+    expect(stack.getAttribute('data-justify')).toBe('between');
+    expect(stack.getAttribute('data-wrap')).toBe('');
   });
 
-  it('defaults to vertical flex-col layout', () => {
-    const { container } = render(<Stack>Content</Stack>);
-    expect(container.firstChild).toHaveClass('flex', 'flex-col');
+  it('still takes the deprecated direction prop', () => {
+    const { container } = render(<Stack direction="horizontal">a</Stack>);
+    expect(container.firstElementChild!.getAttribute('data-orientation')).toBe('horizontal');
   });
 
-  it('renders horizontal layout', () => {
-    const { container } = render(<Stack direction="horizontal">Content</Stack>);
-    expect(container.firstChild).toHaveClass('flex', 'flex-row');
-  });
-
-  it('applies gap class', () => {
-    const { container } = render(<Stack gap={6}>Content</Stack>);
-    expect(container.firstChild).toHaveClass('gap-6');
-  });
-
-  it('applies alignment', () => {
-    const { container } = render(<Stack align="center">Content</Stack>);
-    expect(container.firstChild).toHaveClass('items-center');
-  });
-
-  it('applies justification', () => {
-    const { container } = render(<Stack justify="between">Content</Stack>);
-    expect(container.firstChild).toHaveClass('justify-between');
-  });
-
-  it('applies wrap', () => {
-    const { container } = render(<Stack wrap>Content</Stack>);
-    expect(container.firstChild).toHaveClass('flex-wrap');
-  });
-
-  it('applies custom className', () => {
-    const { container } = render(<Stack className="custom">Content</Stack>);
-    expect(container.firstChild).toHaveClass('custom');
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Stack ref={ref}>Content</Stack>);
-    expect(ref).toHaveBeenCalled();
+  it('forwards the ref and className', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(<Stack ref={ref} className="x" />);
+    expect(ref.current?.className).toBe('apui-stack x');
   });
 });

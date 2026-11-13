@@ -1,81 +1,87 @@
 /**
  * @module ErrorDisplay
  *
- * Displays a user-friendly error state with an optional icon, title,
- * message, and retry action. Intended for use in error boundaries,
- * failed data fetches, or any recoverable failure scenario.
+ * Deprecated alias of {@link ErrorState} (#60), kept for 1.x code. It maps
+ * the old props onto ErrorState: `message` (then any children) →
+ * `description`, and `onRetry` with `retryLabel` → a Try again button in
+ * `actions`.
  *
+ * @deprecated Use `ErrorState`.
  * @packageDocumentation
  */
 
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { forwardRef, type ReactNode } from 'react';
+
+import { devWarnOnce, hasContent } from '../../../internal/parts';
+import { Button } from '../../form/Button/Button';
+import { ErrorState, type ErrorStateProps } from '../ErrorState/ErrorState';
 
 /**
- * Props for the {@link ErrorDisplay} component.
+ * Props for the deprecated {@link ErrorDisplay}.
+ *
+ * @deprecated Use `ErrorStateProps`.
  */
-export interface ErrorDisplayProps extends HTMLAttributes<HTMLDivElement> {
-  /** Error title displayed as a heading. Defaults to `"Something went wrong"`. */
-  title?: string;
-  /** Descriptive error message displayed below the title. */
-  message?: string;
-  /** Optional icon or illustration rendered above the title. */
-  icon?: ReactNode;
-  /** Callback fired when the retry button is clicked. When provided, a retry button is rendered. */
+export interface ErrorDisplayProps extends Omit<ErrorStateProps, 'title' | 'description'> {
+  /** The heading. @defaultValue `'Something went wrong'` */
+  title?: ReactNode;
+  /** The description. Use ErrorState's `description`. */
+  message?: ReactNode;
+  /** Adds a Try again button that calls this. */
   onRetry?: () => void;
-  /** Custom label for the retry button. Defaults to `"Try again"`. */
+  /** The retry button's text. @defaultValue `'Try again'` */
   retryLabel?: string;
 }
 
 /**
- * Error display component for recoverable failure states.
+ * Deprecated: renders an {@link ErrorState}.
  *
- * Renders an `alert` role container with a title, optional message,
- * and a retry button when an `onRetry` callback is provided.
- *
- * @example
- * ```tsx
- * <ErrorDisplay
- *   title="Failed to load data"
- *   message="Please check your connection and try again."
- *   onRetry={() => refetch()}
- * />
- * ```
+ * @deprecated Use `ErrorState`.
  */
 export const ErrorDisplay = forwardRef<HTMLDivElement, ErrorDisplayProps>(
   (
     {
       title = 'Something went wrong',
       message,
-      icon,
       onRetry,
       retryLabel = 'Try again',
-      className,
+      actions,
       children,
       ...rest
     },
     ref,
   ) => {
+    devWarnOnce('ErrorDisplay', 'ErrorDisplay is deprecated; use ErrorState.');
+    // The message and any children share the description, message first.
+    const description =
+      hasContent(message) && hasContent(children) ? (
+        <>
+          {message}
+          {children}
+        </>
+      ) : hasContent(children) ? (
+        children
+      ) : (
+        message
+      );
     return (
-      <div
-        ref={ref}
-        role="alert"
-        className={cn(
-          'flex flex-col items-center justify-center gap-4 py-12 text-center',
-          className,
-        )}
+      <ErrorState
         {...rest}
-      >
-        {icon && <div className="text-error text-6xl">{icon}</div>}
-        <h3 className="text-lg font-semibold text-error">{title}</h3>
-        {message && <p className="text-base-content/60 max-w-sm">{message}</p>}
-        {children}
-        {onRetry && (
-          <button type="button" className="btn btn-error btn-sm mt-2" onClick={onRetry}>
-            {retryLabel}
-          </button>
-        )}
-      </div>
+        ref={ref}
+        title={title}
+        description={description}
+        actions={
+          onRetry ? (
+            <>
+              {actions}
+              <Button leadingIcon="refresh-cw" onClick={onRetry}>
+                {retryLabel}
+              </Button>
+            </>
+          ) : (
+            actions
+          )
+        }
+      />
     );
   },
 );

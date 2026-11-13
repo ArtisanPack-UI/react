@@ -9,68 +9,31 @@ const meta: Meta<typeof Clipboard> = {
     docs: {
       description: {
         component:
-          'Copy-to-clipboard button that copies a provided value and briefly shows a success label. Supports DaisyUI color and size variants.',
+          'Copies a value with clear confirmation: the label reads Copied for the timeout and the result is announced in a live region. A failure is announced too.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'ghost',
-      ],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
+    variant: { control: 'select', options: ['button', 'icon', 'field'] },
+    size: { control: 'select', options: ['xs', 'sm', 'md'] },
   },
+  args: { value: 'https://horizonhomes.com/l/grove-greenfield' },
 };
 
 export default meta;
 type Story = StoryObj<typeof Clipboard>;
 
-export const Default: Story = {
-  args: {
-    text: 'npm install @artisanpack-ui/react',
-    label: 'Copy',
-  },
-};
+export const Button: Story = {};
 
-export const WithSuccessLabel: Story = {
-  args: {
-    text: 'Hello, World!',
-    label: 'Copy text',
-    successLabel: 'Copied!',
-    color: 'primary',
-  },
-};
+export const Icon: Story = { args: { variant: 'icon', label: 'Copy share link' } };
 
-export const Colors: Story = {
-  render: () => (
-    <div className="flex gap-2">
-      <Clipboard text="text" label="Primary" color="primary" />
-      <Clipboard text="text" label="Secondary" color="secondary" />
-      <Clipboard text="text" label="Ghost" color="ghost" />
-    </div>
-  ),
-};
-
-export const Sizes: Story = {
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Clipboard text="text" label="XS" color="primary" size="xs" />
-      <Clipboard text="text" label="SM" color="primary" size="sm" />
-      <Clipboard text="text" label="MD" color="primary" size="md" />
-      <Clipboard text="text" label="LG" color="primary" size="lg" />
-    </div>
-  ),
+export const Field: Story = {
+  args: { variant: 'field', size: 'md', label: 'Copy share link' },
+  decorators: [
+    (Story) => (
+      <div style={{ maxInlineSize: 420 }}>
+        <Story />
+      </div>
+    ),
+  ],
 };

@@ -1,11 +1,5 @@
-import type { Meta, StoryObj, Decorator } from '@storybook/react-vite';
-import { Menu } from './Menu';
-
-const widthDecorator: Decorator = (Story) => (
-  <div className="w-56">
-    <Story />
-  </div>
-);
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Menu, MenuItem, MenuSeparator, MenuSub, MenuTitle } from './Menu';
 
 const meta: Meta<typeof Menu> = {
   title: 'Navigation/Menu',
@@ -15,102 +9,61 @@ const meta: Meta<typeof Menu> = {
     docs: {
       description: {
         component:
-          'Vertical or horizontal menu with nested sub-items, icons, disabled items, section titles, compact mode, and DaisyUI color/size theming.',
+          'A navigation list in a nav landmark: links with icons and badges, section titles, separators and collapsible sub-menus, with the current page marked. Not for actions; use DropdownMenu.',
       },
     },
   },
-  argTypes: {
-    color: {
-      control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
-  },
+  decorators: [(Story) => <div style={{ inlineSize: 260 }}>{Story()}</div>],
 };
 
 export default meta;
 type Story = StoryObj<typeof Menu>;
 
-const basicItems = [
-  { key: 'home', label: 'Home' },
-  { key: 'about', label: 'About' },
-  { key: 'services', label: 'Services' },
-  { key: 'contact', label: 'Contact' },
-];
-
 export const Default: Story = {
-  args: {
-    items: basicItems,
-    activeKey: 'home',
-  },
-  decorators: [widthDecorator],
+  args: { label: 'Main' },
+  render: (args) => (
+    <Menu {...args}>
+      <MenuItem href="#dashboard" icon="list">
+        Dashboard
+      </MenuItem>
+      <MenuSub label="Properties" icon="settings">
+        <MenuItem href="#properties">All properties</MenuItem>
+        <MenuItem href="#lakeview" current>
+          Lakeview Lofts
+        </MenuItem>
+        <MenuItem href="#drafts" badge="3">
+          Drafts
+        </MenuItem>
+      </MenuSub>
+      <MenuItem href="#inbox" icon="mail" badge="12">
+        Inbox
+      </MenuItem>
+      <MenuTitle>Settings</MenuTitle>
+      <MenuItem href="#team" icon="user">
+        Team
+      </MenuItem>
+      <MenuSeparator />
+      <MenuItem href="#billing" disabled>
+        Billing
+      </MenuItem>
+    </Menu>
+  ),
 };
 
-export const WithTitle: Story = {
+export const FromData: Story = {
   args: {
-    title: 'Navigation',
-    items: basicItems,
-    activeKey: 'home',
-  },
-  decorators: [widthDecorator],
-};
-
-export const WithIcons: Story = {
-  args: {
+    label: 'Settings',
+    collapsible: false,
     items: [
-      { key: 'home', label: 'Home', icon: <span aria-hidden="true">🏠</span> },
-      { key: 'settings', label: 'Settings', icon: <span aria-hidden="true">⚙️</span> },
-      { key: 'profile', label: 'Profile', icon: <span aria-hidden="true">👤</span> },
-    ],
-    activeKey: 'home',
-  },
-  decorators: [widthDecorator],
-};
-
-export const WithDisabled: Story = {
-  args: {
-    items: [...basicItems, { key: 'admin', label: 'Admin', disabled: true }],
-    activeKey: 'home',
-  },
-  decorators: [widthDecorator],
-};
-
-export const Nested: Story = {
-  args: {
-    items: [
-      { key: 'dashboard', label: 'Dashboard' },
       {
-        key: 'settings',
-        label: 'Settings',
-        children: [
-          { key: 'general', label: 'General' },
-          { key: 'security', label: 'Security' },
-          { key: 'notifications', label: 'Notifications' },
+        label: 'Account',
+        items: [
+          { label: 'Profile', href: '#profile', current: true },
+          { label: 'Security', href: '#security' },
         ],
       },
-      { key: 'help', label: 'Help' },
+      { type: 'separator' },
+      { label: 'Billing', href: '#billing', icon: 'lock' },
     ],
-    activeKey: 'dashboard',
   },
-  decorators: [widthDecorator],
-};
-
-export const Horizontal: Story = {
-  args: {
-    items: basicItems,
-    activeKey: 'home',
-    horizontal: true,
-  },
-};
-
-export const Compact: Story = {
-  args: {
-    items: basicItems,
-    activeKey: 'home',
-    compact: true,
-  },
-  decorators: [widthDecorator],
 };

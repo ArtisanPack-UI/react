@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Accordion } from './Accordion';
-import { Collapse } from '../Collapse/Collapse';
+import { Accordion, AccordionItem } from './Accordion';
 
 const meta: Meta<typeof Accordion> = {
   title: 'Layout/Accordion',
@@ -10,75 +10,65 @@ const meta: Meta<typeof Accordion> = {
     docs: {
       description: {
         component:
-          'Collapsible section group that expands one or multiple panels at a time. Supports joined borders and default-open indices.',
+          'Stacked sections that expand and collapse: each item is a heading holding a button that shows or hides its panel. One item open at a time, or several with multiple.',
       },
     },
+  },
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'separated', 'flush'] },
+    headingLevel: { control: 'select', options: [2, 3, 4, 5, 6] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Accordion>;
 
+const ITEMS = [
+  {
+    value: 'live',
+    title: 'How long does a listing stay live?',
+    content:
+      'Listings stay live until you archive them or mark them as sold. Drafts are kept for 90 days.',
+  },
+  {
+    value: 'owners',
+    title: 'Can co-owners edit a listing?',
+    content: "Yes. Invite them from the listing's Sharing tab.",
+  },
+  {
+    value: 'files',
+    title: 'Which file types can I upload?',
+    content: 'Images, PDFs and floor plans up to 20 MB each.',
+  },
+];
+
 export const Default: Story = {
-  render: () => (
-    <Accordion>
-      <Collapse title="What is ArtisanPack UI?">
-        <p>
-          ArtisanPack UI is a comprehensive component library for React, styled with DaisyUI and
-          Tailwind CSS.
-        </p>
-      </Collapse>
-      <Collapse title="How do I install it?">
-        <p>Install via npm: npm install @artisanpack-ui/react</p>
-      </Collapse>
-      <Collapse title="Is it accessible?">
-        <p>Yes! All components follow WAI-ARIA guidelines and support keyboard navigation.</p>
-      </Collapse>
-    </Accordion>
-  ),
+  args: { items: ITEMS, defaultValue: ['live'] },
 };
 
-export const Multiple: Story = {
-  render: () => (
-    <Accordion multiple>
-      <Collapse title="Section 1">
-        <p>Content for section 1. Multiple sections can be open at once.</p>
-      </Collapse>
-      <Collapse title="Section 2">
-        <p>Content for section 2.</p>
-      </Collapse>
-      <Collapse title="Section 3">
-        <p>Content for section 3.</p>
-      </Collapse>
-    </Accordion>
-  ),
+export const Separated: Story = {
+  args: { items: ITEMS, variant: 'separated', defaultValue: ['live'] },
 };
 
-export const Joined: Story = {
-  render: () => (
-    <Accordion join>
-      <Collapse title="First Item">
-        <p>Joined accordion items have connected borders.</p>
-      </Collapse>
-      <Collapse title="Second Item">
-        <p>They appear as a single unified group.</p>
-      </Collapse>
-      <Collapse title="Third Item">
-        <p>Great for FAQ sections.</p>
-      </Collapse>
-    </Accordion>
-  ),
+export const Flush: Story = {
+  args: { items: ITEMS, variant: 'flush', multiple: true },
 };
 
-export const DefaultOpen: Story = {
-  render: () => (
-    <Accordion defaultOpenIndices={[0]}>
-      <Collapse title="Open by Default">
-        <p>This section starts open.</p>
-      </Collapse>
-      <Collapse title="Closed by Default">
-        <p>This section starts closed.</p>
-      </Collapse>
-    </Accordion>
-  ),
+export const Composed: Story = {
+  render: function Render(args) {
+    const [open, setOpen] = useState<string[]>(['live']);
+    return (
+      <Accordion {...args} value={open} onValueChange={setOpen}>
+        <AccordionItem value="live" title="How long does a listing stay live?">
+          Listings stay live until you archive them or mark them as sold.
+        </AccordionItem>
+        <AccordionItem value="owners" title="Can co-owners edit a listing?">
+          Yes. Invite them from the listing&apos;s Sharing tab.
+        </AccordionItem>
+        <AccordionItem value="archived" title="Archived listings" disabled>
+          Archived listings can&apos;t be edited.
+        </AccordionItem>
+      </Accordion>
+    );
+  },
 };

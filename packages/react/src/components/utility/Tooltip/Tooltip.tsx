@@ -1,150 +1,147 @@
 /**
  * @module Tooltip
  *
- * Wraps a trigger element with a DaisyUI tooltip that appears on
- * hover and focus. Supports configurable position, color, and forced
- * open state. Proper ARIA attributes (`aria-describedby`, `role="tooltip"`)
- * are applied automatically.
+ * The design-system Tooltip (#59): a short label on hover and keyboard focus,
+ * on the behavior engine's tooltip machine (`useTooltip`), rendering the
+ * `.apui-tooltip` markup contract styled by `@artisanpack-ui/css`. The label
+ * carries the root class and is Zag's `content` part (D-019); the child is
+ * the trigger.
  *
  * @packageDocumentation
  */
 
-import {
-  cloneElement,
-  createElement,
-  forwardRef,
-  Fragment,
-  isValidElement,
-  useId,
-  useState,
-  type HTMLAttributes,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
+import { tooltipKeys, useTooltip } from '@artisanpack-ui/behavior/react';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
-/**
- * Position of the tooltip relative to the trigger element.
- */
-type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
+import { mergePartProps } from '../../../internal/merge';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
+import { Portal } from '../../../internal/portal';
+import { cloneTrigger, triggerElement, triggerId } from '../../../internal/trigger';
 
-/**
- * Props for the {@link Tooltip} component.
- */
-export interface TooltipProps extends HTMLAttributes<HTMLDivElement> {
-  /** The text content displayed in the tooltip. */
-  tip: string;
-  /** Position of the tooltip relative to the trigger. Defaults to `"top"`. */
-  position?: TooltipPosition;
-  /** DaisyUI color variant for the tooltip background. */
-  color?: DaisyColor;
-  /** When `true`, the tooltip is always visible regardless of hover/focus state. */
+/** The trigger's side a {@link Tooltip} sits on. `start` and `end` follow the reading direction. */
+export type TooltipPlacement = 'top' | 'bottom' | 'start' | 'end';
+
+/** A {@link Tooltip}'s size: a one-line label, or a sentence or two. */
+export type TooltipSize = 'md' | 'lg';
+
+/** The parts a {@link Tooltip} accepts extra classes for. `root` is the label. */
+export type TooltipPart = 'root' | 'trigger' | 'positioner' | 'arrow' | 'kbd';
+
+/** Props for the {@link Tooltip} component. Native `<div>` attributes go to the label. */
+export interface TooltipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
+  /**
+   * The label: text and inline formatting only. It describes the trigger
+   * (`aria-describedby`); it's never the only name of an icon button.
+   */
+  content: ReactNode;
+  /**
+   * The trigger's side the label sits on, centered. Emitted as
+   * `data-placement`; the side it settled on, after flipping, is `data-side`.
+   * @defaultValue `'top'`
+   */
+  placement?: TooltipPlacement;
+  /** Milliseconds the pointer rests on the trigger before it shows. Focus shows it at once. @defaultValue `400` */
+  delay?: number;
+  /** `lg` for a sentence or two, at body size. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: TooltipSize;
+  /** A keyboard shortcut shown after the label, as keys joined with `+` (`⌘+K`). */
+  shortcut?: string;
+  /**
+   * Controls the label: `true` shows it, `false` hides it, whatever the
+   * pointer and focus do. Leave it out to let hover and focus show it.
+   */
   open?: boolean;
-  /** The trigger element. Accepts a single child, a Fragment, or plain text. */
+  /** The initial state of an uncontrolled tooltip. @defaultValue `false` */
+  defaultOpen?: boolean;
+  /** Called when the label shows or hides itself (hover, focus, blur, Escape). */
+  onOpenChange?: (open: boolean) => void;
+  /** Never shows the label. Emitted as `data-disabled`. @defaultValue `false` */
+  disabled?: boolean;
+  /** Renders the label at the end of the body (a React portal). Off renders it in place. @defaultValue `true` */
+  portal?: boolean;
+  /** Extra classes per part; `classes.root` (the label) merges with `className`. */
+  classes?: PartClasses<TooltipPart>;
+  /** The trigger: one element (a button, a link), which keeps its own id. Text is wrapped in a focusable span. */
   children: ReactNode;
 }
 
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'tooltip-primary',
-  secondary: 'tooltip-secondary',
-  accent: 'tooltip-accent',
-  success: 'tooltip-success',
-  warning: 'tooltip-warning',
-  error: 'tooltip-error',
-  info: 'tooltip-info',
-  neutral: 'tooltip-neutral',
-};
-
-const positionMap: Record<TooltipPosition, string> = {
-  top: 'tooltip-top',
-  bottom: 'tooltip-bottom',
-  left: 'tooltip-left',
-  right: 'tooltip-right',
-};
-
 /**
- * Tooltip wrapper that shows contextual information on hover and focus.
- *
- * Wraps the trigger child with a DaisyUI `.tooltip` container and
- * injects `aria-describedby` on the trigger pointing to a hidden
- * `role="tooltip"` element for accessibility.
+ * A short label on hover and keyboard focus, linked to the child with
+ * `aria-describedby` while it shows. Hoverable, and Escape hides it. The ref
+ * points at the label.
  *
  * @example
  * ```tsx
- * <Tooltip tip="Delete this item" position="bottom" color="error">
- *   <button>Delete</button>
+ * <Tooltip content="Edit" shortcut="E">
+ *   <Button iconOnly leadingIcon="pencil" aria-label="Edit" />
  * </Tooltip>
  * ```
  */
 export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
-  ({ tip, position = 'top', color, open, id, className, children, ...rest }, ref) => {
-    const generatedId = useId();
-    const tipId = `${id ?? generatedId}-tip`;
-    const [visible, setVisible] = useState(false);
+  (
+    {
+      content,
+      placement = 'top',
+      delay = 400,
+      size = 'md',
+      shortcut,
+      open,
+      defaultOpen,
+      onOpenChange,
+      disabled = false,
+      portal = true,
+      classes = {},
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const own = triggerElement(children);
+    const api = useTooltip({
+      open,
+      defaultOpen,
+      placement,
+      delay,
+      disabled,
+      ids: { trigger: triggerId(children) },
+      onOpenChange: ({ open: next }) => onOpenChange?.(next),
+    });
 
-    const isOpen = open ?? visible;
-
-    // Wrap Fragments in a focusable span so we can attach event handlers and ARIA
-    const trigger: ReactElement<Record<string, unknown>> =
-      isValidElement(children) && children.type === Fragment
-        ? createElement(
-            'span',
-            { tabIndex: 0 },
-            (children.props as { children?: ReactNode }).children,
-          )
-        : isValidElement(children)
-          ? (children as ReactElement<Record<string, unknown>>)
-          : createElement('span', { tabIndex: 0 }, children);
-
-    const triggerProps = trigger.props as Record<string, unknown>;
-
-    const mergeDescribedBy = (existing: unknown): string | undefined => {
-      if (!isOpen) {
-        return existing ? String(existing) : undefined;
-      }
-      return existing ? `${existing} ${tipId}` : tipId;
+    const triggerProps = {
+      ...(api.getTriggerProps() as Record<string, unknown>),
+      className: classes.trigger,
     };
-
-    const wrapHandler = <E,>(show: boolean, originalKey: string) => {
-      return (e: E) => {
-        setVisible(show);
-        if (typeof triggerProps[originalKey] === 'function') {
-          (triggerProps[originalKey] as (e: E) => void)(e);
-        }
-      };
-    };
-
-    const child = cloneElement(
-      trigger as ReactElement<Record<string, unknown>>,
-      {
-        'aria-describedby': mergeDescribedBy(triggerProps['aria-describedby']),
-        onMouseEnter: wrapHandler<React.MouseEvent>(true, 'onMouseEnter'),
-        onMouseLeave: wrapHandler<React.MouseEvent>(false, 'onMouseLeave'),
-        onFocus: wrapHandler<React.FocusEvent>(true, 'onFocus'),
-        onBlur: wrapHandler<React.FocusEvent>(false, 'onBlur'),
-      } as Record<string, unknown>,
-    );
 
     return (
-      <div
-        ref={ref}
-        className={cn(
-          'tooltip',
-          positionMap[position],
-          color && colorMap[color],
-          isOpen && 'tooltip-open',
-          className,
+      <>
+        {own ? (
+          cloneTrigger(own, triggerProps)
+        ) : (
+          <span tabIndex={0} {...triggerProps}>
+            {children}
+          </span>
         )}
-        {...rest}
-        data-tip={tip}
-        id={id}
-      >
-        {child}
-        <span id={tipId} role="tooltip" className="sr-only" aria-hidden={!isOpen}>
-          {tip}
-        </span>
-      </div>
+        <Portal enabled={portal}>
+          <div {...api.getPositionerProps()} className={classes.positioner}>
+            <div
+              {...mergePartProps(rest, api.getContentProps())}
+              ref={ref}
+              className={cx('apui-tooltip', classes.root, className)}
+              data-size={size}
+              data-disabled={flag(disabled)}
+            >
+              <span {...api.getArrowProps()} className={classes.arrow} aria-hidden="true" />
+              {hasContent(content) ? content : null}
+              {tooltipKeys(shortcut).map((key, index) => (
+                <kbd key={index} className={classes.kbd} data-scope="tooltip" data-part="kbd">
+                  {key}
+                </kbd>
+              ))}
+            </div>
+          </div>
+        </Portal>
+      </>
     );
   },
 );

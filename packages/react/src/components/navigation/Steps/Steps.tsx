@@ -1,115 +1,236 @@
 /**
  * @module Steps
  *
- * Multi-step progress indicator component using DaisyUI's steps pattern.
- * Displays a sequence of labeled steps with visual completion state,
- * configurable colors, and vertical or horizontal orientation.
- */
-
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
-
-/**
- * Represents a single step in the progress indicator.
- */
-export interface StepItem {
-  /** Display label rendered next to the step indicator. */
-  label: ReactNode;
-  /** Optional icon or content rendered inside the step circle. */
-  icon?: ReactNode;
-  /** DaisyUI color override for this individual step, taking precedence over the group color. */
-  color?: DaisyColor;
-  /** Custom content for the DaisyUI `data-content` attribute on the step circle. */
-  dataContent?: string;
-}
-
-/**
- * Props for the {@link Steps} component.
- */
-export interface StepsProps extends HTMLAttributes<HTMLUListElement> {
-  /** Array of step items to display. */
-  steps: StepItem[];
-  /**
-   * Index of the current step (0-based). All steps up to and including this index
-   * are visually marked as complete. @defaultValue -1 (no steps complete)
-   */
-  currentStep?: number;
-  /** Whether to render the steps vertically instead of horizontally. */
-  vertical?: boolean;
-  /** DaisyUI color applied to all completed steps (can be overridden per step). */
-  color?: DaisyColor;
-  /** Size variant for the step indicators (xs, sm, md, lg). */
-  size?: Size;
-}
-
-const sizeMap: Record<Size, string> = {
-  xs: 'steps-xs',
-  sm: 'steps-sm',
-  md: 'steps-md',
-  lg: 'steps-lg',
-};
-
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'step-primary',
-  secondary: 'step-secondary',
-  accent: 'step-accent',
-  success: 'step-success',
-  warning: 'step-warning',
-  error: 'step-error',
-  info: 'step-info',
-  neutral: 'step-neutral',
-};
-
-/**
- * Multi-step progress indicator with DaisyUI styling.
+ * The design-system Steps (#56): progress through a sequence, rendering the
+ * `.apui-steps` markup contract styled by `@artisanpack-ui/css`. Compose it
+ * from {@link Step} children, or pass the same structure as `steps`.
  *
- * Renders a `<ul>` with `aria-label="Progress"` containing step items.
- * The current step receives `aria-current="step"` for accessibility.
+ * @packageDocumentation
+ */
+
+import {
+  Children,
+  createContext,
+  forwardRef,
+  isValidElement,
+  useContext,
+  type HTMLAttributes,
+  type LiHTMLAttributes,
+  type ReactNode,
+} from 'react';
+
+import { IconSvg } from '../../../internal/icon';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** A step's state. Emitted as `data-state`. */
+export type StepState = 'complete' | 'current' | 'upcoming' | 'error';
+
+/** The orientation of a {@link Steps}. Emitted as `data-orientation`. */
+export type StepsOrientation = 'horizontal' | 'vertical';
+
+/** The parts a {@link Steps} accepts extra classes for, its steps' included. */
+export type StepsPart = 'root' | 'step' | 'marker' | 'title' | 'connector' | 'description';
+
+/** One step in {@link StepsProps.steps}. */
+export interface StepItem {
+  /** The step's name. */
+  title: ReactNode;
+  /** Supporting text under the title. */
+  description?: ReactNode;
+  /** The step's own state; without it, `value` decides. */
+  state?: StepState;
+  /** An icon name that replaces the marker's number or check. */
+  icon?: string;
+}
+
+/** Props for the {@link Steps} component. Native `<ol>` attributes go to the root. */
+export interface StepsProps extends Omit<HTMLAttributes<HTMLOListElement>, 'onChange'> {
+  /** The steps as data, rendering the same children as composition. Rendered before `children`. */
+  steps?: StepItem[];
+  /** The current step, from 1. Steps before it are complete, after it upcoming. */
+  value?: number;
+  /** A row, or a column with room for longer descriptions. @defaultValue `'horizontal'` */
+  orientation?: StepsOrientation;
+  /** Completed steps' titles become buttons that call `onValueChange`. @defaultValue `false` */
+  clickable?: boolean;
+  /** The list's accessible name. */
+  label?: string;
+  /** Hidden text in a complete step's marker; translate it. @defaultValue `'Completed'` */
+  completeLabel?: string;
+  /** Hidden text in an error step's marker; translate it. @defaultValue `'Error'` */
+  errorLabel?: string;
+  /** Extra classes per part, its steps' included; `classes.root` merges with `className`. */
+  classes?: PartClasses<StepsPart>;
+  /** A completed step was chosen while `clickable`. Setting `value` doesn't call it. */
+  onValueChange?: (value: number) => void;
+}
+
+/** Props for a {@link Step}. Native `<li>` attributes go to the step. */
+export interface StepProps extends Omit<LiHTMLAttributes<HTMLLIElement>, 'title'> {
+  /** The step's name. */
+  title?: ReactNode;
+  /** Supporting text under the title. */
+  description?: ReactNode;
+  /** The step's own state; without it, the parent's `value` decides. */
+  state?: StepState;
+  /** An icon name that replaces the marker's number or check. */
+  icon?: string;
+}
+
+interface StepsContextValue {
+  value?: number;
+  clickable: boolean;
+  completeLabel: string;
+  errorLabel: string;
+  classes: PartClasses<StepsPart>;
+  onValueChange?: (value: number) => void;
+}
+
+const StepsContext = createContext<StepsContextValue | null>(null);
+const StepNumberContext = createContext<number>(1);
+
+const STATES: readonly StepState[] = ['complete', 'current', 'upcoming', 'error'];
+
+/**
+ * Shows progress through a sequence. The ref points at the `<ol>`.
  *
  * @example
  * ```tsx
- * <Steps
- *   steps={[
- *     { label: 'Register' },
- *     { label: 'Choose Plan' },
- *     { label: 'Payment' },
- *     { label: 'Complete' },
- *   ]}
- *   currentStep={1}
- *   color="primary"
- * />
+ * <Steps value={2}>
+ *   <Step title="Cart" />
+ *   <Step title="Shipping" />
+ *   <Step title="Payment" />
+ * </Steps>
  * ```
  */
-export const Steps = forwardRef<HTMLUListElement, StepsProps>(
-  ({ steps, currentStep = -1, vertical = false, color, size, className, ...rest }, ref) => {
-    return (
-      <ul
-        ref={ref}
-        className={cn('steps', vertical && 'steps-vertical', size && sizeMap[size], className)}
-        aria-label="Progress"
-        {...rest}
-      >
-        {steps.map((step, index) => {
-          const isComplete = index <= currentStep;
-          const isCurrent = index === currentStep;
-          const stepColor = step.color ?? color;
+export const Steps = forwardRef<HTMLOListElement, StepsProps>(
+  (
+    {
+      steps,
+      value,
+      orientation = 'horizontal',
+      clickable = false,
+      label,
+      completeLabel = 'Completed',
+      errorLabel = 'Error',
+      classes = {},
+      className,
+      onValueChange,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const fromData = (steps ?? []).map((step, index) => (
+      <Step
+        key={`apui-step-${index}`}
+        title={step.title}
+        description={step.description}
+        state={step.state}
+        icon={step.icon}
+      />
+    ));
+    const composed = [...fromData, ...Children.toArray(children).filter(isValidElement)];
 
-          return (
-            <li
-              key={index}
-              className={cn('step', isComplete && stepColor && colorMap[stepColor])}
-              aria-current={isCurrent ? 'step' : undefined}
-              data-content={step.dataContent}
-            >
-              {step.icon && <span aria-hidden="true">{step.icon}</span>}
-              {step.label}
-            </li>
-          );
-        })}
-      </ul>
+    return (
+      <StepsContext.Provider
+        value={{ value, clickable, completeLabel, errorLabel, classes, onValueChange }}
+      >
+        <ol
+          {...rest}
+          ref={ref}
+          className={cx('apui-steps', classes.root, className)}
+          data-orientation={orientation === 'vertical' ? 'vertical' : 'horizontal'}
+          aria-label={label}
+        >
+          {composed.map((child, index) => (
+            <StepNumberContext.Provider key={child.key ?? index} value={index + 1}>
+              {child}
+            </StepNumberContext.Provider>
+          ))}
+        </ol>
+      </StepsContext.Provider>
     );
   },
 );
 
 Steps.displayName = 'Steps';
+
+/**
+ * One step of a {@link Steps}: a direct child, numbered by its position. The
+ * ref points at the `<li>`.
+ */
+export const Step = forwardRef<HTMLLIElement, StepProps>(
+  ({ title, description, state, icon, className, children, ...rest }, ref) => {
+    const steps = useContext(StepsContext);
+    const number = useContext(StepNumberContext);
+    const classes = steps?.classes ?? {};
+
+    let resolved: StepState = 'upcoming';
+    if (state !== undefined && STATES.includes(state)) resolved = state;
+    else if (steps?.value !== undefined) {
+      resolved =
+        number < steps.value ? 'complete' : number === steps.value ? 'current' : 'upcoming';
+    }
+
+    const markerIcon =
+      icon ?? (resolved === 'complete' ? 'check' : resolved === 'error' ? 'x' : undefined);
+    const stateLabel =
+      resolved === 'complete'
+        ? (steps?.completeLabel ?? 'Completed')
+        : resolved === 'error'
+          ? (steps?.errorLabel ?? 'Error')
+          : null;
+    const titleContent = hasContent(children) ? children : title;
+    const isButton = resolved === 'complete' && steps?.clickable === true;
+
+    return (
+      <li
+        {...rest}
+        ref={ref}
+        className={cx(classes.step, className)}
+        data-scope="steps"
+        data-part="step"
+        data-state={resolved}
+        aria-current={resolved === 'current' ? 'step' : undefined}
+      >
+        <span className={classes.marker} data-scope="steps" data-part="marker">
+          {markerIcon !== undefined ? (
+            <IconSvg name={markerIcon} />
+          ) : (
+            <span aria-hidden="true">{number}</span>
+          )}
+          {stateLabel !== null ? <span className="apui-sr-only">{stateLabel}</span> : null}
+        </span>
+        {isButton ? (
+          <button
+            type="button"
+            className={classes.title}
+            data-scope="steps"
+            data-part="title"
+            onClick={() => steps?.onValueChange?.(number)}
+          >
+            {titleContent}
+          </button>
+        ) : (
+          <span className={classes.title} data-scope="steps" data-part="title">
+            {titleContent}
+          </span>
+        )}
+        <span
+          className={classes.connector}
+          data-scope="steps"
+          data-part="connector"
+          aria-hidden="true"
+        />
+        {hasContent(description) ? (
+          <span className={classes.description} data-scope="steps" data-part="description">
+            {description}
+          </span>
+        ) : null}
+      </li>
+    );
+  },
+);
+
+Step.displayName = 'Step';

@@ -9,94 +9,71 @@ const meta: Meta<typeof Chart> = {
     docs: {
       description: {
         component:
-          'Data visualization component powered by ApexCharts. Supports bar, line, area, donut, pie, radar, radialBar, and polarArea chart types.',
+          'A bar, line, area or donut chart in a Card, drawn as inline SVG from tokens. Every mark is focusable and opens its tooltip on hover and focus; tabular adds the data table view.',
       },
     },
   },
   argTypes: {
-    type: {
-      control: 'select',
-      options: ['bar', 'line', 'area', 'donut', 'pie', 'radar', 'radialBar', 'polarArea'],
-    },
-    height: {
-      control: 'text',
-    },
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
-    showLegend: {
-      control: 'boolean',
-    },
-    animated: {
-      control: 'boolean',
-    },
+    type: { control: 'select', options: ['bar', 'line', 'area', 'donut'] },
+    notation: { control: 'select', options: ['standard', 'compact'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Chart>;
 
-export const BarChart: Story = {
+const weeks = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10'];
+const quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4'];
+const salesAndTarget = [
+  { name: 'Sales', data: [600000, 1800000, 2600000, 3200000, 3600000, 4400000, 6100000, 7400000] },
+  {
+    name: 'Target',
+    data: [3200000, 4400000, 3800000, 5200000, 6100000, 6600000, 7000000, 6400000],
+  },
+];
+
+export const Bar: Story = {
   args: {
     type: 'bar',
-    series: [{ name: 'Sales', data: [30, 40, 35, 50, 49, 60] }],
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    title: 'Monthly Sales',
-  },
-};
-
-export const LineChart: Story = {
-  args: {
-    type: 'line',
+    title: 'Weekly revenue',
+    description: 'The Grove at Greenfield · best week labeled',
+    labels: weeks,
     series: [
-      { name: 'Revenue', data: [30, 40, 35, 50, 49, 60] },
-      { name: 'Expenses', data: [20, 30, 25, 40, 35, 45] },
+      { name: 'Revenue', data: [4100, 6000, 8200, 10000, 4000, 8000, 4000, 8000, 6000, 4000] },
     ],
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    title: 'Revenue vs Expenses',
+    prefix: '$',
+    notation: 'compact',
   },
 };
 
-export const AreaChart: Story = {
+export const Area: Story = {
   args: {
     type: 'area',
-    series: [{ name: 'Visitors', data: [120, 200, 150, 300, 250, 400] }],
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    title: 'Website Visitors',
+    title: 'Analytic',
+    description: 'Sales estimation vs target',
+    labels: quarters,
+    series: salesAndTarget,
+    prefix: '$',
+    notation: 'compact',
+    width: 1000,
+    height: 260,
   },
 };
 
-export const DonutChart: Story = {
+export const Line: Story = {
+  args: { ...Area.args, type: 'line' },
+};
+
+export const Donut: Story = {
   args: {
     type: 'donut',
-    data: [
-      { label: 'Desktop', value: 55 },
-      { label: 'Mobile', value: 30 },
-      { label: 'Tablet', value: 15 },
-    ],
-    title: 'Traffic by Device',
+    title: 'Active listings',
+    description: 'By country',
+    labels: ['United States', 'Mexico', 'Canada', 'Other'],
+    series: [1240, 990, 723, 260],
   },
 };
 
-export const PieChart: Story = {
-  args: {
-    type: 'pie',
-    data: [
-      { label: 'Desktop', value: 55 },
-      { label: 'Mobile', value: 30 },
-      { label: 'Tablet', value: 15 },
-    ],
-    title: 'Device Distribution',
-  },
+export const WithTable: Story = {
+  args: { ...Donut.args, tabular: true },
 };

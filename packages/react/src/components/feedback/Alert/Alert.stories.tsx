@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../form/Button/Button';
 import { Alert } from './Alert';
 
 const meta: Meta<typeof Alert> = {
@@ -9,15 +10,17 @@ const meta: Meta<typeof Alert> = {
     docs: {
       description: {
         component:
-          'Contextual feedback banner for success, info, warning, and error messages. Supports an optional dismiss button and custom icon override.',
+          'An inline message about the state of a page or section. The tint and the status icon carry the meaning; errors are role=alert, everything else role=status. A dismissible alert hides itself.',
       },
     },
   },
   argTypes: {
     color: {
       control: 'select',
-      options: [undefined, 'info', 'success', 'warning', 'error'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
+    variant: { control: 'select', options: ['soft', 'outline', 'solid'] },
+    surface: { control: 'select', options: ['default', 'glass'] },
   },
 };
 
@@ -26,62 +29,36 @@ type Story = StoryObj<typeof Alert>;
 
 export const Default: Story = {
   args: {
-    children: 'This is a default alert message.',
-  },
-};
-
-export const Info: Story = {
-  args: {
     color: 'info',
-    children: 'A new software update is available.',
+    title: 'New reporting period',
+    description: 'Q4 numbers are now available in Analytics.',
   },
 };
 
-export const Success: Story = {
-  args: {
-    color: 'success',
-    children: 'Your profile has been updated successfully!',
-  },
-};
-
-export const Warning: Story = {
+export const WithActions: Story = {
   args: {
     color: 'warning',
-    children: 'Your trial period expires in 3 days.',
+    title: 'Your monthly traffic is close to the limit',
+    description: 'You’ve used 92% of 50,000 visits. Upgrade to avoid throttling.',
+    actions: (
+      <>
+        <Button size="xs" color="warning">
+          Upgrade
+        </Button>
+        <Button size="xs" variant="ghost" color="neutral">
+          Learn more
+        </Button>
+      </>
+    ),
   },
 };
 
-export const Error: Story = {
-  args: {
-    color: 'error',
-    children: 'Unable to save changes. Please try again.',
-  },
-};
-
-export const AllColors: Story = {
-  name: 'All Variants',
+export const Variants: Story = {
   render: () => (
-    <div className="flex flex-col gap-3">
-      <Alert color="info">Informational message.</Alert>
-      <Alert color="success">Success message.</Alert>
-      <Alert color="warning">Warning message.</Alert>
-      <Alert color="error">Error message.</Alert>
+    <div style={{ display: 'grid', gap: 10 }}>
+      <Alert color="success" title="Listing published" dismissible />
+      <Alert variant="outline" color="info" title="Outline" description="For dense forms." />
+      <Alert variant="solid" color="error" title="Solid" description="For page-level failures." />
     </div>
   ),
-};
-
-export const WithIcon: Story = {
-  args: {
-    color: 'info',
-    icon: <span aria-hidden="true">ℹ️</span>,
-    children: 'Alert with a custom icon.',
-  },
-};
-
-export const Dismissible: Story = {
-  args: {
-    color: 'warning',
-    dismissible: true,
-    children: 'This alert can be dismissed by clicking the X button.',
-  },
 };

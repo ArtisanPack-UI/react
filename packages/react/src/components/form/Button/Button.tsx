@@ -1,172 +1,234 @@
-/** @module Button */
+/**
+ * @module Button
+ *
+ * The design-system Button (#44). Renders the shared `.apui-button` markup
+ * contract, styled by `@artisanpack-ui/css`.
+ */
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
+import {
+  forwardRef,
+  type AnchorHTMLAttributes,
+  type ButtonHTMLAttributes,
+  type MouseEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
+
+import { IconPart } from '../../../internal/icon';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
+import { safeHref } from '../../../internal/url';
+
+/** Visual treatment of a {@link Button}. */
+export type ButtonVariant = 'solid' | 'soft' | 'outline' | 'ghost' | 'link';
+
+/** Semantic color of a {@link Button}. */
+export type ButtonColor =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info';
+
+/** Control height of a {@link Button}. */
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+/** The parts a {@link Button} accepts extra classes for. */
+export type ButtonPart = 'root' | 'icon' | 'label' | 'iconEnd' | 'spinner';
 
 /**
  * Props for the {@link Button} component.
  *
- * Extends native `<button>` HTML attributes. When the `link` prop is provided,
- * the component renders as an `<a>` element styled as a button.
+ * Native `<button>` attributes pass through to the root; with `href`, the
+ * anchor attributes `target`, `rel`, `download` and `hrefLang` apply too.
  */
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Text label displayed inside the button. Hidden on small screens when `responsive` is true. */
-  label?: string;
-  /** DaisyUI color variant applied to the button. Accepts standard theme colors plus `'ghost'` and `'outline'`. */
-  color?: DaisyColor | 'ghost' | 'outline';
-  /** Controls the button size using DaisyUI size modifiers. */
-  size?: Size;
-  /** Icon element rendered before the label text. Wrapped with `aria-hidden="true"`. */
-  icon?: ReactNode;
-  /** Icon element rendered after the label text and children. Wrapped with `aria-hidden="true"`. */
-  iconRight?: ReactNode;
-  /** When true, shows a loading spinner in place of the left icon. Disables a native `<button>`, but only sets `aria-disabled` on link variants. */
+export interface ButtonProps
+  extends
+    Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'color' | 'onClick' | 'onAuxClick'>,
+    Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'target' | 'rel' | 'download' | 'hrefLang'> {
+  /** Visual treatment. Emitted as `data-variant`. @defaultValue `'solid'` */
+  variant?: ButtonVariant;
+  /** Semantic color. Emitted as `data-color`. @defaultValue `'primary'` */
+  color?: ButtonColor;
+  /** Control height. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: ButtonSize;
+  /** Renders only the icon. Requires an `aria-label`. @defaultValue `false` */
+  iconOnly?: boolean;
+  /** Shows the spinner, sets `aria-busy` and ignores clicks. @defaultValue `false` */
   loading?: boolean;
-  /** When provided, renders the button as an `<a>` element pointing to this URL. */
-  link?: string;
-  /** When true and `link` is set, opens the link in a new tab with `rel="noopener noreferrer"`. */
-  external?: boolean;
-  /** Text content for an inline badge rendered after the button label. */
-  badge?: string;
-  /** Additional CSS classes applied to the badge element. */
-  badgeClasses?: string;
-  /** When true, hides the label on small screens and only shows it on `sm` breakpoint and above. */
-  responsive?: boolean;
-  /** Tooltip text displayed on hover. Wraps the button in a DaisyUI tooltip container. */
-  tooltip?: string;
-  /** Position of the tooltip relative to the button. @defaultValue `'top'` */
-  tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Disables the button. With `href`, renders an anchor without href and with `aria-disabled`. */
+  disabled?: boolean;
+  /**
+   * Renders an `<a>` with the same styles. Only relative, http, https, mailto, tel and sms
+   * URLs are used; any other is ignored (renders a `<button>`). While `loading` or `disabled`, the anchor has no href.
+   */
+  href?: string;
+  /** Icon name before the label, resolved through the icon registry. `icon` overrides it. */
+  leadingIcon?: string;
+  /** Icon name after the label, resolved through the icon registry. `iconEnd` overrides it. */
+  trailingIcon?: string;
+  /** The native button type. Ignored with `href`. @defaultValue `'button'` */
+  type?: 'button' | 'submit' | 'reset';
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<ButtonPart>;
+  /** Leading icon node; overrides `leadingIcon`. */
+  icon?: ReactNode;
+  /** Trailing icon node; overrides `trailingIcon`. */
+  iconEnd?: ReactNode;
+  /** Click handler. Not called while `loading` or `disabled`. */
+  onClick?(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>): void;
+  /** Auxiliary (e.g. middle) click handler. Not called while `loading` or `disabled`. */
+  onAuxClick?(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>): void;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  accent: 'btn-accent',
-  success: 'btn-success',
-  warning: 'btn-warning',
-  error: 'btn-error',
-  info: 'btn-info',
-  neutral: 'btn-neutral',
-  ghost: 'btn-ghost',
-  outline: 'btn-outline',
-};
-
-const sizeMap: Record<Size, string> = {
-  xs: 'btn-xs',
-  sm: 'btn-sm',
-  md: 'btn-md',
-  lg: 'btn-lg',
-};
-
-const tooltipPositionMap: Record<string, string> = {
-  top: 'tooltip-top',
-  bottom: 'tooltip-bottom',
-  left: 'tooltip-left',
-  right: 'tooltip-right',
-};
-
 /**
- * A versatile button component with DaisyUI color variants, size options, icon support,
- * loading state, tooltip, badge, and optional link rendering.
- *
- * Renders a `<button>` by default or an `<a>` element when the `link` prop is provided.
- * Supports `forwardRef` for direct access to the underlying `<button>` element.
+ * Triggers an action. Renders a native `<button>`, or an `<a>` when `href` is
+ * set. The ref points at that element.
  *
  * @example
  * ```tsx
- * <Button color="primary" icon={<PlusIcon />} loading={false}>
- *   Add Item
- * </Button>
- * ```
- *
- * @example
- * ```tsx
- * <Button link="/dashboard" external tooltip="Go to dashboard">
- *   Dashboard
- * </Button>
+ * <Button leadingIcon="plus">Add item</Button>
+ * <Button variant="outline" color="neutral" href="/docs">Docs</Button>
+ * <Button iconOnly leadingIcon="trash" aria-label="Delete" color="error" />
  * ```
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   (
     {
-      label,
-      color,
-      size,
-      icon,
-      iconRight,
+      variant = 'solid',
+      color = 'primary',
+      size = 'md',
+      iconOnly = false,
       loading = false,
-      link,
-      external,
-      badge,
-      badgeClasses,
-      responsive = false,
-      tooltip,
-      tooltipPosition = 'top',
-      disabled,
+      disabled = false,
+      href,
+      leadingIcon,
+      trailingIcon,
+      type = 'button',
+      classes = {},
+      icon,
+      iconEnd,
       className,
       children,
-      type = 'button',
+      onClick,
+      onAuxClick,
+      target,
+      rel,
+      download,
+      hrefLang,
       ...rest
     },
     ref,
   ) => {
-    const buttonClasses = cn(
-      'btn',
-      color && colorMap[color],
-      size && sizeMap[size],
-      loading && 'btn-disabled',
-      className,
-    );
+    const inactive = loading || disabled;
+    const linkHref = safeHref(href);
+
+    const handleClick = (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+      if (inactive) {
+        event.preventDefault();
+        return;
+      }
+      onClick?.(event);
+    };
+
+    // Middle and other auxiliary clicks would open a link in a new tab; block them (and the
+    // caller's handler) while the button is inactive.
+    const handleAuxClick = (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+      if (inactive) {
+        event.preventDefault();
+        return;
+      }
+      onAuxClick?.(event);
+    };
+
+    const shared = {
+      ...rest,
+      className: cx('apui-button', classes.root, className),
+      'data-variant': variant,
+      'data-color': color,
+      'data-size': size,
+      'data-icon-only': flag(iconOnly),
+      'aria-busy': loading ? true : rest['aria-busy'],
+      onClick: handleClick,
+      onAuxClick: handleAuxClick,
+    };
 
     const content = (
       <>
+        <IconPart
+          scope="button"
+          part="icon"
+          name={leadingIcon}
+          node={icon}
+          mirror
+          className={classes.icon}
+        />
+        {!iconOnly && hasContent(children) ? (
+          <span className={classes.label} data-scope="button" data-part="label">
+            {children}
+          </span>
+        ) : null}
+        <IconPart
+          scope="button"
+          part="iconEnd"
+          name={trailingIcon}
+          node={iconEnd}
+          mirror
+          className={classes.iconEnd}
+        />
         {loading ? (
-          <span className="loading loading-spinner loading-sm" aria-hidden="true" />
-        ) : (
-          icon && <span aria-hidden="true">{icon}</span>
-        )}
-        {label && <span className={cn(responsive && 'hidden sm:inline')}>{label}</span>}
-        {children}
-        {iconRight && <span aria-hidden="true">{iconRight}</span>}
-        {badge && <span className={cn('badge', badgeClasses)}>{badge}</span>}
+          <span
+            className={classes.spinner}
+            data-scope="button"
+            data-part="spinner"
+            aria-hidden="true"
+          />
+        ) : null}
       </>
     );
 
-    const element = link ? (
-      <a
-        href={link}
-        className={buttonClasses}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
-        role="button"
-        aria-busy={loading || undefined}
-        aria-disabled={disabled || loading || undefined}
-      >
-        {content}
-      </a>
-    ) : (
+    if (linkHref !== undefined) {
+      const {
+        form: _form,
+        formAction: _formAction,
+        formEncType: _formEncType,
+        formMethod: _formMethod,
+        formNoValidate: _formNoValidate,
+        formTarget: _formTarget,
+        name: _name,
+        value: _value,
+        ...anchorProps
+      } = shared;
+      return (
+        <a
+          {...(anchorProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
+          ref={ref as Ref<HTMLAnchorElement>}
+          href={inactive ? undefined : linkHref}
+          target={target}
+          rel={rel}
+          download={download}
+          hrefLang={hrefLang}
+          aria-disabled={inactive ? true : rest['aria-disabled']}
+          data-disabled={flag(disabled)}
+        >
+          {content}
+        </a>
+      );
+    }
+
+    return (
       <button
-        ref={ref}
+        {...shared}
+        ref={ref as Ref<HTMLButtonElement>}
         type={type}
-        disabled={disabled || loading}
-        className={buttonClasses}
-        aria-busy={loading || undefined}
-        {...rest}
+        disabled={disabled || undefined}
+        data-disabled={flag(disabled)}
       >
         {content}
       </button>
     );
-
-    if (tooltip) {
-      return (
-        <div className={cn('tooltip', tooltipPositionMap[tooltipPosition])} data-tip={tooltip}>
-          {element}
-        </div>
-      );
-    }
-
-    return element;
   },
 );
 

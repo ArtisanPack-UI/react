@@ -9,98 +9,34 @@ const meta: Meta<typeof Divider> = {
     docs: {
       description: {
         component:
-          'Horizontal or vertical divider line with optional label text and configurable label position. Supports DaisyUI color variants.',
+          'Separates content with a muted rule: horizontal, vertical or with a label in the middle. Prefer spacing; add a divider only when groups blur together.',
       },
     },
   },
   argTypes: {
-    color: {
-      control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
-    vertical: {
-      control: 'boolean',
-    },
-    label: {
-      control: 'text',
-    },
-    labelPosition: {
-      control: 'select',
-      options: ['start', 'center', 'end'],
-    },
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    align: { control: 'select', options: ['start', 'center', 'end'] },
+    strength: { control: 'select', options: ['subtle', 'strong'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Divider>;
 
-export const Default: Story = {
-  render: () => (
-    <div>
-      <p>Content above</p>
-      <Divider />
-      <p>Content below</p>
-    </div>
-  ),
-};
+export const Default: Story = {};
 
-export const WithLabel: Story = {
-  args: {
-    label: 'OR',
-  },
-  render: (args) => (
-    <div>
-      <p>Content above</p>
-      <Divider {...args} />
-      <p>Content below</p>
-    </div>
-  ),
-};
+export const Strong: Story = { args: { strength: 'strong' } };
+
+export const Labelled: Story = { args: { label: 'or continue with' } };
+
+export const LabelAtStart: Story = { args: { label: 'Older activity', align: 'start' } };
 
 export const Vertical: Story = {
-  args: {
-    vertical: true,
-  },
   render: (args) => (
-    <div className="flex items-center h-24">
-      <span>Left</span>
-      <Divider {...args} />
-      <span>Right</span>
-    </div>
-  ),
-};
-
-export const ColorVariants: Story = {
-  render: () => (
-    <div className="space-y-2">
-      <Divider color="primary" label="Primary" />
-      <Divider color="secondary" label="Secondary" />
-      <Divider color="accent" label="Accent" />
-      <Divider color="success" label="Success" />
-      <Divider color="warning" label="Warning" />
-      <Divider color="error" label="Error" />
-      <Divider color="info" label="Info" />
-      <Divider color="neutral" label="Neutral" />
-    </div>
-  ),
-};
-
-export const LabelPositions: Story = {
-  render: () => (
-    <div className="space-y-2">
-      <Divider label="Start" labelPosition="start" />
-      <Divider label="Center" labelPosition="center" />
-      <Divider label="End" labelPosition="end" />
+    <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+      <span>Edit</span>
+      <Divider {...args} orientation="vertical" />
+      <span>Duplicate</span>
     </div>
   ),
 };

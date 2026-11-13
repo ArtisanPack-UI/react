@@ -53,37 +53,31 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@artisanpack-ui/tokens": "^1.0.1"
+    "@artisanpack-ui/behavior": "file:../../../design-system/packages/behavior",
+    "@artisanpack-ui/tokens": "^1.0.1",
+    "@zag-js/react": "~1.47.0"
   },
   "devDependencies": {
+    "@artisanpack-ui/css": "file:../../../design-system/packages/css",
+    "@artisanpack-ui/manifest": "file:../../../design-system/packages/manifest",
+    "@artisanpack-ui/testing": "file:../../../design-system/packages/testing",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
-    "apexcharts": "~3.45.2",
     "jsdom": "^29.0.1",
     "react": "^19.2.4",
-    "react-apexcharts": "1.5.0",
     "react-dom": "^19.2.4",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.2"
   },
   "peerDependencies": {
-    "apexcharts": "^3.41.0",
     "react": "^18.0.0 || ^19.0.0",
-    "react-apexcharts": "^1.5.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
-  "peerDependenciesMeta": {
-    "apexcharts": {
-      "optional": true
-    },
-    "react-apexcharts": {
-      "optional": true
-    }
-  },
+  "peerDependenciesMeta": {},
   "publishConfig": {
     "access": "public"
   },

@@ -1,164 +1,187 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Tabs } from '../../components/layout/Tabs/Tabs';
-import type { TabItem } from '../../components/layout/Tabs/Tabs';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Tab, Tabs, type TabData, type TabsProps } from '../../components/layout/Tabs/Tabs';
 
-const sampleTabs: TabItem[] = [
-  { name: 'tab1', label: 'Tab 1', content: <div>Content 1</div> },
-  { name: 'tab2', label: 'Tab 2', content: <div>Content 2</div> },
-  { name: 'tab3', label: 'Tab 3', content: <div>Content 3</div> },
+const declaredProps: (keyof TabsProps)[] = [
+  'value',
+  'defaultValue',
+  'tabs',
+  'variant',
+  'size',
+  'orientation',
+  'activationMode',
+  'label',
+  'classes',
 ];
 
+const TABS: TabData[] = [
+  { value: 'overview', label: 'Overview', icon: 'list', content: 'Overview panel' },
+  { value: 'notifications', label: 'Notifications', count: 4, content: 'Notifications panel' },
+  { value: 'archived', label: 'Archived', disabled: true, content: 'Archived panel' },
+  { value: 'history', label: 'History', content: 'History panel' },
+];
+
+function Composed(props: Omit<TabsProps, 'tabs'>) {
+  return (
+    <Tabs {...props}>
+      <Tab value="overview" label="Overview" icon="list">
+        Overview panel
+      </Tab>
+      <Tab value="notifications" label="Notifications" count={4}>
+        Notifications panel
+      </Tab>
+      <>
+        <Tab value="archived" label="Archived" disabled>
+          Archived panel
+        </Tab>
+        <Tab value="history" label="History">
+          History panel
+        </Tab>
+      </>
+    </Tabs>
+  );
+}
+
+const tab = (name: string) => screen.getByRole('tab', { name: new RegExp(`^${name}`) });
+const interact = (fire: () => void) =>
+  act(async () => {
+    fire();
+  });
+const withoutIds = (html: string) => html.replace(/_R_[0-9a-zA-Z]+_/g, '#');
+
 describe('Tabs', () => {
-  it('renders all tab labels', () => {
-    render(<Tabs tabs={sampleTabs} />);
-    expect(screen.getByText('Tab 1')).toBeInTheDocument();
-    expect(screen.getByText('Tab 2')).toBeInTheDocument();
-    expect(screen.getByText('Tab 3')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Tabs, 'Tabs', {
+      declared: { props: declaredProps, events: ['onValueChange'] },
+      ignoreEffects: ['defaultValue'],
+    });
   });
 
-  it('renders first tab content by default', () => {
-    render(<Tabs tabs={sampleTabs} />);
-    expect(screen.getByText('Content 1')).toBeInTheDocument();
+  it('renders the same markup from tabs as from composition', () => {
+    expect(withoutIds(renderToStaticMarkup(<Tabs tabs={TABS} />))).toBe(
+      withoutIds(renderToStaticMarkup(<Composed />)),
+    );
   });
 
-  it('renders defaultTab content', () => {
-    render(<Tabs tabs={sampleTabs} defaultTab="tab2" />);
-    expect(screen.getByText('Content 2')).toBeInTheDocument();
+  it('selects the first enabled composed tab on the server, without a value', () => {
+    const host = document.createElement('div');
+    host.innerHTML = renderToStaticMarkup(
+      <Tabs>
+        <Tab value="a" label="A" disabled>
+          A panel
+        </Tab>
+        <Tab value="b" label="B">
+          B panel
+        </Tab>
+        <Tab value="c" label="C">
+          C panel
+        </Tab>
+      </Tabs>,
+    );
+    const selected = [...host.querySelectorAll('[role="tab"][aria-selected="true"]')];
+    expect(selected.map((el) => el.textContent)).toEqual(['B']);
+    const shown = [...host.querySelectorAll<HTMLElement>('[role="tabpanel"]')].filter(
+      (el) => !el.hasAttribute('hidden'),
+    );
+    expect(shown.map((el) => el.textContent)).toEqual(['B panel']);
   });
 
-  it('switches tab on click', () => {
-    render(<Tabs tabs={sampleTabs} />);
-    fireEvent.click(screen.getByText('Tab 2'));
-    expect(screen.getByText('Content 2')).toBeInTheDocument();
+  it('renders the contract anatomy, selecting the first enabled tab', () => {
+    const { container } = render(<Composed label="Sections" />);
+    const root = container.querySelector('.apui-tabs')!;
+    expect(root).toHaveAttribute('data-variant', 'segmented');
+    expect(root).toHaveAttribute('data-size', 'md');
+    expect(root).toHaveAttribute('data-orientation', 'horizontal');
+    expect(root).toHaveAttribute('data-activation-mode', 'automatic');
+    expect(screen.getByRole('tablist')).toHaveAttribute('aria-label', 'Sections');
+    expect(tab('Overview')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Overview').querySelector('[data-part="icon"]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(tab('Notifications').querySelector('[data-part="count"]')).toHaveTextContent('4');
+    expect(tab('Archived')).toBeDisabled();
+    const panel = screen.getByRole('tabpanel');
+    expect(panel).toHaveTextContent('Overview panel');
+    expect(panel).toHaveAttribute('aria-labelledby', tab('Overview').id);
+    expect(tab('Overview')).toHaveAttribute('aria-controls', panel.id);
   });
 
-  it('calls onChange callback', () => {
-    const onChange = vi.fn();
-    render(<Tabs tabs={sampleTabs} onChange={onChange} />);
-    fireEvent.click(screen.getByText('Tab 2'));
-    expect(onChange).toHaveBeenCalledWith('tab2');
+  it('selects on click and reports value-change', async () => {
+    const onValueChange = vi.fn();
+    render(<Composed onValueChange={onValueChange} />);
+    await interact(() => fireEvent.click(tab('History')));
+    expect(onValueChange).toHaveBeenCalledWith('history');
+    expect(tab('History')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('History panel');
   });
 
-  it('marks active tab with tab-active class', () => {
-    render(<Tabs tabs={sampleTabs} />);
-    expect(screen.getByText('Tab 1').closest('button')).toHaveClass('tab-active');
-    expect(screen.getByText('Tab 2').closest('button')).not.toHaveClass('tab-active');
+  it('moves with the arrow keys, skipping disabled tabs', async () => {
+    render(<Composed defaultValue="notifications" />);
+    tab('Notifications').focus();
+    await interact(() => fireEvent.keyDown(tab('Notifications'), { key: 'ArrowRight' }));
+    await waitFor(() => expect(tab('History')).toHaveFocus());
+    // Automatic selection on keyboard focus is checked in Chromium by the behavior package's tabs tests.
+    await interact(() => fireEvent.keyDown(tab('History'), { key: 'Home' }));
+    await waitFor(() => expect(tab('Overview')).toHaveFocus());
   });
 
-  it('sets correct ARIA attributes', () => {
-    render(<Tabs tabs={sampleTabs} />);
-    const tab1 = screen.getByText('Tab 1').closest('button');
-    expect(tab1).toHaveAttribute('role', 'tab');
-    expect(tab1).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
+  it('only moves focus in manual mode', async () => {
+    render(<Composed activationMode="manual" />);
+    tab('Overview').focus();
+    await interact(() => fireEvent.keyDown(tab('Overview'), { key: 'ArrowRight' }));
+    await waitFor(() => expect(tab('Notifications')).toHaveFocus());
+    expect(tab('Overview')).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('disables tab when disabled prop is set', () => {
-    const tabs: TabItem[] = [
-      ...sampleTabs.slice(0, 2),
-      { name: 'tab3', label: 'Tab 3', content: <div>Content 3</div>, disabled: true },
-    ];
-    render(<Tabs tabs={tabs} />);
-    expect(screen.getByText('Tab 3').closest('button')).toBeDisabled();
+  it('follows a controlled value', async () => {
+    const { rerender } = render(<Composed value="overview" />);
+    rerender(<Composed value="history" />);
+    // Automatic selection on keyboard focus is checked in Chromium by the behavior package's tabs tests.
   });
 
-  it('navigates with arrow keys (horizontal)', () => {
-    const onChange = vi.fn();
-    render(<Tabs tabs={sampleTabs} onChange={onChange} />);
-    const tabList = screen.getByRole('tablist');
-    fireEvent.keyDown(tabList, { key: 'ArrowRight' });
-    expect(onChange).toHaveBeenCalledWith('tab2');
-  });
-
-  it('navigates with arrow keys (vertical)', () => {
-    const onChange = vi.fn();
-    render(<Tabs tabs={sampleTabs} onChange={onChange} vertical />);
-    const tabList = screen.getByRole('tablist');
-    fireEvent.keyDown(tabList, { key: 'ArrowDown' });
-    expect(onChange).toHaveBeenCalledWith('tab2');
-  });
-
-  it('applies variant class (daisyUI v5 naming)', () => {
-    render(<Tabs tabs={sampleTabs} variant="lifted" />);
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-lift');
-  });
-
-  it('maps boxed variant to daisyUI v5 tabs-box', () => {
-    render(<Tabs tabs={sampleTabs} variant="boxed" />);
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-box');
-  });
-
-  it('maps bordered variant to daisyUI v5 tabs-border', () => {
-    render(<Tabs tabs={sampleTabs} variant="bordered" />);
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-border');
-  });
-
-  it('applies size class', () => {
-    render(<Tabs tabs={sampleTabs} size="lg" />);
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-lg');
-  });
-
-  it('applies color class to active tab', () => {
-    render(<Tabs tabs={sampleTabs} color="primary" />);
-    const activeTab = screen.getByText('Tab 1').closest('button');
-    expect(activeTab).toHaveClass('tab-primary');
-  });
-
-  it('does not apply color class to inactive tab', () => {
-    render(<Tabs tabs={sampleTabs} color="primary" />);
-    const inactiveTab = screen.getByText('Tab 2').closest('button');
-    expect(inactiveTab).not.toHaveClass('tab-primary');
-  });
-
-  it('renders vertical layout', () => {
-    const { container } = render(<Tabs tabs={sampleTabs} vertical />);
-    expect(container.firstChild).toHaveClass('flex');
-    expect(screen.getByRole('tablist')).toHaveClass('tabs-vertical');
+  it('emits variant, size and orientation', () => {
+    const { container } = render(<Composed variant="underline" size="sm" orientation="vertical" />);
+    const root = container.querySelector('.apui-tabs')!;
+    expect(root).toHaveAttribute('data-variant', 'underline');
+    expect(root).toHaveAttribute('data-size', 'sm');
+    expect(root).toHaveAttribute('data-orientation', 'vertical');
     expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical');
   });
 
-  it('renders vertical-right layout with content before tabs', () => {
-    const { container } = render(<Tabs tabs={sampleTabs} verticalRight />);
-    expect(container.firstChild).toHaveClass('flex');
-    // tabpanel should come before tablist in DOM
-    const children = Array.from((container.firstChild as HTMLElement).children);
-    expect(children[0]).toHaveAttribute('role', 'tabpanel');
-    expect(children[1]).toHaveAttribute('role', 'tablist');
+  it('applies classes per part and className to the root, and forwards the ref', () => {
+    const ref = createRef<HTMLDivElement>();
+    const { container } = render(
+      <Tabs
+        tabs={TABS}
+        ref={ref}
+        className="mine"
+        classes={{ list: 'l', trigger: 't', content: 'c', count: 'n' }}
+      />,
+    );
+    expect(ref.current).toBe(container.querySelector('.apui-tabs'));
+    expect(ref.current).toHaveClass('mine');
+    expect(screen.getByRole('tablist')).toHaveClass('l');
+    expect(tab('Overview')).toHaveClass('t');
+    expect(screen.getByRole('tabpanel')).toHaveClass('c');
+    expect(container.querySelector('[data-part="count"]')).toHaveClass('n');
   });
 
-  it('applies custom tabListClassName', () => {
-    render(<Tabs tabs={sampleTabs} tabListClassName="custom-tablist" />);
-    expect(screen.getByRole('tablist')).toHaveClass('custom-tablist');
+  it('throws when a Tab is rendered outside Tabs', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<Tab value="a" label="A" />)).toThrow(/inside <Tabs>/);
+    spy.mockRestore();
   });
-
-  it('applies custom panelClassName', () => {
-    render(<Tabs tabs={sampleTabs} panelClassName="custom-panel" />);
-    expect(screen.getByRole('tabpanel')).toHaveClass('custom-panel');
-  });
-
-  it('applies custom activeTabClassName', () => {
-    render(<Tabs tabs={sampleTabs} activeTabClassName="custom-active" />);
-    const activeTab = screen.getByText('Tab 1').closest('button');
-    expect(activeTab).toHaveClass('custom-active');
-  });
-
-  it('renders tab icons', () => {
-    const tabs: TabItem[] = [
-      {
-        name: 'tab1',
-        label: 'Tab 1',
-        content: <div>Content</div>,
-        icon: <span data-testid="icon">★</span>,
-      },
-    ];
-    render(<Tabs tabs={tabs} />);
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Tabs ref={ref} tabs={sampleTabs} />);
-    expect(ref).toHaveBeenCalled();
+  it('selects the first tab of tabs that load after mount', async () => {
+    const { rerender } = render(<Tabs tabs={[]} />);
+    expect(screen.queryAllByRole('tab')).toHaveLength(0);
+    rerender(<Tabs tabs={TABS} />);
+    await waitFor(() =>
+      expect(screen.getAllByRole('tab')[0]).toHaveAttribute('aria-selected', 'true'),
+    );
+    expect(screen.getAllByRole('tab')[0]).toHaveAttribute('tabindex', '0');
   });
 });

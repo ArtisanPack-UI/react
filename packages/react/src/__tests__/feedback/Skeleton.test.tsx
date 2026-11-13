@@ -1,57 +1,32 @@
-import React from 'react';
 import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { Skeleton } from '../../components/feedback/Skeleton/Skeleton';
+import { describe, expect, it } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Skeleton, type SkeletonProps } from '../../components/feedback/Skeleton/Skeleton';
+
+const declaredProps: (keyof SkeletonProps)[] = ['shape', 'width', 'height'];
 
 describe('Skeleton', () => {
-  it('renders with skeleton class', () => {
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Skeleton, 'Skeleton', {
+      declared: { props: declaredProps, events: [] },
+    });
+  });
+
+  it('is a hidden block by default', () => {
     const { container } = render(<Skeleton />);
-    expect(container.firstChild).toHaveClass('skeleton');
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.tagName).toBe('SPAN');
+    expect(root).toHaveClass('apui-skeleton');
+    expect(root).toHaveAttribute('data-shape', 'block');
+    expect(root).toHaveAttribute('aria-hidden', 'true');
+    expect(root).not.toHaveAttribute('style');
   });
 
-  it('is hidden from assistive technology', () => {
-    const { container } = render(<Skeleton />);
-    expect(container.firstChild).toHaveAttribute('aria-hidden', 'true');
-  });
-
-  it('applies width and height styles', () => {
-    const { container } = render(<Skeleton width="200px" height="20px" />);
-    const el = container.firstChild as HTMLElement;
-    expect(el.style.width).toBe('200px');
-    expect(el.style.height).toBe('20px');
-  });
-
-  it('applies circle variant', () => {
-    const { container } = render(<Skeleton circle height="48px" />);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveClass('rounded-full');
-    expect(el.style.width).toBe('48px');
-    expect(el.style.height).toBe('48px');
-  });
-
-  it('applies circle variant with width only', () => {
-    const { container } = render(<Skeleton circle width="64px" />);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveClass('rounded-full');
-    expect(el.style.width).toBe('64px');
-    expect(el.style.height).toBe('64px');
-  });
-
-  it('applies custom className', () => {
-    const { container } = render(<Skeleton className="custom" />);
-    expect(container.firstChild).toHaveClass('custom');
-  });
-
-  it('merges custom styles', () => {
-    const { container } = render(<Skeleton height="10px" style={{ margin: '8px' }} />);
-    const el = container.firstChild as HTMLElement;
-    expect(el.style.height).toBe('10px');
-    expect(el.style.margin).toBe('8px');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<Skeleton ref={ref} />);
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  it('writes width and height inline, numbers as px', () => {
+    const { container } = render(<Skeleton shape="circle" width={40} height="2rem" />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveAttribute('data-shape', 'circle');
+    expect(root.style.width).toBe('40px');
+    expect(root.style.height).toBe('2rem');
   });
 });

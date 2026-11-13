@@ -21,8 +21,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: Check out the design system
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -43,8 +46,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: Check out the design system
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -62,8 +68,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: Check out the design system
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -85,8 +94,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: Check out the design system
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -113,8 +125,12 @@ jobs:
       - uses: actions/setup-node@v4
         if: env.CHROMATIC_PROJECT_TOKEN != ''
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: Check out the design system
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         if: env.CHROMATIC_PROJECT_TOKEN != ''
@@ -146,9 +162,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
+
+      - name: Check out the design system
+        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci

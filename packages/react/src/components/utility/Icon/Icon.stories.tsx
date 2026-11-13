@@ -9,28 +9,16 @@ const meta: Meta<typeof Icon> = {
     docs: {
       description: {
         component:
-          'SVG icon wrapper accepting a path string or inline SVG children. Supports size and color variants with an accessible label for screen readers.',
+          'One Lucide icon from the registry at four sizes, plain or on a soft-colored tile. Decorative unless it has a label; directional icons mirror in RTL.',
       },
     },
   },
   argTypes: {
+    variant: { control: 'select', options: ['plain', 'tile'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg', 'xl'] },
     color: {
       control: 'select',
-      options: [
-        undefined,
-        'primary',
-        'secondary',
-        'accent',
-        'success',
-        'warning',
-        'error',
-        'info',
-        'neutral',
-      ],
-    },
-    size: {
-      control: 'select',
-      options: ['xs', 'sm', 'md', 'lg'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
   },
 };
@@ -38,79 +26,38 @@ const meta: Meta<typeof Icon> = {
 export default meta;
 type Story = StoryObj<typeof Icon>;
 
-const checkPath =
-  'M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z';
-
-export const Default: Story = {
-  args: {
-    path: checkPath,
-    viewBox: '0 0 20 20',
-  },
-};
+export const Default: Story = { args: { name: 'house' } };
 
 export const Sizes: Story = {
   render: () => (
-    <div className="flex items-end gap-4">
-      <div className="flex flex-col items-center gap-1">
-        <Icon path={checkPath} size="xs" viewBox="0 0 20 20" />
-        <span className="text-xs">xs</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Icon path={checkPath} size="sm" viewBox="0 0 20 20" />
-        <span className="text-xs">sm</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Icon path={checkPath} size="md" viewBox="0 0 20 20" />
-        <span className="text-xs">md</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Icon path={checkPath} size="lg" viewBox="0 0 20 20" />
-        <span className="text-xs">lg</span>
-      </div>
+    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+      {(['sm', 'md', 'lg', 'xl'] as const).map((size) => (
+        <Icon key={size} name="house" size={size} />
+      ))}
     </div>
   ),
 };
 
-export const ColorVariants: Story = {
+export const Labeled: Story = {
+  args: { name: 'circle-alert', color: 'error', label: 'Payment failed' },
+};
+
+export const Tiles: Story = {
   render: () => (
-    <div className="flex items-center gap-3">
-      <Icon path={checkPath} color="primary" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="secondary" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="accent" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="success" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="warning" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="error" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="info" viewBox="0 0 20 20" />
-      <Icon path={checkPath} color="neutral" viewBox="0 0 20 20" />
-      <Icon path={checkPath} viewBox="0 0 20 20" />
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <Icon name="wallet" variant="tile" color="primary" />
+      <Icon name="trending-up" variant="tile" color="success" />
+      <Icon name="triangle-alert" variant="tile" color="warning" size="lg" />
+      <Icon name="file-text" variant="tile" size="sm" />
     </div>
   ),
 };
 
-export const WithChildren: Story = {
+export const Directional: Story = {
   render: () => (
-    <Icon size="lg" viewBox="0 0 24 24">
-      <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
-      <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.432z" />
-    </Icon>
+    <div dir="rtl" style={{ display: 'flex', gap: 12 }}>
+      <Icon name="arrow-right" />
+      <Icon name="chevron-left" />
+    </div>
   ),
-};
-
-export const Decorative: Story = {
-  args: {
-    path: checkPath,
-    viewBox: '0 0 20 20',
-    color: 'success',
-    size: 'lg',
-  },
-};
-
-export const Accessible: Story = {
-  args: {
-    path: checkPath,
-    viewBox: '0 0 20 20',
-    label: 'Checkmark icon',
-    color: 'success',
-    size: 'lg',
-  },
 };

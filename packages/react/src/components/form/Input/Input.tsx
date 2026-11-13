@@ -1,183 +1,202 @@
-/** @module Input */
+/**
+ * @module Input
+ *
+ * The design-system Input (#45). Renders the shared `.apui-input` markup
+ * contract, styled by `@artisanpack-ui/css`. It anchors the field anatomy
+ * (label, box, hint, error) that Select and Checkbox reuse.
+ */
 
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { forwardRef, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { IconPart } from '../../../internal/icon';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** Control height of an {@link Input}. */
+export type InputSize = 'sm' | 'md' | 'lg';
+
+/** The parts an {@link Input} accepts extra classes for. */
+export type InputPart =
+  | 'root'
+  | 'label'
+  | 'required'
+  | 'box'
+  | 'icon'
+  | 'prefix'
+  | 'control'
+  | 'suffix'
+  | 'iconEnd'
+  | 'hint'
+  | 'error';
 
 /**
  * Props for the {@link Input} component.
  *
- * Extends native `<input>` HTML attributes (excluding `prefix` and `size`).
- * Provides a comprehensive text input with label, icons, prefix/suffix adornments,
- * clearable action, and inline label mode.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `autoComplete`, `aria-*`, `data-*`, `id`, …) goes to the native `<input>`.
  */
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix' | 'size'> {
-  /** Text label displayed above the input. Hidden when `inline` is true (shown as floating label instead). */
-  label?: string;
-  /** Helper text displayed below the input. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the input. Replaces `hint` when present and adds `aria-invalid`. */
+export interface InputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'prefix' | 'value' | 'defaultValue'
+> {
+  /** Control height. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: InputSize;
+  /** The native input type, such as `email`, `url`, `search` or `number`. @defaultValue `'text'` */
+  type?: InputHTMLAttributes<HTMLInputElement>['type'];
+  /** The visible label, linked to the control. Without it, pass an `aria-label`. */
+  label?: ReactNode;
+  /** Help text under the control, linked with `aria-describedby`. */
+  hint?: ReactNode;
+  /** Validation message. Marks the field invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** Icon element rendered to the left of the input text. Wrapped with `aria-hidden="true"`. */
-  icon?: ReactNode;
-  /** Icon element rendered to the right of the input text. Wrapped with `aria-hidden="true"`. */
-  iconRight?: ReactNode;
-  /** Text or element rendered as a prefix inside the input, before the text area. */
+  /** Marks the field invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the control. @defaultValue `false` */
+  disabled?: boolean;
+  /** Makes the control read-only. It stays focusable. @defaultValue `false` */
+  readonly?: boolean;
+  /** Marks the field required and shows the required mark. @defaultValue `false` */
+  required?: boolean;
+  /** Placeholder text. Never a replacement for the label. */
+  placeholder?: string;
+  /** The value of a controlled input. */
+  value?: string;
+  /** The initial value of an uncontrolled input. */
+  defaultValue?: string;
+  /** Content inside the box before the value, such as a currency or `https://`. */
   prefix?: ReactNode;
-  /** Text or element rendered as a suffix inside the input, after the text area. */
+  /** Content inside the box after the value, such as a unit. */
   suffix?: ReactNode;
-  /** When true, shows a clear (X) button inside the input. @defaultValue `false` */
-  clearable?: boolean;
-  /** Callback fired when the clear button is clicked. Use this to reset the input value. */
-  onClear?: () => void;
-  /** When true, renders the label as a floating label using daisyUI's `floating-label` pattern. @defaultValue `false` */
-  inline?: boolean;
+  /** Icon name before the value, resolved through the icon registry. `icon` overrides it. */
+  leadingIcon?: string;
+  /** Icon name after the value, resolved through the icon registry. `iconEnd` overrides it. */
+  trailingIcon?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<InputPart>;
+  /** Leading icon node; overrides `leadingIcon`. */
+  icon?: ReactNode;
+  /** Trailing icon node; overrides `trailingIcon`. */
+  iconEnd?: ReactNode;
+  /** Called with the new value whenever it changes. The native `onChange` still fires. */
+  onValueChange?: (value: string) => void;
 }
 
 /**
- * A text input component with daisyUI v5 styling, supporting labels, hint/error text,
- * left/right icons, prefix/suffix adornments, a clearable action button, and
- * a floating label mode. Automatically generates accessible IDs and ARIA attributes.
- *
- * Renders the canonical accessible pattern for a single labeled input: a `<label htmlFor>`
- * paired with the `<input id>`. The visible label and helper text use daisyUI v5's
- * `.fieldset`, `.fieldset-legend`, and `.fieldset-label` utility classes on plain
- * elements — `<fieldset>`/`<legend>` HTML elements are reserved for groups of related
- * controls (e.g. radio/checkbox groups) and are intentionally not used here.
+ * Single-line text entry with a visible label, hint and error. Controlled
+ * (`value` + `onValueChange`) or uncontrolled (`defaultValue`). The ref points
+ * at the native `<input>`.
  *
  * @example
  * ```tsx
- * <Input label="Email" type="email" placeholder="you@example.com" required />
- * ```
- *
- * @example
- * ```tsx
- * <Input
- *   label="Price"
- *   prefix="$"
- *   suffix="USD"
- *   clearable
- *   onClear={() => setValue('')}
- *   icon={<CurrencyIcon />}
- * />
+ * const [email, setEmail] = useState('');
+ * <Input type="email" label="Email" hint="We never share it." value={email} onValueChange={setEmail} />
  * ```
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
+      size = 'md',
+      type = 'text',
       label,
       hint,
       error,
-      icon,
-      iconRight,
+      invalid = false,
+      disabled = false,
+      readonly,
+      readOnly,
+      required = false,
       prefix,
       suffix,
-      clearable = false,
-      onClear,
-      inline = false,
+      leadingIcon,
+      trailingIcon,
+      classes = {},
+      icon,
+      iconEnd,
       className,
-      id: providedId,
-      required,
+      id: explicitId,
+      onChange,
+      onValueChange,
+      'aria-describedby': callerDescribedBy,
+      'aria-invalid': callerInvalid,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-    const errorId = error ? `${id}-error` : undefined;
-    const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
-
-    const inputBox = (
-      <span className={cn('input', 'w-full', error && 'input-error', className)}>
-        {icon && (
-          <span className="opacity-50" aria-hidden="true">
-            {icon}
-          </span>
-        )}
-        {prefix && (
-          <span className="opacity-50" aria-hidden="true">
-            {prefix}
-          </span>
-        )}
-        <input
-          ref={ref}
-          id={id}
-          className="grow"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          aria-required={required || undefined}
-          required={required}
-          // In inline mode, a single-space placeholder triggers :placeholder-shown so daisyUI's
-          // floating-label CSS positions/animates the label correctly without showing visible text.
-          placeholder={rest.placeholder ?? (inline && label ? ' ' : undefined)}
-          {...rest}
-        />
-        {suffix && (
-          <span className="opacity-50" aria-hidden="true">
-            {suffix}
-          </span>
-        )}
-        {clearable && (
-          <button
-            type="button"
-            className="opacity-50 hover:opacity-100 cursor-pointer"
-            onClick={onClear}
-            aria-label="Clear input"
-          >
-            ✕
-          </button>
-        )}
-        {iconRight && (
-          <span className="opacity-50" aria-hidden="true">
-            {iconRight}
-          </span>
-        )}
-      </span>
+    const isReadonly = readonly ?? readOnly ?? false;
+    const isInvalid = invalid || Boolean(error);
+    const { id, helpId, errorId, describedBy } = useFieldIds(
+      explicitId,
+      { suffix: 'hint', content: hint },
+      error,
+      callerDescribedBy,
     );
 
-    if (inline && label) {
-      return (
-        <div className="fieldset w-full">
-          <label htmlFor={id} className="floating-label w-full">
-            <span>
-              {label}
-              {required && <span className="text-error ml-1">*</span>}
-            </span>
-            {inputBox}
-          </label>
-          {hint && !error && (
-            <p id={hintId} className="fieldset-label">
-              {hint}
-            </p>
-          )}
-          {error && (
-            <p id={errorId} className="fieldset-label text-error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-      );
-    }
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      onChange?.(event);
+      onValueChange?.(event.target.value);
+    };
 
     return (
-      <div className="fieldset w-full">
-        {label && (
-          <label htmlFor={id} className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
-        )}
-        {inputBox}
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
+      <div
+        className={cx('apui-input', classes.root, className)}
+        data-size={size}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+        data-readonly={flag(isReadonly)}
+      >
+        <FieldLabel
+          scope="input"
+          htmlFor={id}
+          label={label}
+          required={required}
+          className={classes.label}
+          requiredClassName={classes.required}
+        />
+        <div className={classes.box} data-scope="input" data-part="box">
+          <IconPart
+            scope="input"
+            part="icon"
+            name={leadingIcon}
+            node={icon}
+            className={classes.icon}
+          />
+          {hasContent(prefix) ? (
+            <span className={classes.prefix} data-scope="input" data-part="prefix">
+              {prefix}
+            </span>
+          ) : null}
+          <input
+            {...rest}
+            ref={ref}
+            className={classes.control}
+            data-scope="input"
+            data-part="control"
+            id={id}
+            type={type}
+            disabled={disabled || undefined}
+            readOnly={isReadonly || undefined}
+            required={required || undefined}
+            aria-invalid={isInvalid ? true : callerInvalid}
+            aria-describedby={describedBy}
+            onChange={handleChange}
+          />
+          {hasContent(suffix) ? (
+            <span className={classes.suffix} data-scope="input" data-part="suffix">
+              {suffix}
+            </span>
+          ) : null}
+          <IconPart
+            scope="input"
+            part="iconEnd"
+            name={trailingIcon}
+            node={iconEnd}
+            className={classes.iconEnd}
+          />
+        </div>
+        <FieldHelp scope="input" part="hint" id={helpId} className={classes.hint}>
+          {hint}
+        </FieldHelp>
+        <FieldError scope="input" id={errorId} message={error} className={classes.error} />
       </div>
     );
   },

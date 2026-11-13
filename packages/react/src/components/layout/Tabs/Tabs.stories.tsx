@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Tabs } from './Tabs';
+import { Tab, Tabs } from './Tabs';
 
 const meta: Meta<typeof Tabs> = {
   title: 'Layout/Tabs',
@@ -9,84 +10,69 @@ const meta: Meta<typeof Tabs> = {
     docs: {
       description: {
         component:
-          'Tabbed content switcher with bordered, lifted, and boxed style variants, multiple sizes, and per-tab disabled state.',
+          'Switches between views of the same content: a tablist of triggers and one panel per tab. Arrow keys move between tabs and follow the text direction; activation is automatic or manual.',
       },
     },
   },
   argTypes: {
-    variant: {
-      control: 'select',
-      options: [undefined, 'bordered', 'lifted', 'boxed'],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
-    },
-    color: {
-      control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
-    },
+    variant: { control: 'select', options: ['segmented', 'underline'] },
+    size: { control: 'select', options: ['sm', 'md'] },
+    orientation: { control: 'select', options: ['horizontal', 'vertical'] },
+    activationMode: { control: 'select', options: ['automatic', 'manual'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Tabs>;
 
-const sampleTabs = [
-  { name: 'tab1', label: 'Overview', content: <p>Overview content goes here.</p> },
-  { name: 'tab2', label: 'Features', content: <p>Features content goes here.</p> },
-  { name: 'tab3', label: 'Pricing', content: <p>Pricing content goes here.</p> },
-];
-
 export const Default: Story = {
-  args: {
-    tabs: sampleTabs,
-    defaultTab: 'tab1',
+  args: { label: 'Account' },
+  render: function Render(args) {
+    const [section, setSection] = useState('profile');
+    return (
+      <Tabs {...args} value={section} onValueChange={setSection}>
+        <Tab value="profile" label="Profile" icon="user">
+          Your name, photo and contact details.
+        </Tab>
+        <Tab value="notifications" label="Notifications" icon="mail">
+          Choose what we email you about.
+        </Tab>
+        <Tab value="security" label="Security" icon="lock">
+          Password and two-factor authentication.
+        </Tab>
+      </Tabs>
+    );
   },
 };
 
-export const Bordered: Story = {
-  args: {
-    tabs: sampleTabs,
-    defaultTab: 'tab1',
-    variant: 'bordered',
-  },
-};
-
-export const Lifted: Story = {
-  args: {
-    tabs: sampleTabs,
-    defaultTab: 'tab1',
-    variant: 'lifted',
-  },
-};
-
-export const Boxed: Story = {
-  args: {
-    tabs: sampleTabs,
-    defaultTab: 'tab1',
-    variant: 'boxed',
-  },
-};
-
-export const WithDisabled: Story = {
-  args: {
-    tabs: [
-      ...sampleTabs,
-      { name: 'tab4', label: 'Admin', content: <p>Admin only.</p>, disabled: true },
-    ],
-    defaultTab: 'tab1',
-    variant: 'bordered',
-  },
-};
-
-export const Sizes: Story = {
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <Tabs tabs={sampleTabs} defaultTab="tab1" size="xs" variant="bordered" />
-      <Tabs tabs={sampleTabs} defaultTab="tab1" size="sm" variant="bordered" />
-      <Tabs tabs={sampleTabs} defaultTab="tab1" size="md" variant="bordered" />
-      <Tabs tabs={sampleTabs} defaultTab="tab1" size="lg" variant="bordered" />
-    </div>
+export const Underline: Story = {
+  args: { variant: 'underline', activationMode: 'manual' },
+  render: (args) => (
+    <Tabs {...args}>
+      <Tab value="overview" label="Overview">
+        Your portfolio at a glance.
+      </Tab>
+      <Tab value="notifications" label="Notifications" count={4}>
+        Four unread notifications.
+      </Tab>
+      <Tab value="history" label="Trade history">
+        Every trade in the last year.
+      </Tab>
+      <Tab value="archived" label="Archived" disabled />
+    </Tabs>
   ),
+};
+
+export const FromData: Story = {
+  args: {
+    size: 'sm',
+    label: 'Range',
+    defaultValue: 'week',
+    tabs: [
+      { value: 'day', label: 'Day' },
+      { value: 'week', label: 'Week' },
+      { value: 'month', label: 'Month' },
+      { value: 'year', label: 'Year' },
+    ],
+  },
 };

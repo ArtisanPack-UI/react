@@ -1,73 +1,104 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { File } from '../../components/form/File/File';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import {
+  File as FileUpload,
+  formatFileSize,
+  type FileProps,
+} from '../../components/form/File/File';
+
+const declaredProps: (keyof FileProps)[] = [
+  'label',
+  'title',
+  'hint',
+  'error',
+  'invalid',
+  'disabled',
+  'required',
+  'accept',
+  'multiple',
+  'maxSize',
+  'variant',
+  'value',
+  'removeLabel',
+  'classes',
+];
+const declaredEvents: (keyof FileProps)[] = ['onValueChange', 'onRemove'];
 
 describe('File', () => {
-  it('renders with label', () => {
-    render(<File label="Upload" />);
-    expect(screen.getByText('Upload')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(FileUpload, 'File', {
+      declared: { props: declaredProps, events: declaredEvents },
+    });
   });
 
-  it('does not wrap a single file input in a fieldset/legend', () => {
-    const { container } = render(<File label="Upload" />);
-    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
-    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  it('puts the native input over the drop zone', () => {
+    const { container } = render(
+      <FileUpload id="f" label="Photos" hint="JPG only" multiple accept="image/*" maxSize={1000} />,
+    );
+    const input = screen.getByLabelText('Photos') as HTMLInputElement;
+    expect(input.type).toBe('file');
+    expect(input.parentElement).toHaveAttribute('data-part', 'dropzone');
+    expect(input).toHaveAttribute('multiple');
+    expect(input).toHaveAttribute('accept', 'image/*');
+    expect(input).toHaveAttribute('aria-describedby', 'f-hint');
+    expect(container.firstElementChild).toHaveAttribute('data-max-size', '1000');
+    expect(container.querySelector('[data-part="title"]')).toHaveTextContent(
+      'Drop files here or browse',
+    );
   });
 
-  it('does not wrap a drag-drop file input in a fieldset/legend', () => {
-    const { container } = render(<File label="Upload" withDragDrop />);
-    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
-    expect(container.querySelector('legend')).not.toBeInTheDocument();
+  it('names the input by the title without a label', () => {
+    render(<FileUpload title="Upload a contract" />);
+    expect(screen.getByLabelText('Upload a contract')).toHaveAttribute('type', 'file');
   });
 
-  it('renders file input', () => {
-    const { container } = render(<File label="Upload" />);
-    const input = container.querySelector('input[type="file"]');
-    expect(input).toBeInTheDocument();
+  it('lists chosen files and removes one', () => {
+    const onValueChange = vi.fn();
+    const onRemove = vi.fn();
+    const { container } = render(
+      <FileUpload label="Docs" multiple onValueChange={onValueChange} onRemove={onRemove} />,
+    );
+    const a = new globalThis.File(['x'.repeat(2400)], 'a.pdf', { type: 'application/pdf' });
+    const b = new globalThis.File(['y'], 'b.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText('Docs'), { target: { files: [a, b] } });
+    expect(onValueChange).toHaveBeenLastCalledWith([a, b]);
+    expect(container.querySelectorAll('[data-part="item"]')).toHaveLength(2);
+    expect(container.querySelector('[data-part="meta"]')).toHaveTextContent('2.4 KB');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove a.pdf' }));
+    expect(onRemove).toHaveBeenCalledWith(a, 0);
+    expect(onValueChange).toHaveBeenLastCalledWith([b]);
+    expect(container.querySelectorAll('[data-part="item"]')).toHaveLength(1);
   });
 
-  it('renders error', () => {
-    render(<File label="Upload" error="File too large" />);
-    expect(screen.getByText('File too large')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+  it('shows progress and errors from value entries', () => {
+    const { container } = render(
+      <FileUpload
+        value={[
+          { name: 'up.jpg', size: 1000, progress: 64 },
+          { name: 'bad.heic', error: 'Not supported.' },
+        ]}
+        removeLabel="Quitar :name"
+      />,
+    );
+    const items = container.querySelectorAll('[data-part="item"]');
+    expect(items[0]!.querySelector('progress')).toHaveAttribute('value', '64');
+    expect(items[1]).toHaveAttribute('data-state', 'error');
+    expect(items[1]!.querySelector('[data-part="meta"]')).toHaveTextContent('Not supported.');
+    expect(screen.getByRole('button', { name: 'Quitar up.jpg' })).toBeInTheDocument();
   });
 
-  it('renders hint', () => {
-    render(<File label="Upload" hint="Max 5MB" />);
-    expect(screen.getByText('Max 5MB')).toBeInTheDocument();
+  it('sets the drag state while files are over the zone', () => {
+    const { container } = render(<FileUpload label="Docs" />);
+    const zone = container.querySelector('[data-part="dropzone"]')!;
+    fireEvent.dragEnter(zone);
+    expect(zone).toHaveAttribute('data-state', 'drag');
+    fireEvent.dragLeave(zone);
+    expect(zone).not.toHaveAttribute('data-state');
   });
 
-  it('renders drag-drop zone', () => {
-    render(<File label="Upload" withDragDrop />);
-    expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument();
-  });
-
-  it('renders custom drag-drop text', () => {
-    render(<File label="Upload" withDragDrop dragDropText="Drag files here" />);
-    expect(screen.getByText('Drag files here')).toBeInTheDocument();
-  });
-
-  it('renders progress bar', () => {
-    const { container } = render(<File label="Upload" progress={50} />);
-    const progress = container.querySelector('progress');
-    expect(progress).toBeInTheDocument();
-    expect(progress).toHaveAttribute('value', '50');
-  });
-
-  it('hides progress when hideProgress is true', () => {
-    const { container } = render(<File label="Upload" progress={50} hideProgress />);
-    const progress = container.querySelector('progress');
-    expect(progress).not.toBeInTheDocument();
-  });
-
-  it('shows required indicator', () => {
-    render(<File label="Upload" required />);
-    expect(screen.getByText('*')).toBeInTheDocument();
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<File ref={ref} label="Test" />);
-    expect(ref).toHaveBeenCalled();
+  it('formats sizes in decimal units', () => {
+    expect(formatFileSize(999)).toBe('999 B');
+    expect(formatFileSize(2400000)).toBe('2.4 MB');
   });
 });

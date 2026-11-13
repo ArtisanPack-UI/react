@@ -70,6 +70,9 @@ export interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
  *   <main>Page content here</main>
  * </Sidebar>
  * ```
+ *
+ * @deprecated Since 2.0. Use `AppShell` (layout), whose `sidebar` part replaces this
+ * component (design-system #58). Removed in a later major release.
  */
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
   (

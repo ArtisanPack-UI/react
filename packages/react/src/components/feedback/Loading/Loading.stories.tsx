@@ -9,87 +9,46 @@ const meta: Meta<typeof Loading> = {
     docs: {
       description: {
         component:
-          'Animated loading indicator with six visual variants (spinner, dots, ring, ball, bars, infinity), multiple sizes, and DaisyUI color theming.',
+          'Shows that work is in progress: a spinner or three dots in a status region, inline or as an overlay. It waits delay ms before showing, so fast loads do not flash.',
       },
     },
   },
   argTypes: {
-    variant: {
-      control: 'select',
-      options: ['spinner', 'dots', 'ring', 'ball', 'bars', 'infinity'],
-    },
+    variant: { control: 'select', options: ['spinner', 'dots'] },
+    size: { control: 'select', options: ['xs', 'sm', 'md', 'lg', 'xl'] },
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
-    },
-    size: {
-      control: 'select',
-      options: [undefined, 'xs', 'sm', 'md', 'lg'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
   },
+  args: { delay: 0 },
 };
 
 export default meta;
 type Story = StoryObj<typeof Loading>;
 
-export const Default: Story = {
-  args: {
-    color: 'primary',
-  },
-};
+export const Default: Story = {};
 
-export const Variants: Story = {
-  render: () => (
-    <div className="flex items-center gap-6">
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="spinner" color="primary" size="lg" />
-        <span className="text-xs">spinner</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="dots" color="secondary" size="lg" />
-        <span className="text-xs">dots</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="ring" color="accent" size="lg" />
-        <span className="text-xs">ring</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="ball" color="success" size="lg" />
-        <span className="text-xs">ball</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="bars" color="warning" size="lg" />
-        <span className="text-xs">bars</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <Loading variant="infinity" color="error" size="lg" />
-        <span className="text-xs">infinity</span>
-      </div>
-    </div>
-  ),
-};
+export const Dots: Story = { args: { variant: 'dots' } };
+
+export const WithText: Story = { args: { size: 'sm', children: 'Saving changes…' } };
 
 export const Sizes: Story = {
   render: () => (
-    <div className="flex items-center gap-4">
-      <Loading color="primary" size="xs" />
-      <Loading color="primary" size="sm" />
-      <Loading color="primary" size="md" />
-      <Loading color="primary" size="lg" />
+    <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+      {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((size) => (
+        <Loading key={size} size={size} delay={0} />
+      ))}
     </div>
   ),
 };
 
-export const Colors: Story = {
+export const Overlay: Story = {
   render: () => (
-    <div className="flex items-center gap-4">
-      <Loading color="primary" size="md" />
-      <Loading color="secondary" size="md" />
-      <Loading color="accent" size="md" />
-      <Loading color="success" size="md" />
-      <Loading color="warning" size="md" />
-      <Loading color="error" size="md" />
-      <Loading color="info" size="md" />
+    <div aria-busy="true" style={{ position: 'relative', height: 160, maxWidth: 520 }}>
+      <Loading overlay size="lg" delay={0}>
+        Loading revenue…
+      </Loading>
     </div>
   ),
 };

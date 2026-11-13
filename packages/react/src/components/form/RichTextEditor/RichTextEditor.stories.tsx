@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -9,26 +10,13 @@ const meta: Meta<typeof RichTextEditor> = {
     docs: {
       description: {
         component:
-          'ContentEditable rich-text editor with optional toolbar, label, hint, error, configurable minimum height, and controlled value via onValueChange callback.',
+          'Formatted text with a toolbar over the shared prose styles, on the built-in contentEditable engine. Livewire runs TinyMCE behind the same toolbar.',
       },
     },
   },
   argTypes: {
-    label: {
-      control: 'text',
-    },
-    hint: {
-      control: 'text',
-    },
-    error: {
-      control: 'text',
-    },
-    minHeight: {
-      control: 'text',
-    },
-    required: {
-      control: 'boolean',
-    },
+    toolbar: { control: 'select', options: ['default', 'compact', 'minimal'] },
+    output: { control: 'select', options: ['html', 'markdown'] },
   },
 };
 
@@ -36,48 +24,47 @@ export default meta;
 type Story = StoryObj<typeof RichTextEditor>;
 
 export const Default: Story = {
-  args: {},
-};
-
-export const WithLabel: Story = {
-  args: {
-    label: 'Content',
-  },
-};
-
-export const WithToolbar: Story = {
-  args: {
-    label: 'Article Body',
-    toolbar: (
-      <>
-        <button type="button" className="btn btn-ghost btn-xs font-bold" aria-label="Bold">
-          B
-        </button>
-        <button type="button" className="btn btn-ghost btn-xs italic" aria-label="Italic">
-          I
-        </button>
-      </>
-    ),
-  },
-};
-
-export const WithHint: Story = {
   args: {
     label: 'Description',
-    hint: 'Use the toolbar to format your text.',
+    hint: 'Shown on the listing page.',
+    counter: true,
+    defaultValue:
+      '<h3>About The Grove</h3><p>Twenty-four bright apartments around a <strong>shared garden courtyard</strong>.</p><ul><li>In-unit laundry</li><li>Rooftop terrace</li></ul>',
   },
 };
 
-export const WithError: Story = {
+export const Compact: Story = {
   args: {
-    label: 'Bio',
-    error: 'Content is required.',
+    toolbar: 'compact',
+    label: 'Note to buyer',
+    placeholder: 'Write a note for the buyer…',
   },
 };
 
-export const CustomHeight: Story = {
-  args: {
-    label: 'Long Form Content',
-    minHeight: '400px',
+export const Markdown: Story = {
+  render: () => {
+    const [summary, setSummary] = useState('## Highlights\n\n- In-unit laundry');
+    return (
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        <RichTextEditor
+          output="markdown"
+          maxLength={500}
+          label="Summary"
+          value={summary}
+          onValueChange={setSummary}
+        />
+        <pre>{summary}</pre>
+      </div>
+    );
   },
+};
+
+export const States: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <RichTextEditor label="Invalid" error="Write at least 40 characters." required />
+      <RichTextEditor label="Read-only" readonly defaultValue="<p>Locked while reviewed.</p>" />
+      <RichTextEditor label="Disabled" disabled defaultValue="<p>Not editable.</p>" />
+    </div>
+  ),
 };
