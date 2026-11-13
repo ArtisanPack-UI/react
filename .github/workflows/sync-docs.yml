@@ -44,10 +44,12 @@ jobs:
           for IMPORT in import-docs import-changelog; do
             echo "Triggering $IMPORT for $DOCS_PACKAGE_SLUG"
             # Bounded so a stalled first import can't use up the job timeout
-            # before the second one runs: at most 2 x 120 s.
+            # before the second one runs. --retry-max-time only stops new
+            # retries from starting, so a retry begun at 75 s can run another
+            # 45 s: about 120 s per import, 240 s for both.
             if ! curl --fail-with-body -sS \
               --connect-timeout 10 --max-time 45 \
-              --retry 3 --retry-max-time 120 \
+              --retry 3 --retry-max-time 75 \
               -X POST \
               "https://docs.artisanpackui.dev/api/v1/packages/${DOCS_PACKAGE_SLUG}/${IMPORT}" \
               -H @"$HEADER_FILE" \
