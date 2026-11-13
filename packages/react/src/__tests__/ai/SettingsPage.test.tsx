@@ -25,7 +25,7 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'AI Settings' })).toBeInTheDocument();
     expect(screen.getByDisplayValue('gpt-4o-mini')).toBeInTheDocument();
-    expect(screen.getByText(/leave blank to keep the stored key/)).toBeInTheDocument();
+    expect(screen.getByText(/leave blank to keep the stored key/i)).toBeInTheDocument();
   });
 
   it('submits the form via PUT /settings and shows a success status', async () => {
@@ -147,7 +147,6 @@ describe('SettingsPage', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Network down');
-    expect(alert).toHaveClass('alert-error');
-    expect(alert).not.toHaveClass('alert-success');
+    expect(alert).toHaveAttribute('data-color', 'error');
   });
 });

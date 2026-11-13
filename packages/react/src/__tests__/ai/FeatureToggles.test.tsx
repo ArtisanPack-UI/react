@@ -26,8 +26,8 @@ describe('FeatureToggles', () => {
     expect(await screen.findByText('Summarize')).toBeInTheDocument();
     expect(screen.getByText('Chat')).toBeInTheDocument();
 
-    const summarizeToggle = screen.getByLabelText('Toggle Summarize') as HTMLInputElement;
-    const chatToggle = screen.getByLabelText('Toggle Chat') as HTMLInputElement;
+    const summarizeToggle = screen.getByRole('switch', { name: 'Summarize' }) as HTMLInputElement;
+    const chatToggle = screen.getByRole('switch', { name: 'Chat' }) as HTMLInputElement;
     expect(summarizeToggle.checked).toBe(true);
     expect(chatToggle.checked).toBe(false);
   });
@@ -44,7 +44,7 @@ describe('FeatureToggles', () => {
 
     render(<FeatureToggles client={client} onToggle={onToggle} />);
 
-    const chatToggle = (await screen.findByLabelText('Toggle Chat')) as HTMLInputElement;
+    const chatToggle = (await screen.findByRole('switch', { name: 'Chat' })) as HTMLInputElement;
     await act(async () => {
       fireEvent.click(chatToggle);
     });
@@ -63,13 +63,17 @@ describe('FeatureToggles', () => {
 
     render(<FeatureToggles client={client} />);
 
-    const summarizeToggle = (await screen.findByLabelText('Toggle Summarize')) as HTMLInputElement;
+    const summarizeToggle = (await screen.findByRole('switch', {
+      name: 'Summarize',
+    })) as HTMLInputElement;
     await act(async () => {
       fireEvent.click(summarizeToggle);
     });
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Boom'));
-    expect((screen.getByLabelText('Toggle Summarize') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole('switch', { name: 'Summarize' }) as HTMLInputElement).checked).toBe(
+      true,
+    );
   });
 
   it('clears a stale error after a subsequent successful toggle', async () => {
@@ -84,13 +88,13 @@ describe('FeatureToggles', () => {
 
     render(<FeatureToggles client={client} />);
 
-    const summarizeToggle = await screen.findByLabelText('Toggle Summarize');
+    const summarizeToggle = await screen.findByRole('switch', { name: 'Summarize' });
     await act(async () => {
       fireEvent.click(summarizeToggle);
     });
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Boom'));
 
-    const chatToggle = screen.getByLabelText('Toggle Chat');
+    const chatToggle = screen.getByRole('switch', { name: 'Chat' });
     await act(async () => {
       fireEvent.click(chatToggle);
     });

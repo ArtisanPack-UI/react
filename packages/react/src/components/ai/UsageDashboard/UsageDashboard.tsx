@@ -1,6 +1,13 @@
 /** @module ai/UsageDashboard */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Stat } from '../../data/Stat/Stat';
+import { Table, type TableColumn } from '../../data/Table/Table';
+import { Alert } from '../../feedback/Alert/Alert';
+import { Loading } from '../../feedback/Loading/Loading';
+import { Heading } from '../../layout/Heading/Heading';
+import { Stack } from '../../layout/Stack/Stack';
+import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiUsageResponse } from '../types';
 
 /**
@@ -35,6 +42,29 @@ function formatCost(value: number): string {
     maximumFractionDigits: 4,
   }).format(value);
 }
+
+type FeatureRow = AiUsageResponse['by_feature'][number];
+type DailyRow = AiUsageResponse['daily'][number];
+
+const featureColumns: TableColumn<FeatureRow>[] = [
+  { key: 'feature_key', label: 'Feature' },
+  { key: 'requests', label: 'Requests', numeric: true, render: (v) => formatNumber(v as number) },
+  { key: 'input_tokens', label: 'Input', numeric: true, render: (v) => formatNumber(v as number) },
+  {
+    key: 'output_tokens',
+    label: 'Output',
+    numeric: true,
+    render: (v) => formatNumber(v as number),
+  },
+  { key: 'cost', label: 'Cost', numeric: true, render: (v) => formatCost(v as number) },
+];
+
+const dailyColumns: TableColumn<DailyRow>[] = [
+  { key: 'period', label: 'Day' },
+  { key: 'requests', label: 'Requests', numeric: true, render: (v) => formatNumber(v as number) },
+  { key: 'total_tokens', label: 'Tokens', numeric: true, render: (v) => formatNumber(v as number) },
+  { key: 'cost', label: 'Cost', numeric: true, render: (v) => formatCost(v as number) },
+];
 
 /**
  * Aggregated dashboard fed by GET `/usage`. Renders totals, per-feature
@@ -92,20 +122,11 @@ export function UsageDashboard({
   }, [load, refreshInterval]);
 
   if (loading && !usage) {
-    return (
-      <div className="flex items-center gap-2" role="status" aria-live="polite">
-        <span className="loading loading-spinner loading-sm" aria-hidden="true" />
-        <span>Loading usage…</span>
-      </div>
-    );
+    return <Loading size="sm">Loading usage…</Loading>;
   }
 
   if (error && !usage) {
-    return (
-      <div role="alert" className="alert alert-error">
-        <span>{error}</span>
-      </div>
-    );
+    return <Alert color="error" description={error} />;
   }
 
   if (!usage) {
@@ -113,99 +134,39 @@ export function UsageDashboard({
   }
 
   return (
-    <div className="flex flex-col gap-6" data-testid="ai-usage-dashboard">
-      {heading ? <h2 className="text-lg font-semibold">{heading}</h2> : null}
+    <Stack gap="6" data-testid="ai-usage-dashboard">
+      {heading ? <Heading level={2}>{heading}</Heading> : null}
 
-      <div className="stats stats-vertical sm:stats-horizontal shadow">
-        <div className="stat">
-          <div className="stat-title">Requests</div>
-          <div className="stat-value">{formatNumber(usage.totals.requests)}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Input tokens</div>
-          <div className="stat-value">{formatNumber(usage.totals.input_tokens)}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Output tokens</div>
-          <div className="stat-value">{formatNumber(usage.totals.output_tokens)}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Cost</div>
-          <div className="stat-value">{formatCost(usage.totals.cost)}</div>
-        </div>
-      </div>
+      <Stack orientation="horizontal" gap="4" wrap>
+        <Stat label="Requests" value={formatNumber(usage.totals.requests)} />
+        <Stat label="Input tokens" value={formatNumber(usage.totals.input_tokens)} />
+        <Stat label="Output tokens" value={formatNumber(usage.totals.output_tokens)} />
+        <Stat label="Cost" value={formatCost(usage.totals.cost)} />
+      </Stack>
 
-      <section aria-labelledby="ai-usage-by-feature">
-        <h3 id="ai-usage-by-feature" className="mb-2 font-medium">
-          By feature
-        </h3>
-        {usage.by_feature.length === 0 ? (
-          <p className="text-sm text-base-content/70">No feature usage in this range.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table table-sm">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th className="text-right">Requests</th>
-                  <th className="text-right">Input</th>
-                  <th className="text-right">Output</th>
-                  <th className="text-right">Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usage.by_feature.map((row) => (
-                  <tr key={row.feature_key}>
-                    <td>{row.feature_key}</td>
-                    <td className="text-right">{formatNumber(row.requests)}</td>
-                    <td className="text-right">{formatNumber(row.input_tokens)}</td>
-                    <td className="text-right">{formatNumber(row.output_tokens)}</td>
-                    <td className="text-right">{formatCost(row.cost)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <Table
+        title="By feature"
+        headers={featureColumns}
+        rows={usage.by_feature}
+        keyBy="feature_key"
+        density="compact"
+        emptyText="No feature usage in this range."
+      />
 
-      <section aria-labelledby="ai-usage-daily">
-        <h3 id="ai-usage-daily" className="mb-2 font-medium">
-          Daily
-        </h3>
-        {usage.daily.length === 0 ? (
-          <p className="text-sm text-base-content/70">No daily usage in this range.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table table-sm">
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th className="text-right">Requests</th>
-                  <th className="text-right">Tokens</th>
-                  <th className="text-right">Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usage.daily.map((row) => (
-                  <tr key={row.period}>
-                    <td>{row.period}</td>
-                    <td className="text-right">{formatNumber(row.requests)}</td>
-                    <td className="text-right">{formatNumber(row.total_tokens)}</td>
-                    <td className="text-right">{formatCost(row.cost)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <Table
+        title="Daily"
+        headers={dailyColumns}
+        rows={usage.daily}
+        keyBy="period"
+        density="compact"
+        emptyText="No daily usage in this range."
+      />
 
       {refreshInterval > 0 ? (
-        <p className="text-xs text-base-content/50" role="status" aria-live="polite">
+        <Text size="xs" tone="muted" role="status" aria-live="polite">
           Live · refreshing every {Math.round(refreshInterval / 1000)}s
-        </p>
+        </Text>
       ) : null}
-    </div>
+    </Stack>
   );
 }

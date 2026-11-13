@@ -1,6 +1,19 @@
 /** @module ai/SettingsPage */
 
 import { useCallback, useEffect, useState } from 'react';
+import { Alert } from '../../feedback/Alert/Alert';
+import { Loading } from '../../feedback/Loading/Loading';
+import { Button } from '../../form/Button/Button';
+import { Fieldset } from '../../form/Fieldset/Fieldset';
+import { Form } from '../../form/Form/Form';
+import { Input } from '../../form/Input/Input';
+import { Password } from '../../form/Password/Password';
+import { Select } from '../../form/Select/Select';
+import { Textarea } from '../../form/Textarea/Textarea';
+import { Card } from '../../layout/Card/Card';
+import { Heading } from '../../layout/Heading/Heading';
+import { Stack } from '../../layout/Stack/Stack';
+import { Text } from '../../layout/Text/Text';
 import type {
   AiApiClient,
   AiConnectionTestResult,
@@ -23,6 +36,11 @@ export interface SettingsPageProps {
 }
 
 type FormErrors = Record<string, string[]>;
+
+/** Joins a field's validation messages into the single string the field components take. */
+function fieldError(errors: FormErrors, field: string): string | undefined {
+  return errors[field]?.join(' ');
+}
 
 interface FormState {
   provider: string;
@@ -181,174 +199,121 @@ export function SettingsPage({
   }, [client, form.api_key, form.base_url, form.default_model, form.provider]);
 
   if (loading) {
-    return (
-      <div className="flex items-center gap-2" role="status" aria-live="polite">
-        <span className="loading loading-spinner loading-sm" aria-hidden="true" />
-        <span>Loading AI settings…</span>
-      </div>
-    );
+    return <Loading size="sm">Loading AI settings…</Loading>;
   }
 
   return (
-    <form
+    <Form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6"
       data-testid="ai-settings-page"
       noValidate
+      actions={
+        <Button type="submit" color="primary" loading={saving}>
+          Save settings
+        </Button>
+      }
     >
-      {heading ? <h2 className="text-lg font-semibold">{heading}</h2> : null}
+      {heading ? <Heading level={2}>{heading}</Heading> : null}
 
       {status ? (
-        <div
-          role={statusVariant === 'error' ? 'alert' : 'status'}
-          aria-live="polite"
-          className={statusVariant === 'error' ? 'alert alert-error' : 'alert alert-success'}
-        >
-          <span>{status}</span>
-        </div>
+        <Alert color={statusVariant === 'error' ? 'error' : 'success'} description={status} />
       ) : null}
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="text-base font-medium">Credentials</legend>
-
-        <label className="form-control flex flex-col gap-1">
-          <span className="label-text">Provider</span>
-          <select
-            className="select select-bordered"
-            value={form.provider}
-            onChange={(e) => handleProviderChange(e.target.value)}
-          >
-            {providers.map((provider) => (
-              <option key={provider} value={provider}>
-                {provider}
-              </option>
-            ))}
-          </select>
-          {errors.provider?.map((message) => (
-            <span key={message} className="label-text-alt text-error">
-              {message}
-            </span>
-          ))}
-        </label>
+      <Fieldset title="Credentials">
+        <Select
+          label="Provider"
+          options={providers}
+          value={form.provider}
+          onValueChange={(provider) => handleProviderChange(String(provider))}
+          error={fieldError(errors, 'provider')}
+        />
 
         {!isOllama ? (
-          <label className="form-control flex flex-col gap-1">
-            <span className="label-text">
-              API key {apiKeyPresent ? '(leave blank to keep the stored key)' : ''}
-            </span>
-            <input
-              type="password"
-              autoComplete="off"
-              className="input input-bordered"
-              value={form.api_key}
-              onChange={(e) => setForm((prev) => ({ ...prev, api_key: e.target.value }))}
-              placeholder={apiKeyPresent ? '••••••••' : 'sk-…'}
-            />
-            {errors.api_key?.map((message) => (
-              <span key={message} className="label-text-alt text-error">
-                {message}
-              </span>
-            ))}
-          </label>
+          <Password
+            label="API key"
+            hint={apiKeyPresent ? 'Leave blank to keep the stored key.' : undefined}
+            autocomplete="new-password"
+            value={form.api_key}
+            onValueChange={(api_key) => setForm((prev) => ({ ...prev, api_key }))}
+            placeholder={apiKeyPresent ? '••••••••' : 'sk-…'}
+            error={fieldError(errors, 'api_key')}
+          />
         ) : null}
 
-        <label className="form-control flex flex-col gap-1">
-          <span className="label-text">Base URL {isOllama ? '(required)' : '(optional)'}</span>
-          <input
-            type="url"
-            className="input input-bordered"
-            value={form.base_url}
-            onChange={(e) => setForm((prev) => ({ ...prev, base_url: e.target.value }))}
-            placeholder={isOllama ? 'http://localhost:11434' : 'https://api.example.com/v1'}
-          />
-          {errors.base_url?.map((message) => (
-            <span key={message} className="label-text-alt text-error">
-              {message}
-            </span>
-          ))}
-        </label>
+        <Input
+          type="url"
+          label="Base URL"
+          hint={isOllama ? 'Required for Ollama.' : 'Optional.'}
+          required={isOllama}
+          value={form.base_url}
+          onValueChange={(base_url) => setForm((prev) => ({ ...prev, base_url }))}
+          placeholder={isOllama ? 'http://localhost:11434' : 'https://api.example.com/v1'}
+          error={fieldError(errors, 'base_url')}
+        />
 
-        <label className="form-control flex flex-col gap-1">
-          <span className="label-text">Default model</span>
-          <input
-            type="text"
-            className="input input-bordered"
-            value={form.default_model}
-            onChange={(e) => setForm((prev) => ({ ...prev, default_model: e.target.value }))}
-            placeholder="gpt-4o-mini"
-          />
-          {errors.default_model?.map((message) => (
-            <span key={message} className="label-text-alt text-error">
-              {message}
-            </span>
-          ))}
-        </label>
+        <Input
+          label="Default model"
+          value={form.default_model}
+          onValueChange={(default_model) => setForm((prev) => ({ ...prev, default_model }))}
+          placeholder="gpt-4o-mini"
+          error={fieldError(errors, 'default_model')}
+        />
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
+        <Stack orientation="horizontal" gap="2" align="center" wrap>
+          <Button
+            variant="outline"
+            color="neutral"
+            size="sm"
             onClick={handleTest}
-            disabled={testing}
+            loading={testing}
           >
-            {testing ? 'Testing…' : 'Test connection'}
-          </button>
+            Test connection
+          </Button>
           {testResult ? (
-            <span
+            <Text
+              as="span"
+              size="sm"
               role="status"
-              className={testResult.result === 'ok' ? 'text-sm text-success' : 'text-sm text-error'}
+              tone={testResult.result === 'ok' ? 'success' : 'error'}
             >
               {testResult.message ?? (testResult.result === 'ok' ? 'OK' : 'Failed')}
-            </span>
+            </Text>
           ) : null}
-        </div>
-      </fieldset>
+        </Stack>
+      </Fieldset>
 
       {form.overrides.length > 0 ? (
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-base font-medium">Per-feature overrides</legend>
+        <Fieldset title="Per-feature overrides">
           {form.overrides.map((override) => (
-            <div key={override.feature_key} className="rounded-box border border-base-300 p-3">
-              <div className="text-sm font-medium">
-                {override.package} · {override.feature_key}
-              </div>
-              <label className="form-control mt-2 flex flex-col gap-1">
-                <span className="label-text">Model</span>
-                <input
-                  type="text"
-                  className="input input-bordered input-sm"
+            <Card
+              key={override.feature_key}
+              title={`${override.package} · ${override.feature_key}`}
+            >
+              <Stack gap="3">
+                <Input
+                  size="sm"
+                  label="Model"
                   value={override.model ?? ''}
-                  onChange={(e) =>
-                    updateOverride(override.feature_key, {
-                      model: e.target.value === '' ? null : e.target.value,
-                    })
+                  onValueChange={(model) =>
+                    updateOverride(override.feature_key, { model: model === '' ? null : model })
                   }
                   placeholder="inherit default"
                 />
-              </label>
-              <label className="form-control mt-2 flex flex-col gap-1">
-                <span className="label-text">Instructions</span>
-                <textarea
-                  className="textarea textarea-bordered"
+                <Textarea
+                  label="Instructions"
                   rows={3}
                   value={override.instructions ?? ''}
-                  onChange={(e) =>
+                  onValueChange={(instructions) =>
                     updateOverride(override.feature_key, {
-                      instructions: e.target.value === '' ? null : e.target.value,
+                      instructions: instructions === '' ? null : instructions,
                     })
                   }
                 />
-              </label>
-            </div>
+              </Stack>
+            </Card>
           ))}
-        </fieldset>
+        </Fieldset>
       ) : null}
-
-      <div className="flex justify-end">
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? 'Saving…' : 'Save settings'}
-        </button>
-      </div>
-    </form>
+    </Form>
   );
 }

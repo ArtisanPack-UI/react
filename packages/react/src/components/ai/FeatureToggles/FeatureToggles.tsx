@@ -1,6 +1,14 @@
 /** @module ai/FeatureToggles */
 
 import { useCallback, useEffect, useState } from 'react';
+import { Alert } from '../../feedback/Alert/Alert';
+import { EmptyState } from '../../feedback/EmptyState/EmptyState';
+import { Loading } from '../../feedback/Loading/Loading';
+import { Toggle } from '../../form/Toggle/Toggle';
+import { Card } from '../../layout/Card/Card';
+import { Heading } from '../../layout/Heading/Heading';
+import { Stack } from '../../layout/Stack/Stack';
+import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiFeature } from '../types';
 
 /**
@@ -70,81 +78,61 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
     [client, onToggle],
   );
 
-  const headingNode = heading ? <h2 className="text-lg font-semibold">{heading}</h2> : null;
+  const headingNode = heading ? <Heading level={2}>{heading}</Heading> : null;
 
   if (error && !features) {
     return (
-      <div className="flex flex-col gap-3">
+      <Stack gap="3">
         {headingNode}
-        <div role="alert" className="alert alert-error">
-          <span>{error}</span>
-        </div>
-      </div>
+        <Alert color="error" description={error} />
+      </Stack>
     );
   }
 
   if (!features) {
     return (
-      <div className="flex flex-col gap-3">
+      <Stack gap="3">
         {headingNode}
-        <div className="flex items-center gap-2" role="status" aria-live="polite">
-          <span className="loading loading-spinner loading-sm" aria-hidden="true" />
-          <span>Loading features…</span>
-        </div>
-      </div>
+        <Loading size="sm">Loading features…</Loading>
+      </Stack>
     );
   }
 
   if (features.length === 0) {
     return (
-      <div className="flex flex-col gap-3">
+      <Stack gap="3">
         {headingNode}
-        <div className="text-sm text-base-content/70" role="status">
-          No AI features registered.
-        </div>
-      </div>
+        <EmptyState size="sm" title="No AI features registered." />
+      </Stack>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3" data-testid="ai-feature-toggles">
+    <Stack gap="3" data-testid="ai-feature-toggles">
       {headingNode}
-      {error ? (
-        <div role="alert" className="alert alert-error">
-          <span>{error}</span>
-        </div>
-      ) : null}
-      <ul className="flex flex-col gap-2">
+      {error ? <Alert color="error" description={error} /> : null}
+      <Stack gap="2" role="list">
         {features.map((feature) => (
-          <li
+          <Card
             key={feature.key}
-            className="flex items-center justify-between gap-4 rounded-box border border-base-300 p-3"
-          >
-            <div className="flex flex-col">
-              <span className="font-medium">{feature.label}</span>
-              {feature.description ? (
-                <span className="text-sm text-base-content/70">{feature.description}</span>
-              ) : null}
-              <span className="text-xs uppercase tracking-wide text-base-content/50">
+            role="listitem"
+            footer={
+              <Text as="span" size="xs" tone="muted">
                 {feature.package} · {feature.key}
-              </span>
-            </div>
-            <label className="cursor-pointer">
-              <span className="sr-only">
-                {feature.enabled ? 'Disable' : 'Enable'} {feature.label}
-              </span>
-              <input
-                type="checkbox"
-                className="toggle toggle-primary"
-                checked={feature.enabled}
-                disabled={pending[feature.key] === true}
-                onChange={() => handleToggle(feature)}
-                aria-label={`Toggle ${feature.label}`}
-              />
-            </label>
-          </li>
+              </Text>
+            }
+          >
+            <Toggle
+              color="primary"
+              label={feature.label}
+              description={feature.description || undefined}
+              checked={feature.enabled}
+              disabled={pending[feature.key] === true}
+              onCheckedChange={() => handleToggle(feature)}
+            />
+          </Card>
         ))}
-      </ul>
-    </div>
+      </Stack>
+    </Stack>
   );
 }
