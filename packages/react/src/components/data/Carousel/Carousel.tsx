@@ -5,8 +5,10 @@
  * next buttons, position dots and optional autoplay with a pause button, on
  * the behavior engine's carousel (`useCarousel`, Zag's carousel machine
  * scoped `carousel`, the one ImageSlider runs on, D-041). `perView` shows
- * several slides at once with the next one peeking. It renders the
- * `.apui-carousel` markup contract styled by `@artisanpack-ui/css`.
+ * several slides at once with the next one peeking; a slide's `id` keys it,
+ * so reordered slides keep their own state. The autoplay button comes first
+ * in the Tab order. It renders the `.apui-carousel` markup contract styled by
+ * `@artisanpack-ui/css`.
  *
  * @packageDocumentation
  */
@@ -30,6 +32,12 @@ import { Card } from '../../layout/Card/Card';
 
 /** One slide of a {@link Carousel}: the default Card's content, or anything `renderSlide` draws. */
 export interface CarouselSlide {
+  /**
+   * A stable id. When every slide has a distinct one it keys the slide, so a
+   * reordered list keeps each `renderSlide`'s own state; else slides are
+   * keyed by position.
+   */
+  id?: string | number;
   /** The Card's image URL. */
   image?: string;
   /** Describes the image. */
@@ -84,7 +92,7 @@ export interface CarouselProps<Slide = CarouselSlide> extends Omit<
   title?: string;
   /** The title's heading level, 2 to 6. @defaultValue `3` */
   headingLevel?: number;
-  /** Names the region. Defaults to the title, else `'Carousel'`. */
+  /** Names the region. Defaults to a passed `aria-label`, then the title, else `'Carousel'`. */
   label?: string;
   /** The previous button's accessible name. @defaultValue `'Previous slide'` */
   previousLabel?: string;
@@ -119,6 +127,20 @@ function DefaultSlide({ slide }: { slide: CarouselSlide }) {
       href={text(slide.href)}
     />
   );
+}
+
+/**
+ * Each slide's React key: its `id` when every slide has a distinct string or
+ * number one, so reordered slides keep their own state; else its position.
+ */
+function slideKeys(list: readonly unknown[]): (string | number)[] {
+  const ids = list.map((slide) =>
+    slide && typeof slide === 'object' ? (slide as { id?: unknown }).id : undefined,
+  );
+  const usable =
+    ids.every((id) => (typeof id === 'string' && id !== '') || typeof id === 'number') &&
+    new Set(ids).size === ids.length;
+  return usable ? (ids as (string | number)[]) : list.map((_, i) => i);
 }
 
 const headingTag = (level: number) =>
@@ -185,6 +207,7 @@ function CarouselInner<Slide = CarouselSlide>(
     },
   });
   const rootProps = api.getRootProps() as { style?: CSSProperties };
+  const keys = slideKeys(list);
 
   const triggers = (
     <>
@@ -214,9 +237,15 @@ function CarouselInner<Slide = CarouselSlide>(
       {...mergePartProps(rest, rootProps)}
       ref={ref}
       className={cx('apui-carousel', classes.root, className)}
-      aria-label={label || title || 'Carousel'}
+      aria-label={label || rest['aria-label'] || title || 'Carousel'}
       style={{ ...rootProps.style, ...style }}
     >
+      {/* First in the Tab order, before the rotating slides; CSS places it over the viewport. */}
+      {autoplay ? (
+        <button {...api.getAutoplayTriggerProps()} className={classes.autoplayTrigger}>
+          <IconSvg name={api.isPlaying ? 'pause' : 'play'} />
+        </button>
+      ) : null}
       {hasTitle ? (
         <div className={classes.header} data-scope="carousel" data-part="header">
           {createElement(
@@ -230,7 +259,7 @@ function CarouselInner<Slide = CarouselSlide>(
       <div className={classes.viewport} data-scope="carousel" data-part="viewport">
         <div {...api.getItemGroupProps()} className={classes.itemGroup} tabIndex={0}>
           {list.map((slide, i) => (
-            <div key={i} {...api.getItemProps({ index: i })} className={classes.item}>
+            <div key={keys[i]} {...api.getItemProps({ index: i })} className={classes.item}>
               {renderSlide ? (
                 renderSlide(slide, i)
               ) : (
@@ -240,11 +269,6 @@ function CarouselInner<Slide = CarouselSlide>(
           ))}
         </div>
         {hasTitle ? null : triggers}
-        {autoplay ? (
-          <button {...api.getAutoplayTriggerProps()} className={classes.autoplayTrigger}>
-            <IconSvg name={api.isPlaying ? 'pause' : 'play'} />
-          </button>
-        ) : null}
       </div>
       {pages > 1 ? (
         <div {...api.getIndicatorGroupProps()} className={classes.indicatorGroup}>

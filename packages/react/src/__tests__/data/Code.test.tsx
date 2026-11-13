@@ -66,6 +66,8 @@ describe('Code', () => {
     expect(lines.map((line) => line.textContent)).toEqual(['const a = 1;', '', '  return a;']);
     expect(lines.map((line) => line.getAttribute('data-n'))).toEqual(['1', '2', '3']);
     expect(lines.map((line) => line.hasAttribute('data-highlight'))).toEqual([false, false, true]);
+    // Newlines separate the lines, empty ones included, so the pre reads line by line.
+    expect(pre.textContent).toBe('const a = 1;\n\n  return a;');
   });
 
   it('copies the code without line numbers and announces it', async () => {
@@ -82,10 +84,38 @@ describe('Code', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button'));
     });
-    expect(writeText).toHaveBeenCalledWith('const a = 1;\n\n  return a;');
+    // The exact source, its final newline included.
+    expect(writeText).toHaveBeenCalledWith(SNIPPET);
     expect(screen.getByRole('button')).toHaveTextContent('Copiado');
     expect(screen.getByRole('button').getAttribute('data-state')).toBe('copied');
     expect(screen.getByRole('status')).toHaveTextContent('Copiado al portapapeles');
+  });
+
+  it('clears a stale "Copied" when the code changes, even mid-copy', async () => {
+    let release: () => void = () => {};
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockReturnValueOnce(new Promise<void>((resolve) => (release = resolve)));
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    const { rerender } = render(<Code code="a" />);
+    const button = () => screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(button());
+    });
+    expect(button().getAttribute('data-state')).toBe('copied');
+    rerender(<Code code="b" />);
+    expect(button().getAttribute('data-state')).toBe('idle');
+    expect(button()).toHaveTextContent('Copy');
+
+    await act(async () => {
+      fireEvent.click(button());
+    });
+    rerender(<Code code="c" />);
+    await act(async () => {
+      release();
+    });
+    expect(button().getAttribute('data-state')).toBe('idle');
   });
 
   it('names the region by label, file name, language, then "Code"', () => {

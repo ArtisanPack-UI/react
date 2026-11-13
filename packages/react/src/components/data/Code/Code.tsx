@@ -5,9 +5,10 @@
  * (file name, language, copy) and optional line numbers and highlighted
  * lines, or inline. Renders the `.apui-code` markup contract styled by
  * `@artisanpack-ui/css`, with the lines from the behavior package's
- * `codeLines`, the same ones Blade and Vue render. No syntax highlighting.
- * The copy button runs on `useClipboard`, as Clipboard does. The code stays
- * LTR (D-004).
+ * `codeLines`, the same ones Blade and Vue render, separated by newlines so
+ * the pre's text reads line by line. No syntax highlighting. The copy button
+ * runs on `useClipboard`, as Clipboard does, and copies the exact source. The
+ * code stays LTR (D-004).
  *
  * @packageDocumentation
  */
@@ -21,7 +22,7 @@ import {
   codeLines,
 } from '@artisanpack-ui/behavior';
 import { useClipboard } from '@artisanpack-ui/behavior/react';
-import { forwardRef, useMemo, type HTMLAttributes } from 'react';
+import { Fragment, forwardRef, useEffect, useMemo, useRef, type HTMLAttributes } from 'react';
 
 import { IconPart } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
@@ -93,6 +94,14 @@ export const Code = forwardRef<HTMLElement, CodeProps>(
     const clipboard = useClipboard();
     const lines = useMemo(() => codeLines(code), [code]);
     const highlighted = useMemo(() => codeHighlights(highlight), [highlight]);
+    const { reset } = clipboard;
+    const shownCode = useRef(code);
+    // A new code clears a stale "Copied", even from a copy still in flight.
+    useEffect(() => {
+      if (shownCode.current === code) return;
+      shownCode.current = code;
+      reset();
+    }, [code, reset]);
 
     if (inline) {
       return (
@@ -151,7 +160,7 @@ export const Code = forwardRef<HTMLElement, CodeProps>(
                   data-color="neutral"
                   data-size="xs"
                   data-state={clipboard.status}
-                  onClick={() => void clipboard.copy(lines.join('\n'))}
+                  onClick={() => void clipboard.copy(code ?? '')}
                 >
                   <IconPart
                     scope="button"
@@ -184,16 +193,18 @@ export const Code = forwardRef<HTMLElement, CodeProps>(
         >
           <code>
             {lines.map((line, index) => (
-              <span
-                key={index}
-                className={classes.line}
-                data-scope="code"
-                data-part="line"
-                data-n={index + 1}
-                data-highlight={flag(highlighted.has(index + 1))}
-              >
-                {line}
-              </span>
+              <Fragment key={index}>
+                {index > 0 ? '\n' : null}
+                <span
+                  className={classes.line}
+                  data-scope="code"
+                  data-part="line"
+                  data-n={index + 1}
+                  data-highlight={flag(highlighted.has(index + 1))}
+                >
+                  {line}
+                </span>
+              </Fragment>
             ))}
           </code>
         </pre>

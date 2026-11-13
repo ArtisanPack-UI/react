@@ -29,7 +29,11 @@ export interface MarkdownProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   'children' | 'dangerouslySetInnerHTML'
 > {
-  /** The Markdown. In write and split modes, the Textarea's value. */
+  /**
+   * The Markdown. In write and split modes, the Textarea's value: with
+   * `onSourceChange` too it's controlled (an edit shows once the parent
+   * passes it back), else the editor starts from it and keeps its own draft.
+   */
   source?: string;
   /** Called with the new source as it's edited. Without it the editor keeps its own draft. */
   onSourceChange?: (source: string) => void;
@@ -73,7 +77,7 @@ export interface MarkdownProps extends Omit<
 export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
   (
     {
-      source = '',
+      source: sourceProp,
       onSourceChange,
       mode = 'preview',
       sanitize = true,
@@ -89,7 +93,11 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
     },
     ref,
   ) => {
+    const source = sourceProp ?? '';
     const editing = mode === 'write' || mode === 'split';
+    // A parent that passes source and onSourceChange owns the value, so an
+    // edit it rejects never shows; otherwise the editor keeps a draft.
+    const controlled = sourceProp !== undefined && onSourceChange !== undefined;
     const [draft, setDraft] = useState(source);
     const [view, setView] = useState<MarkdownMode>(mode);
     // A new source or mode from the parent replaces the draft or the tab.
@@ -100,8 +108,15 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
       if (synced.mode !== mode) setView(mode);
     }
 
-    const text = editing ? draft : source;
-    const html = useMemo(() => renderMarkdown(text, { sanitize }), [text, sanitize]);
+    // The draft follows a new source, so it's what every mode shows: an edit
+    // made in write mode still shows when the parent switches to preview.
+    const text = controlled ? source : draft;
+    // Nothing shows the HTML while only the Write tab does, so typing there doesn't render.
+    const rendering = !editing || view !== 'write';
+    const html = useMemo(
+      () => (rendering ? renderMarkdown(text, { sanitize }) : ''),
+      [rendering, text, sanitize],
+    );
 
     if (!editing) {
       return (
@@ -125,7 +140,7 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
         <Textarea
           aria-label={editorLabel}
           dir="auto"
-          value={draft}
+          value={text}
           onValueChange={change}
           rows={12}
         />

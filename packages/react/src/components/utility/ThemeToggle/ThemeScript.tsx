@@ -11,7 +11,9 @@
  * component falls back to applying the stored choice once on mount, and only
  * while `<html>` has no `data-theme` yet (it never overrides the head
  * script). That fallback runs after the first paint: for no flash in an SPA,
- * inline `themeScript()`'s output in index.html's `<head>` instead.
+ * inline `themeScript()`'s output in index.html's `<head>` instead. Either
+ * way `<html data-theme-choice>` records the choice, so toggles with nothing
+ * stored start on `defaultValue`.
  *
  * @packageDocumentation
  */

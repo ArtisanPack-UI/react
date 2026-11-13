@@ -12,6 +12,9 @@
 
 import {
   forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
   useState,
   type ChangeEvent,
   type InputHTMLAttributes,
@@ -98,6 +101,34 @@ export const Swap = forwardRef<HTMLInputElement, SwapProps>(
     const [uncontrolledChecked, setUncontrolledChecked] = useState(defaultChecked);
     const isControlled = checked !== undefined;
     const isChecked = isControlled ? checked : uncontrolledChecked;
+    const inputRef = useRef<HTMLInputElement>(null);
+    useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
+
+    // A form reset restores the checkbox without a change event: put it (and
+    // data-state) back to the initial state, or to `checked` when controlled.
+    const restored = useRef({ isControlled, checked, defaultChecked });
+    useEffect(() => {
+      restored.current = { isControlled, checked, defaultChecked };
+    });
+    useEffect(() => {
+      const form = inputRef.current?.form;
+      if (!form) return undefined;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const onReset = () => {
+        // The reset event fires before the form resets its controls.
+        timer = setTimeout(() => {
+          const current = restored.current;
+          const next = current.isControlled ? Boolean(current.checked) : current.defaultChecked;
+          if (!current.isControlled) setUncontrolledChecked(next);
+          if (inputRef.current) inputRef.current.checked = next;
+        });
+      };
+      form.addEventListener('reset', onReset);
+      return () => {
+        form.removeEventListener('reset', onReset);
+        if (timer !== undefined) clearTimeout(timer);
+      };
+    }, []);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       const next = event.target.checked;
@@ -118,7 +149,7 @@ export const Swap = forwardRef<HTMLInputElement, SwapProps>(
       >
         <input
           {...rest}
-          ref={ref}
+          ref={inputRef}
           type="checkbox"
           className={classes.control}
           data-scope="swap"

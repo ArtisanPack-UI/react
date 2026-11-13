@@ -12,6 +12,12 @@
  * button that switches light and dark; menu is a DropdownMenu of radio items
  * on the same menu machine (`useDropdownMenu`, D-019).
  *
+ * Uncontrolled, the toggle starts on the stored choice, else the one
+ * ThemeScript applied (its `defaultValue`), else `defaultValue`, which it
+ * applies only while `<html>` has no `data-theme`. Controlled, a pick only
+ * calls `onValueChange`; the toggle applies, stores and passes on a value
+ * when the parent changes `value` to it, never the one it mounts with.
+ *
  * Inside a 2.x `ThemeProvider` the toggle keeps driving it: it starts
  * from the provider's `colorScheme`, calls `setColorScheme` on every pick and
  * follows the provider when something else sets it. The provider only knows
@@ -29,6 +35,7 @@ import {
   nextIconTheme,
   readThemeChoice,
   resolveTheme,
+  startThemeChoice,
   THEME_ICONS,
   THEME_STORAGE_KEY,
   themeChoiceLabel,
@@ -81,7 +88,10 @@ export type ThemeTogglePart = 'root' | 'list' | 'option' | 'button' | 'trigger' 
 
 /** Props for the {@link ThemeToggle} component. Native `<div>` attributes go to the root. */
 export interface ThemeToggleProps extends Omit<HTMLAttributes<HTMLDivElement>, 'defaultValue'> {
-  /** The choice (controlled). Pair it with `onValueChange`. */
+  /**
+   * The choice (controlled). Pair it with `onValueChange`: a pick only reports
+   * the choice, and the toggle applies it once `value` changes to it.
+   */
   value?: ThemeChoice;
   /** The choice an uncontrolled toggle shows when nothing is stored. @defaultValue `'system'` */
   defaultValue?: ThemeChoice;
@@ -158,7 +168,6 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
     const controlled = value !== undefined;
     const provider = useOptionalTheme();
     const providerRef = useRef(provider);
-    providerRef.current = provider;
     const [own, setOwn] = useState<ThemeChoice>(() => {
       if (provider && isThemeChoice(provider.colorScheme)) return provider.colorScheme;
       return isThemeChoice(defaultValue) ? defaultValue : 'system';
@@ -168,7 +177,11 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
     const [systemDark, setSystemDark] = useState(false);
     const current: ThemeChoice = controlled ? (isThemeChoice(value) ? value : 'system') : own;
     const currentRef = useRef(current);
-    currentRef.current = current;
+    // Event handlers and watchers read the committed values.
+    useEffect(() => {
+      providerRef.current = provider;
+      currentRef.current = current;
+    });
 
     const resolved: Theme =
       current === 'system' ? (systemDark ? 'dark' : 'light') : (current as Theme);
@@ -194,10 +207,17 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
         } else if (providerRef.current) {
           // Nothing stored: the provider's scheme is the choice, so show it.
           applyTheme(currentRef.current, { persist: false, broadcast: false });
+        } else {
+          // Nothing stored: what ThemeScript applied, else the default.
+          setOwn(startThemeChoice(currentRef.current));
         }
       }
+      // A controlled toggle shows its parent's value and an unpersisted one
+      // ignores storage, so neither follows (or applies) another tab's choice.
+      const followsStorage = persist && !controlled;
       return watchTheme(
         ({ value: next, source }) => {
+          if (source === 'storage' && !followsStorage) return;
           if (next) {
             if (!controlled) {
               setOwn(next);
@@ -232,14 +252,31 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [providerScheme]);
 
+    // The parent changed a controlled value: apply, store and pass it on. The
+    // value it mounts with isn't applied (ThemeScript did, or docs pages show
+    // fixed values).
+    const appliedValue = useRef(value);
+    useEffect(() => {
+      if (value === appliedValue.current) return;
+      appliedValue.current = value;
+      if (!controlled || !isThemeChoice(value)) return;
+      applyTheme(value, { persist, storageKey });
+      providerRef.current?.setColorScheme(toColorScheme(value));
+      // Only a change of the value re-runs this.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value]);
+
     const choose = useCallback(
       (next: unknown) => {
         if (!isThemeChoice(next)) return;
         const changed = next !== currentRef.current;
-        if (!controlled) {
-          setOwn(next);
-          currentRef.current = next;
+        if (controlled) {
+          // The parent accepts it by changing `value`; the effect above applies it.
+          if (changed) onValueChange?.(next);
+          return;
         }
+        setOwn(next);
+        currentRef.current = next;
         applyTheme(next, { persist, storageKey });
         providerRef.current?.setColorScheme(toColorScheme(next));
         if (changed) onValueChange?.(next);

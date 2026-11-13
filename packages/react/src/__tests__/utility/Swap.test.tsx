@@ -1,5 +1,5 @@
 import { createRef, useState } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Swap, type SwapProps } from '../../components/utility/Swap/Swap';
@@ -51,6 +51,53 @@ describe('Swap', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true);
     expect(container.querySelector('.apui-swap')).toHaveAttribute('data-state', 'checked');
     expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+
+  it('goes back to its initial state when its form resets', async () => {
+    const afterReset = () =>
+      act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    for (const initial of [false, true]) {
+      const { container, rerender, unmount } = render(
+        <form>
+          <Swap label="Dark mode" defaultChecked={initial} />
+        </form>,
+      );
+      const box = screen.getByRole('checkbox') as HTMLInputElement;
+      const root = container.querySelector('.apui-swap')!;
+      fireEvent.click(box);
+      expect(box.checked).toBe(!initial);
+      expect(root.getAttribute('data-state')).toBe(initial ? 'unchecked' : 'checked');
+      act(() => container.querySelector('form')!.reset());
+      await afterReset();
+      expect(box.checked).toBe(initial);
+      expect(root.getAttribute('data-state')).toBe(initial ? 'checked' : 'unchecked');
+      // A later render doesn't bring the stale state back.
+      rerender(
+        <form>
+          <Swap label="Dark mode" defaultChecked={initial} size="lg" />
+        </form>,
+      );
+      expect(box.checked).toBe(initial);
+      expect(root.getAttribute('data-state')).toBe(initial ? 'checked' : 'unchecked');
+      unmount();
+    }
+  });
+
+  it('keeps a controlled swap on its checked value after a form reset', async () => {
+    const { container } = render(
+      <form>
+        <Swap label="Dark mode" checked onCheckedChange={() => {}} />
+      </form>,
+    );
+    const box = screen.getByRole('checkbox') as HTMLInputElement;
+    act(() => container.querySelector('form')!.reset());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(box.checked).toBe(true);
+    expect(container.querySelector('.apui-swap')!.getAttribute('data-state')).toBe('checked');
   });
 
   it('follows a controlled checked', () => {

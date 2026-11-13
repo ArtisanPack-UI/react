@@ -113,10 +113,12 @@ describe('Calendar', () => {
     expect(q(container, '#cal-title').textContent).toBe('Nov 2 – Nov 8, 2026');
     expect(q(container, '#cal-body').getAttribute('aria-labelledby')).toBe('cal-tab-week');
 
+    const onControlledView = vi.fn();
     const controlled = render(
-      <Calendar {...base} id="c2" view="month" onViewChange={onViewChange} />,
+      <Calendar {...base} id="c2" view="month" onViewChange={onControlledView} />,
     );
-    fireEvent.click(controlled.getAllByRole('tab', { name: 'Day' })[0]!);
+    fireEvent.click(q(controlled.container, '#c2-tab-day'));
+    expect(onControlledView).toHaveBeenCalledWith('day');
     expect(q(controlled.container, '#c2').getAttribute('data-view')).toBe('month');
   });
 
@@ -125,6 +127,16 @@ describe('Calendar', () => {
     fireEvent.click(q(container, '[data-date="2026-11-12"] [data-part="more"]'));
     expect(q(container, '.apui-calendar').getAttribute('data-view')).toBe('day');
     expect(container.querySelectorAll('[data-part="event"]')).toHaveLength(3);
+  });
+
+  it('moves focus to the day +N more opens', () => {
+    const { container } = render(<Calendar {...base} />);
+    const more = q(container, '[data-date="2026-11-12"] [data-part="more"]');
+    more.focus();
+    fireEvent.click(more);
+    const cell = q(container, '[role="gridcell"][data-date="2026-11-12"]');
+    expect(document.activeElement).toBe(cell);
+    expect(cell.tabIndex).toBe(0);
   });
 
   it('reports event clicks and opens the details Dialog', async () => {

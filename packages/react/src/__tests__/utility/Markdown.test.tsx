@@ -131,6 +131,38 @@ describe('Markdown', () => {
     expect(screen.getByRole('region').innerHTML).toBe('<p>B</p>\n');
   });
 
+  it('keeps a rejected controlled edit out of the editor and the preview', () => {
+    const onSourceChange = vi.fn();
+    render(<Markdown source="kept" mode="split" onSourceChange={onSourceChange} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'rejected' } });
+    expect(onSourceChange).toHaveBeenCalledWith('rejected');
+    expect(screen.getByRole('textbox')).toHaveValue('kept');
+    expect(screen.getByRole('region').innerHTML).toBe('<p>kept</p>\n');
+  });
+
+  it('shows the draft when the parent switches from write to preview', () => {
+    const { rerender, container } = render(<Markdown source="# One" mode="write" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '# Draft' } });
+    rerender(<Markdown source="# One" mode="preview" />);
+    expect(container.firstElementChild!.innerHTML).toBe('<h1>Draft</h1>\n');
+    // A new source still replaces the draft.
+    rerender(<Markdown source="# New" mode="preview" />);
+    expect(container.firstElementChild!.innerHTML).toBe('<h1>New</h1>\n');
+  });
+
+  it('renders nothing while only the Write tab shows', async () => {
+    const behavior = await import('@artisanpack-ui/behavior');
+    const spy = vi.spyOn(behavior, 'renderMarkdown');
+    render(<Markdown source="# One" mode="write" />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '# Two' } });
+    expect(spy).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Split' }));
+    });
+    expect(spy).toHaveBeenLastCalledWith('# Two', { sanitize: true });
+    spy.mockRestore();
+  });
+
   it('takes translated labels and per-part classes', () => {
     const { container } = render(
       <Markdown

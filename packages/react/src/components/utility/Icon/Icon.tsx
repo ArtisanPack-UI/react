@@ -83,6 +83,9 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
   ) => {
     const hasChildren = hasContent(children);
     const labeled = typeof label === 'string' && label !== '';
+    // A caller's own aria-label or aria-labelledby names it too: only an
+    // unnamed icon is hidden.
+    const named = labeled || hasContent(rest['aria-label']) || hasContent(rest['aria-labelledby']);
     const mirrored = mirror ?? (!hasChildren && isDirectionalIcon(name));
 
     return (
@@ -96,9 +99,9 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
         data-size={size}
         data-color={color}
         data-mirror={flag(mirrored)}
-        role={labeled ? 'img' : undefined}
-        aria-label={labeled ? label : undefined}
-        aria-hidden={labeled ? undefined : true}
+        role={named ? (rest.role ?? 'img') : undefined}
+        aria-label={labeled ? label : rest['aria-label']}
+        aria-hidden={named ? rest['aria-hidden'] : true}
       >
         {hasChildren ? (
           children

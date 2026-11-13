@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Calendar, type CalendarEvent, type CalendarView } from './Calendar';
+import { Calendar, type CalendarEvent, type CalendarProps, type CalendarView } from './Calendar';
 
 const events: CalendarEvent[] = [
   {
@@ -90,6 +90,37 @@ const events: CalendarEvent[] = [
 
 const base = { events, date: '2026-11-07', today: '2026-11-07', weekStartsOn: 1 };
 
+/**
+ * Owns the date and view, seeded from the story's args (and reseeded when a
+ * control changes them), so previous, next, the view tabs and "+N more" work
+ * in every story.
+ */
+function StatefulCalendar(args: CalendarProps) {
+  const [seed, setSeed] = useState({ view: args.view, date: args.date });
+  const [view, setView] = useState<CalendarView>(args.view ?? 'month');
+  const [date, setDate] = useState(args.date);
+  if (seed.view !== args.view || seed.date !== args.date) {
+    setSeed({ view: args.view, date: args.date });
+    setView(args.view ?? 'month');
+    setDate(args.date);
+  }
+  return (
+    <Calendar
+      {...args}
+      view={view}
+      date={date}
+      onViewChange={(next) => {
+        setView(next);
+        args.onViewChange?.(next);
+      }}
+      onDateChange={(next) => {
+        setDate(next);
+        args.onDateChange?.(next);
+      }}
+    />
+  );
+}
+
 const meta: Meta<typeof Calendar> = {
   title: 'Data Display/Calendar',
   component: Calendar,
@@ -105,6 +136,7 @@ const meta: Meta<typeof Calendar> = {
   argTypes: {
     view: { control: 'select', options: ['month', 'week', 'day', 'agenda'] },
   },
+  render: (args) => <StatefulCalendar {...args} />,
 };
 
 export default meta;
@@ -132,7 +164,7 @@ export const Controlled: Story = {
 export const RightToLeft: Story = {
   render: (args) => (
     <div dir="rtl">
-      <Calendar {...args} />
+      <StatefulCalendar {...args} />
     </div>
   ),
   args: base,

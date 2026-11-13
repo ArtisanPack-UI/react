@@ -1,7 +1,7 @@
-import { createRef } from 'react';
+import { createRef, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { render, screen, waitFor } from '@testing-library/react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Carousel,
@@ -201,5 +201,157 @@ describe('Carousel', () => {
     } finally {
       window.matchMedia = matchMedia;
     }
+  });
+
+  it('keeps a caller aria-label ahead of the title and the generic name', () => {
+    const { rerender } = render(
+      <Carousel slides={SLIDES} title="Featured" aria-label="Homes for sale" />,
+    );
+    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Homes for sale');
+    rerender(<Carousel slides={SLIDES} title="Featured" label="Picked" aria-label="Homes" />);
+    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Picked');
+  });
+
+  it('puts the autoplay button first in the Tab order, before the slides and buttons', () => {
+    const { container } = render(<Carousel slides={SLIDES} autoplay title="Featured" />);
+    const root = container.querySelector('.apui-carousel')!;
+    expect(root.firstElementChild!.getAttribute('data-part')).toBe('autoplay-trigger');
+    const focusable = [...root.querySelectorAll('button, [tabindex="0"]')];
+    expect(focusable[0]!.getAttribute('data-part')).toBe('autoplay-trigger');
+  });
+
+  it('keys slides by a unique id, so reordered renderSlide state stays with its slide', () => {
+    const slides = [
+      { id: 'a', title: 'A' },
+      { id: 'b', title: 'B' },
+    ];
+    function Host() {
+      const [list, setList] = useState(slides);
+      return (
+        <>
+          <button type="button" onClick={() => setList((current) => [current[1]!, current[0]!])}>
+            Reorder
+          </button>
+          <Carousel
+            slides={list}
+            renderSlide={(slide) => <input aria-label={slide.title} defaultValue="" />}
+          />
+        </>
+      );
+    }
+    const { container } = render(<Host />);
+    const inputs = () => [...container.querySelectorAll('input')];
+    fireEvent.change(inputs()[0]!, { target: { value: 'typed in A' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+    expect(inputs()[1]!).toHaveAttribute('aria-label', 'A');
+    expect(inputs()[1]!.value).toBe('typed in A');
+    expect(inputs()[0]!.value).toBe('');
+  });
+
+  it('falls back to position keys without unique ids', () => {
+    const { container, rerender } = render(
+      <Carousel
+        slides={[{ id: 'x' }, { id: 'x' }]}
+        renderSlide={() => <input aria-label="n" defaultValue="" />}
+      />,
+    );
+    fireEvent.change(container.querySelector('input')!, { target: { value: 'first' } });
+    rerender(
+      <Carousel
+        slides={[{ id: 'x', title: 'B' }, { id: 'x' }]}
+        renderSlide={() => <input aria-label="n" defaultValue="" />}
+      />,
+    );
+    expect(container.querySelector('input')!.value).toBe('first');
+  });
+
+  /**
+   * jsdom has no layout, so the machine would measure one position. Lay the
+   * track out as 100px slides in a 100px view, enough for its snap points.
+   */
+  describe('navigation', () => {
+    const restore: (() => void)[] = [];
+    const partOf = (el: Element) =>
+      el.getAttribute('data-scope') === 'carousel' ? el.getAttribute('data-part') : null;
+    beforeAll(() => {
+      const rect = Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = function getBoundingClientRect(this: Element) {
+        const name = partOf(this);
+        if (name !== 'item' && name !== 'item-group') return rect.call(this);
+        const left = name === 'item' ? Number(this.getAttribute('data-index')) * 100 : 0;
+        return DOMRect.fromRect({ x: left, y: 0, width: 100, height: 80 });
+      };
+      restore.push(() => (Element.prototype.getBoundingClientRect = rect));
+      const size = (name: 'offsetWidth' | 'scrollWidth', value: (el: HTMLElement) => number) => {
+        const own = Object.getOwnPropertyDescriptor(HTMLElement.prototype, name);
+        Object.defineProperty(HTMLElement.prototype, name, {
+          configurable: true,
+          get(this: HTMLElement) {
+            return partOf(this) === 'item-group' ? value(this) : (own?.get?.call(this) ?? 0);
+          },
+        });
+        restore.push(() =>
+          own
+            ? Object.defineProperty(HTMLElement.prototype, name, own)
+            : delete (HTMLElement.prototype as unknown as Record<string, unknown>)[name],
+        );
+      };
+      size('offsetWidth', () => 100);
+      size('scrollWidth', (el) => el.children.length * 100);
+    });
+    afterAll(() => restore.splice(0).forEach((undo) => undo()));
+
+    /** The machine measures a frame after mount. */
+    const measured = () =>
+      act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+    const click = (element: Element) =>
+      act(async () => {
+        fireEvent.click(element);
+      });
+    const current = (root: ParentNode) =>
+      parts(root, 'indicator').findIndex((dot) => dot.getAttribute('aria-current') === 'true');
+
+    it('moves with next, previous and the dots, calling onIndexChange', async () => {
+      const onIndexChange = vi.fn();
+      const { container } = render(<Carousel slides={SLIDES} onIndexChange={onIndexChange} />);
+      await measured();
+      const next = screen.getByRole('button', { name: 'Next slide' });
+      const previous = screen.getByRole('button', { name: 'Previous slide' });
+      expect(current(container)).toBe(0);
+      await click(next);
+      expect(current(container)).toBe(1);
+      await click(parts(container, 'indicator')[3]!);
+      expect(current(container)).toBe(3);
+      expect(next).toBeDisabled();
+      await click(previous);
+      expect(current(container)).toBe(2);
+      expect(onIndexChange.mock.calls).toEqual([[1], [3], [2]]);
+    });
+
+    it('wraps at the ends with loop', async () => {
+      const onIndexChange = vi.fn();
+      const { container } = render(<Carousel slides={SLIDES} loop onIndexChange={onIndexChange} />);
+      await measured();
+      await click(screen.getByRole('button', { name: 'Previous slide' }));
+      expect(current(container)).toBe(3);
+      expect(onIndexChange.mock.calls).toEqual([[3]]);
+    });
+
+    it('shows only what a controlled index says, and reports the move it asks for', async () => {
+      const onIndexChange = vi.fn();
+      const { container, rerender } = render(
+        <Carousel slides={SLIDES} index={1} onIndexChange={onIndexChange} />,
+      );
+      await measured();
+      expect(current(container)).toBe(1);
+      await click(screen.getByRole('button', { name: 'Next slide' }));
+      expect(onIndexChange.mock.calls).toEqual([[2]]);
+      // The parent didn't take it, so the carousel stays where index says.
+      expect(current(container)).toBe(1);
+      rerender(<Carousel slides={SLIDES} index={3} onIndexChange={onIndexChange} />);
+      expect(current(container)).toBe(3);
+    });
   });
 });

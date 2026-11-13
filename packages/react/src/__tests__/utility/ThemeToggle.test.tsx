@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import { createRef, Suspense, use, useState, useTransition } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
@@ -39,6 +39,7 @@ beforeEach(() => {
   listeners.clear();
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
+  document.documentElement.removeAttribute('data-theme-choice');
   vi.stubGlobal(
     'matchMedia',
     vi.fn(() => ({
@@ -146,6 +147,123 @@ describe('ThemeToggle', () => {
     expect(onValueChange).toHaveBeenCalledWith('dark');
     expect(checked()).toHaveAttribute('data-value', 'light');
     expect(localStorage.getItem('apui-theme')).toBeNull();
+  });
+
+  it('only reports a controlled pick; the parent accepting it applies it', () => {
+    localStorage.setItem('apui-theme', 'high-contrast');
+    function Parent({ accept }: { accept: boolean }) {
+      const [theme, setTheme] = useState<'light' | 'dark' | 'high-contrast' | 'system'>('light');
+      return (
+        <ThemeProvider defaultColorScheme="light">
+          <Probe />
+          <ThemeToggle value={theme} onValueChange={(next) => accept && setTheme(next)} />
+        </ThemeProvider>
+      );
+    }
+    const { unmount } = render(<Parent accept={false} />);
+    // The value it mounts with isn't applied, so the stored choice stays.
+    expect(document.documentElement).not.toHaveAttribute('data-theme');
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }));
+    expect(checked()).toHaveAttribute('data-value', 'light');
+    expect(document.documentElement).not.toHaveAttribute('data-theme');
+    expect(localStorage.getItem('apui-theme')).toBe('high-contrast');
+    expect(scheme()).toBe('light');
+    unmount();
+
+    render(<Parent accept />);
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }));
+    expect(checked()).toHaveAttribute('data-value', 'dark');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    expect(localStorage.getItem('apui-theme')).toBe('dark');
+    expect(scheme()).toBe('dark');
+  });
+
+  it('applies a controlled value the parent changes on its own', () => {
+    const { rerender } = render(<ThemeToggle value="light" onValueChange={() => {}} />);
+    expect(document.documentElement).not.toHaveAttribute('data-theme');
+    rerender(<ThemeToggle value="high-contrast" onValueChange={() => {}} />);
+    expect(document.documentElement).toHaveAttribute('data-theme', 'high-contrast');
+    expect(localStorage.getItem('apui-theme')).toBe('high-contrast');
+  });
+
+  it('starts on the choice ThemeScript applied when nothing is stored', () => {
+    // What `themeScript({ defaultValue: 'dark' })` leaves on <html>.
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme-choice', 'dark');
+    render(<ThemeToggle />);
+    expect(checked()).toHaveAttribute('data-value', 'dark');
+  });
+
+  it('applies its default to a page without a theme, but never over one', () => {
+    const { unmount } = render(<ThemeToggle defaultValue="high-contrast" />);
+    expect(checked()).toHaveAttribute('data-value', 'high-contrast');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'high-contrast');
+    expect(localStorage.getItem('apui-theme')).toBeNull();
+    unmount();
+
+    document.documentElement.removeAttribute('data-theme-choice');
+    document.documentElement.setAttribute('data-theme', 'light');
+    render(<ThemeToggle defaultValue="dark" />);
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
+
+  it("ignores another tab's stored choice when controlled or unpersisted", () => {
+    const storageEvent = () =>
+      act(() => {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'apui-theme', newValue: 'dark' }));
+      });
+    const { unmount } = render(
+      <>
+        <ThemeToggle value="light" onValueChange={() => {}} />
+        <ThemeToggle defaultValue="light" persist={false} />
+      </>,
+    );
+    const theme = () => document.documentElement.getAttribute('data-theme');
+    const before = theme();
+    storageEvent();
+    expect(
+      screen.getAllByRole('radiogroup').map((group) => group.parentElement!.dataset.value),
+    ).toEqual(['light', 'light']);
+    expect(theme()).toBe(before);
+    unmount();
+
+    // A toggle that reads storage follows it, and the page with it.
+    render(<ThemeToggle />);
+    storageEvent();
+    expect(checked()).toHaveAttribute('data-value', 'dark');
+    expect(theme()).toBe('dark');
+  });
+
+  it('reads only committed values when the OS scheme changes', async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    function Wait({ on }: { on: boolean }) {
+      if (on) use(pending);
+      return null;
+    }
+    function Parent() {
+      const [theme, setTheme] = useState<'system' | 'dark'>('system');
+      const [, startTransition] = useTransition();
+      return (
+        <>
+          <button type="button" onClick={() => startTransition(() => setTheme('dark'))}>
+            Pick dark
+          </button>
+          <ThemeToggle value={theme} persist={false} onValueChange={() => {}} />
+          <Suspense fallback={null}>
+            <Wait on={theme === 'dark'} />
+          </Suspense>
+        </>
+      );
+    }
+    render(<Parent />);
+    // A transition renders the toggle with `dark`, then suspends without committing it.
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Pick dark' })));
+    expect(checked()).toHaveAttribute('data-value', 'system');
+    dark = true;
+    act(() => listeners.forEach((listener) => listener()));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    await act(async () => release());
   });
 
   it('moves, checks and focuses with the arrow keys, following the text direction', () => {
@@ -271,6 +389,17 @@ describe('ThemeScript', () => {
     dark = true;
     render(<ThemeScript defaultValue="system" />);
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  });
+
+  it('hands its default to the toggles when client-rendered', () => {
+    render(
+      <>
+        <ThemeScript defaultValue="dark" />
+        <ThemeToggle />
+      </>,
+    );
+    expect(document.documentElement).toHaveAttribute('data-theme-choice', 'dark');
+    expect(checked()).toHaveAttribute('data-value', 'dark');
   });
 
   it('never overrides a data-theme the head script already set', () => {

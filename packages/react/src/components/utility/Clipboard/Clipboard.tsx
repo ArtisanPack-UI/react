@@ -6,7 +6,9 @@
  * `@artisanpack-ui/css`. The copy runs on the behavior package's
  * `useClipboard`, as Code's copy button and the Blade and Vue components do:
  * `navigator.clipboard` with a fallback, "Copied" for the timeout, and the
- * result (or the failure) announced in a live region.
+ * result (or the failure) announced in a live region. After a failure the
+ * value shows (in every variant) and is selected, to copy by hand; a new
+ * value clears a stale "Copied".
  *
  * @packageDocumentation
  */
@@ -18,7 +20,7 @@ import {
   clipboardMessage,
 } from '@artisanpack-ui/behavior';
 import { useClipboard } from '@artisanpack-ui/behavior/react';
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef, useEffect, useRef, useState, type HTMLAttributes } from 'react';
 
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
@@ -58,7 +60,14 @@ export interface ClipboardProps extends Omit<HTMLAttributes<HTMLElement>, 'onCop
   errorMessage?: string;
   /** Extra classes per part; `classes.root` merges with `className`. */
   classes?: PartClasses<ClipboardPart>;
-  /** The value reached the clipboard. */
+  /** The value reached the clipboard. Named apart from React's native `onCopy`. */
+  onCopied?: (value: string) => void;
+  /**
+   * The 2.x name of `onCopied`, called with it. It never sees native copy
+   * events: it doesn't reach the DOM.
+   *
+   * @deprecated Use `onCopied`. Removed in a later major release.
+   */
   onCopy?: (value: string) => void;
   /** The copy failed. */
   onError?: (error: unknown) => void;
@@ -87,6 +96,7 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
       errorMessage = CLIPBOARD_LABELS.errorMessage,
       classes = {},
       className,
+      onCopied,
       onCopy,
       onError,
       ...rest
@@ -95,6 +105,27 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
   ) => {
     const value = valueProp ?? text ?? '';
     const clipboard = useClipboard({ timeout });
+    const { reset } = clipboard;
+    /**
+     * The value whose copy failed. While it is still the value, the field's
+     * box shows it to copy by hand; a new value hides it.
+     */
+    const [failed, setFailed] = useState<string | null>(null);
+    const manual = failed !== null && failed === value ? failed : null;
+    const valueRef = useRef<HTMLSpanElement>(null);
+    const shownValue = useRef(value);
+    // A new value clears a stale "Copied", even from a copy still in flight.
+    useEffect(() => {
+      if (shownValue.current === value) return;
+      shownValue.current = value;
+      reset();
+    }, [value, reset]);
+    // After a failure the value is selected, ready for the platform's copy keys.
+    useEffect(() => {
+      const node = valueRef.current;
+      const selection = typeof window === 'undefined' ? null : window.getSelection();
+      if (manual !== null && node && selection) selection.selectAllChildren(node);
+    }, [manual]);
     const shown: ClipboardVariant = variant === 'icon' || variant === 'field' ? variant : 'button';
     const labels = { copy: label, copied: copiedLabel, copiedMessage, errorMessage };
     const buttonLabel = clipboardLabel(clipboard.status, labels);
@@ -102,10 +133,17 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
     const Root = shown === 'field' ? 'div' : 'span';
 
     const copy = async () => {
-      const copied = await clipboard.copy(value);
-      if (copied) onCopy?.(value);
-      else onError?.(new Error('The value could not be copied to the clipboard.'));
+      const copying = value;
+      const copied = await clipboard.copy(copying);
+      // The value changed meanwhile: the result belongs to the old one.
+      if (shownValue.current !== copying) return;
+      setFailed(copied ? null : copying);
+      if (copied) {
+        onCopied?.(copying);
+        onCopy?.(copying);
+      } else onError?.(new Error('The value could not be copied to the clipboard.'));
     };
+    const showField = shown === 'field' || manual !== null;
 
     return (
       <Root
@@ -118,9 +156,9 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
         data-size={size}
         data-state={clipboard.status}
       >
-        {shown === 'field' ? (
+        {showField ? (
           <span className={classes.field} data-scope="clipboard" data-part="field">
-            <span className={classes.value} data-scope="clipboard" data-part="value">
+            <span ref={valueRef} className={classes.value} data-scope="clipboard" data-part="value">
               {value}
             </span>
           </span>

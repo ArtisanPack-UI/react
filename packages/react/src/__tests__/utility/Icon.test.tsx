@@ -55,6 +55,23 @@ describe('Icon', () => {
     expect(icon).not.toHaveAttribute('aria-hidden');
   });
 
+  it('keeps a caller aria-label or aria-labelledby and stays exposed', () => {
+    const { container, rerender } = render(<Icon name="circle-alert" aria-label="Error" />);
+    expect(root(container)).toHaveAttribute('aria-label', 'Error');
+    expect(root(container)).toHaveAttribute('role', 'img');
+    expect(root(container)).not.toHaveAttribute('aria-hidden');
+    rerender(<Icon name="circle-alert" aria-labelledby="msg" />);
+    expect(root(container)).toHaveAttribute('aria-labelledby', 'msg');
+    expect(root(container)).toHaveAttribute('role', 'img');
+    expect(root(container)).not.toHaveAttribute('aria-hidden');
+    // label still wins, and an unnamed icon is still hidden.
+    rerender(<Icon name="circle-alert" label="Payment failed" aria-label="Error" />);
+    expect(root(container)).toHaveAttribute('aria-label', 'Payment failed');
+    rerender(<Icon name="circle-alert" />);
+    expect(root(container)).toHaveAttribute('aria-hidden', 'true');
+    expect(root(container)).not.toHaveAttribute('role');
+  });
+
   it('writes size, color and the tile variant', () => {
     const { container } = render(<Icon name="wallet" variant="tile" color="success" size="xl" />);
     const icon = root(container);

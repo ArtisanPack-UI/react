@@ -34,7 +34,7 @@ describe('Clipboard', () => {
   it('matches the design-system manifest', async () => {
     // The timeout and the copied and error strings only show after a click.
     await expectReactParity(Clipboard, 'Clipboard', {
-      declared: { props: declaredProps, events: ['onCopy', 'onError'] },
+      declared: { props: declaredProps, events: ['onCopied', 'onError'] },
       ignoreEffects: ['timeout', 'copiedLabel', 'copiedMessage', 'errorMessage'],
     });
   });
@@ -59,13 +59,13 @@ describe('Clipboard', () => {
 
   it('copies, says Copied, announces it and goes back after the timeout', async () => {
     vi.useFakeTimers();
-    const onCopy = vi.fn();
-    const { container } = render(<Clipboard value={URL} timeout={1000} onCopy={onCopy} />);
+    const onCopied = vi.fn();
+    const { container } = render(<Clipboard value={URL} timeout={1000} onCopied={onCopied} />);
     await act(async () => {
       fireEvent.click(screen.getByRole('button'));
     });
     expect(writeText).toHaveBeenCalledWith(URL);
-    expect(onCopy).toHaveBeenCalledWith(URL);
+    expect(onCopied).toHaveBeenCalledWith(URL);
     const root = container.firstElementChild!;
     expect(root.getAttribute('data-state')).toBe('copied');
     expect(screen.getByRole('button')).toHaveTextContent('Copied');
@@ -75,6 +75,44 @@ describe('Clipboard', () => {
     });
     expect(root.getAttribute('data-state')).toBe('idle');
     expect(screen.getByRole('button')).toHaveTextContent('Copy');
+  });
+
+  it('keeps the deprecated onCopy, which never sees a native copy event', async () => {
+    const onCopy = vi.fn();
+    const { container } = render(<Clipboard value={URL} variant="field" onCopy={onCopy} />);
+    fireEvent.copy(container.querySelector('[data-part="value"]')!);
+    expect(onCopy).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
+    expect(onCopy).toHaveBeenCalledWith(URL);
+  });
+
+  it('clears a stale "Copied" when the value changes, even mid-copy', async () => {
+    let release: () => void = () => {};
+    writeText
+      .mockResolvedValueOnce(undefined)
+      .mockReturnValueOnce(new Promise<void>((resolve) => (release = resolve)));
+    const onCopied = vi.fn();
+    const { container, rerender } = render(<Clipboard value="A" onCopied={onCopied} />);
+    const root = container.firstElementChild!;
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
+    expect(root.getAttribute('data-state')).toBe('copied');
+    rerender(<Clipboard value="B" onCopied={onCopied} />);
+    expect(root.getAttribute('data-state')).toBe('idle');
+    expect(screen.getByRole('button')).toHaveTextContent('Copy');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
+    rerender(<Clipboard value="C" onCopied={onCopied} />);
+    await act(async () => {
+      release();
+    });
+    expect(root.getAttribute('data-state')).toBe('idle');
+    expect(onCopied).toHaveBeenCalledTimes(1);
   });
 
   it('still copies the deprecated 2.x text prop, with value winning', async () => {
@@ -110,6 +148,36 @@ describe('Clipboard', () => {
     expect(container.firstElementChild!.getAttribute('data-state')).toBe('failed');
     expect(screen.getByRole('status')).toHaveTextContent('No se pudo copiar.');
     expect(screen.getByRole('button')).toHaveTextContent('Copy');
+  });
+
+  it('shows and selects the value after a failure, so the button and icon variants can copy by hand', async () => {
+    (document as unknown as { execCommand: unknown }).execCommand = () => false;
+    for (const variant of ['button', 'icon'] as const) {
+      writeText.mockRejectedValueOnce(new Error('denied'));
+      const { container, rerender, unmount } = render(
+        <Clipboard value="LST-4127" variant={variant} label="Copy reference" />,
+      );
+      expect(container.querySelector('[data-part="field"]')).toBeNull();
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button'));
+      });
+      const value = container.querySelector('[data-part="field"] > [data-part="value"]');
+      expect(value).toHaveTextContent('LST-4127');
+      expect(window.getSelection()?.toString()).toBe('LST-4127');
+      // A copy that works hides it again; so does a new value.
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button'));
+      });
+      expect(container.querySelector('[data-part="field"]')).toBeNull();
+      writeText.mockRejectedValueOnce(new Error('denied'));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button'));
+      });
+      expect(container.querySelector('[data-part="field"]')).not.toBeNull();
+      rerender(<Clipboard value="LST-9" variant={variant} label="Copy reference" />);
+      expect(container.querySelector('[data-part="field"]')).toBeNull();
+      unmount();
+    }
   });
 
   it('names the icon button and shows its confirmation as the tooltip', async () => {

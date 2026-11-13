@@ -16,6 +16,7 @@ import {
   CALENDAR_MAX_EVENTS,
   calendarGridKeydown,
   calendarModel,
+  focusCalendarCell,
   rovingKeydown,
   type CalendarColor,
   type CalendarEvent,
@@ -25,6 +26,7 @@ import {
 } from '@artisanpack-ui/behavior';
 import {
   forwardRef,
+  useEffect,
   useId,
   useMemo,
   useState,
@@ -198,6 +200,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     }
     const [roving, setRoving] = useState<{ period: string; date: string } | null>(null);
     const [selected, setSelected] = useState<CalendarItem | null>(null);
+    const [moreFocus, setMoreFocus] = useState<{ date: string } | null>(null);
     const view = controlledView ?? ownView;
     const shownDate = controlledDate ?? ownDate;
     const weekStart = weekStartsOn ?? (weekStartsOnSunday ? 0 : undefined);
@@ -238,6 +241,17 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         onChange(new Date(y!, m! - 1, d!));
       }
     };
+    // "+N more" removes the button it was on; once the day view has
+    // rendered, focus that day's cell unless focus is still in the calendar.
+    useEffect(() => {
+      if (moreFocus === null) return;
+      const root = document.getElementById(id);
+      const active = document.activeElement;
+      if (!active || active === document.body || !root?.contains(active)) {
+        focusCalendarCell(root, moreFocus.date);
+      }
+    }, [moreFocus, id]);
+
     const chooseEvent = (item: CalendarItem) => {
       onEventClick?.(item.event);
       if (details) setSelected(item);
@@ -411,6 +425,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                       aria-label={day.moreLabel}
                       className={classes.more}
                       onClick={() => {
+                        setMoreFocus({ date: day.date });
                         changeDate(day.date);
                         changeView('day');
                       }}
