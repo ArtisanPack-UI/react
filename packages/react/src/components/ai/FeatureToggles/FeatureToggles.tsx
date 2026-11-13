@@ -10,6 +10,7 @@ import { Heading } from '../../layout/Heading/Heading';
 import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiFeature } from '../types';
+import { errorMessage } from '../errorMessage';
 
 /**
  * Props for {@link FeatureToggles}.
@@ -47,8 +48,8 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
       .then((response) => {
         if (generation === generationRef.current) setFeatures(response.features);
       })
-      .catch((err: Error) => {
-        if (generation === generationRef.current) setError(err.message);
+      .catch((err: unknown) => {
+        if (generation === generationRef.current) setError(errorMessage(err));
       });
     return () => {
       counter.current++;
@@ -76,7 +77,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
               prev?.map((f) => (f.key === feature.key ? { ...f, enabled: feature.enabled } : f)) ??
               prev,
           );
-          setError((err as Error).message);
+          setError(errorMessage(err));
         }
         return;
       } finally {
