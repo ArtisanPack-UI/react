@@ -10,6 +10,7 @@ export default defineConfig({
     chart: 'src/components/data/Chart/Chart.tsx',
     feedback: 'src/components/feedback/index.ts',
     utility: 'src/components/utility/index.ts',
+    ai: 'src/components/ai/index.ts',
   },
   format: ['esm'],
   dts: true,
