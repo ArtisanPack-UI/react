@@ -1,0 +1,57 @@
+name: Sync docs
+
+# Queues a docs-site import of this repo's docs/ and CHANGELOG.md.
+#
+# The Release job in ci.yml calls this after Changesets publishes. A
+# `release: published` trigger wouldn't work here: Changesets creates the
+# GitHub releases with the workflow GITHUB_TOKEN, and events from that token
+# don't start other workflows. It can also be run by hand from the Actions tab.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-docs:
+    name: Import docs on docs site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: sync-docs
+      cancel-in-progress: false
+
+    steps:
+      - name: Queue documentation and changelog imports
+        env:
+          DOCS_API_TOKEN: ${{ secrets.DOCS_API_TOKEN }}
+          DOCS_PACKAGE_SLUG: ${{ vars.DOCS_PACKAGE_SLUG || github.event.repository.name }}
+        run: |
+          if [ -z "$DOCS_API_TOKEN" ]; then
+            echo "::notice::DOCS_API_TOKEN is not set; skipping docs-site import."
+            exit 0
+          fi
+
+          HEADER_FILE="$(mktemp)"
+          chmod 600 "$HEADER_FILE"
+          trap 'rm -f "$HEADER_FILE"' EXIT
+          printf 'Authorization: Bearer %s\n' "$DOCS_API_TOKEN" > "$HEADER_FILE"
+
+          FAILED=0
+
+          for IMPORT in import-docs import-changelog; do
+            echo "Triggering $IMPORT for $DOCS_PACKAGE_SLUG"
+            if ! curl --fail-with-body -sS --retry 3 -X POST \
+              "https://docs.artisanpackui.dev/api/v1/packages/${DOCS_PACKAGE_SLUG}/${IMPORT}" \
+              -H @"$HEADER_FILE" \
+              -H "Accept: application/json"; then
+              echo
+              echo "::error::$IMPORT failed for $DOCS_PACKAGE_SLUG"
+              FAILED=1
+            fi
+            echo
+          done
+
+          exit "$FAILED"
