@@ -22,6 +22,7 @@ import type {
   AiSettingsUpdate,
 } from '../types';
 import { AiApiError } from '../createAiApiClient';
+import { errorMessage } from '../errorMessage';
 
 /**
  * Props for {@link SettingsPage}.
@@ -118,22 +119,32 @@ export function SettingsPage({
   // credentials it actually tested.
   const testSeqRef = useRef(0);
 
+  /** Retires any in-flight probe and clears its result. */
+  const invalidateTest = useCallback(() => {
+    testSeqRef.current++;
+    setTestResult(null);
+    setTesting(false);
+  }, []);
+
   const loadSettings = useCallback(async () => {
     const seq = ++loadSeqRef.current;
+    invalidateTest();
     setLoading(true);
     setLoadError(null);
+    setInitial(null);
     try {
       const response = await client.getSettings();
       if (seq !== loadSeqRef.current) return;
+      invalidateTest();
       setInitial(response);
       setForm(toFormState(response));
     } catch (err) {
       if (seq !== loadSeqRef.current) return;
-      setLoadError((err as Error).message);
+      setLoadError(errorMessage(err));
     } finally {
       if (seq === loadSeqRef.current) setLoading(false);
     }
-  }, [client]);
+  }, [client, invalidateTest]);
 
   useEffect(() => {
     const counter = loadSeqRef;
@@ -148,12 +159,10 @@ export function SettingsPage({
 
   const updateCredentials = useCallback(
     (patch: Partial<Pick<FormState, 'provider' | 'api_key' | 'base_url' | 'default_model'>>) => {
-      testSeqRef.current++;
+      invalidateTest();
       setForm((prev) => ({ ...prev, ...patch }));
-      setTestResult(null);
-      setTesting(false);
     },
-    [],
+    [invalidateTest],
   );
 
   const handleProviderChange = useCallback(
@@ -185,6 +194,7 @@ export function SettingsPage({
       setStatus(null);
       try {
         const response = await client.updateSettings(toUpdatePayload(form));
+        invalidateTest();
         setInitial(response);
         setForm(toFormState(response));
         setStatus('Settings saved.');
@@ -196,13 +206,13 @@ export function SettingsPage({
           setErrors(body?.errors ?? {});
           setStatus(body?.message ?? err.message);
         } else {
-          setStatus((err as Error).message);
+          setStatus(errorMessage(err));
         }
       } finally {
         setSaving(false);
       }
     },
-    [client, form],
+    [client, form, invalidateTest],
   );
 
   const handleTest = useCallback(async () => {
@@ -217,7 +227,7 @@ export function SettingsPage({
         const body = err.body as AiConnectionTestResult | null;
         result = body ?? { result: 'error', message: err.message };
       } else {
-        result = { result: 'error', message: (err as Error).message };
+        result = { result: 'error', message: errorMessage(err) };
       }
     }
     if (seq !== testSeqRef.current) return;
@@ -229,12 +239,12 @@ export function SettingsPage({
     return <Loading size="sm">Loading AI settings…</Loading>;
   }
 
-  if (loadError !== null) {
+  if (loadError !== null || initial === null) {
     return (
       <Alert
         color="error"
         title="The AI settings couldn't be loaded."
-        description={loadError}
+        description={loadError ?? undefined}
         actions={
           <Button variant="outline" color="neutral" size="sm" onClick={loadSettings}>
             Retry

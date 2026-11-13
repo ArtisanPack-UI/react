@@ -9,6 +9,7 @@ import { Heading } from '../../layout/Heading/Heading';
 import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiUsageResponse } from '../types';
+import { errorMessage } from '../errorMessage';
 
 /**
  * Props for {@link UsageDashboard}.
@@ -104,7 +105,7 @@ export function UsageDashboard({
         setError(null);
       } catch (err) {
         if (!active) return;
-        setError((err as Error).message);
+        setError(errorMessage(err));
       } finally {
         if (active) {
           setLoading(false);
