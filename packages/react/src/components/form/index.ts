@@ -176,5 +176,10 @@ export type {
 } from './ValidationSummary/ValidationSummary';
 
 // Icon registry: Button, Input and Select resolve icon names through it.
-export { isSafeIconBody, registerIcons, UnsafeIconError } from '@artisanpack-ui/behavior/icons';
+export {
+  isSafeIconBody,
+  registerDirectionalIcons,
+  registerIcons,
+  UnsafeIconError,
+} from '@artisanpack-ui/behavior/icons';
 export type { IconSet } from '@artisanpack-ui/behavior/icons';

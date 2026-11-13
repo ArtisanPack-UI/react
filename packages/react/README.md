@@ -18,12 +18,6 @@ npm install @artisanpack-ui/react @artisanpack-ui/tokens
 npm install react react-dom
 ```
 
-Optional peers for chart components:
-
-```bash
-npm install apexcharts react-apexcharts
-```
-
 ## Setup
 
 Import the tokens CSS in your Tailwind entry file:

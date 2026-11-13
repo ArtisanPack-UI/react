@@ -1,154 +1,201 @@
 /**
  * @module Clipboard
  *
- * A copy-to-clipboard button that uses the Clipboard API to write text
- * to the user's clipboard and provides visual success feedback. The
- * button transitions between idle and "copied" states with configurable
- * labels and duration.
+ * The design-system Clipboard (#65): copies a value with clear confirmation,
+ * rendering the `.apui-clipboard` markup contract styled by
+ * `@artisanpack-ui/css`. The copy runs on the behavior package's
+ * `useClipboard`, as Code's copy button and the Blade and Vue components do:
+ * `navigator.clipboard` with a fallback, "Copied" for the timeout, and the
+ * result (or the failure) announced in a live region. After a failure the
+ * value shows (in every variant) and is selected, to copy by hand; a new
+ * value clears a stale "Copied".
  *
  * @packageDocumentation
  */
 
-import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
+import {
+  CLIPBOARD_LABELS,
+  CLIPBOARD_TIMEOUT,
+  clipboardLabel,
+  clipboardMessage,
+} from '@artisanpack-ui/behavior';
+import { useClipboard } from '@artisanpack-ui/behavior/react';
+import { forwardRef, useEffect, useRef, useState, type HTMLAttributes } from 'react';
 
-/**
- * Props for the {@link Clipboard} component.
- */
-export interface ClipboardProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
-  /** The text string to copy to the clipboard when clicked. */
-  text: string;
-  /** Button label displayed in the idle state. Defaults to `"Copy"`. */
+import { IconPart, IconSvg } from '../../../internal/icon';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+
+/** A copy button, an icon button with a tooltip, or a copy field. Emitted as `data-variant`. */
+export type ClipboardVariant = 'button' | 'icon' | 'field';
+
+/** The button's size and the field's height. Emitted as `data-size`. */
+export type ClipboardSize = 'xs' | 'sm' | 'md';
+
+/** The parts a {@link Clipboard} accepts extra classes for. */
+export type ClipboardPart = 'root' | 'button' | 'field' | 'value' | 'tooltip';
+
+/** Props for the {@link Clipboard} component. Native attributes go to the root. */
+export interface ClipboardProps extends Omit<HTMLAttributes<HTMLElement>, 'onCopy' | 'onError'> {
+  /** What to copy. The field variant shows it. Always give it: it is optional only so the deprecated `text` still type-checks. */
+  value?: string;
+  /**
+   * The 2.x name of `value`; `value` wins.
+   *
+   * @deprecated Use `value`. Removed in a later major release.
+   */
+  text?: string;
+  /** How long "Copied" shows, in ms. @defaultValue `2000` */
+  timeout?: number;
+  /** @defaultValue `'button'` */
+  variant?: ClipboardVariant;
+  /** @defaultValue `'sm'` */
+  size?: ClipboardSize;
+  /** The button's label; the icon button's accessible name. Translate it. @defaultValue `'Copy'` */
   label?: string;
-  /** Button label displayed after a successful copy. Defaults to `"Copied!"`. */
-  successLabel?: string;
-  /** Duration in milliseconds to show the success state before reverting. Defaults to `2000`. */
-  successDuration?: number;
-  /** DaisyUI color variant or `"ghost"` for the button. Defaults to `"ghost"`. */
-  color?: DaisyColor | 'ghost';
-  /** Button size. Defaults to `"sm"`. */
-  size?: Size;
-  /** Callback fired after a successful clipboard write. */
-  onCopy?: () => void;
+  /** The label after a copy; translate it. @defaultValue `'Copied'` */
+  copiedLabel?: string;
+  /** Announced after a copy; translate it. @defaultValue `'Copied to clipboard'` */
+  copiedMessage?: string;
+  /** Announced when the copy fails; translate it. */
+  errorMessage?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<ClipboardPart>;
+  /** The value reached the clipboard. Named apart from React's native `onCopy`. */
+  onCopied?: (value: string) => void;
+  /**
+   * The 2.x name of `onCopied`, called with it. It never sees native copy
+   * events: it doesn't reach the DOM.
+   *
+   * @deprecated Use `onCopied`. Removed in a later major release.
+   */
+  onCopy?: (value: string) => void;
+  /** The copy failed. */
+  onError?: (error: unknown) => void;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  accent: 'btn-accent',
-  success: 'btn-success',
-  warning: 'btn-warning',
-  error: 'btn-error',
-  info: 'btn-info',
-  neutral: 'btn-neutral',
-  ghost: 'btn-ghost',
-};
-
-const sizeMap: Record<Size, string> = {
-  xs: 'btn-xs',
-  sm: 'btn-sm',
-  md: 'btn-md',
-  lg: 'btn-lg',
-};
-
-const copyIconPath =
-  'M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z';
-const copyIconPath2 =
-  'M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z';
-const checkIconPath =
-  'M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z';
-
 /**
- * Copy-to-clipboard button with visual success feedback.
- *
- * Displays a copy icon in the idle state and a checkmark icon after a
- * successful copy. Gracefully handles environments where the Clipboard
- * API is unavailable.
+ * A copy button with a live-region confirmation. The ref points at the root.
  *
  * @example
  * ```tsx
- * <Clipboard text="npm install @artisanpack-ui/react" />
- *
- * <Clipboard
- *   text={codeSnippet}
- *   label="Copy code"
- *   successLabel="Copied to clipboard!"
- *   color="primary"
- *   onCopy={() => analytics.track('code_copied')}
- * />
+ * <Clipboard value={shareUrl} />
+ * <Clipboard value={apiKey} variant="field" size="md" label="Copy API key" />
  * ```
  */
-export const Clipboard = forwardRef<HTMLButtonElement, ClipboardProps>(
+export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
   (
     {
+      value: valueProp,
       text,
-      label = 'Copy',
-      successLabel = 'Copied!',
-      successDuration = 2000,
-      color = 'ghost',
+      timeout = CLIPBOARD_TIMEOUT,
+      variant = 'button',
       size = 'sm',
-      onCopy,
-      onClick: userOnClick,
+      label = CLIPBOARD_LABELS.copy,
+      copiedLabel = CLIPBOARD_LABELS.copied,
+      copiedMessage = CLIPBOARD_LABELS.copiedMessage,
+      errorMessage = CLIPBOARD_LABELS.errorMessage,
+      classes = {},
       className,
+      onCopied,
+      onCopy,
+      onError,
       ...rest
     },
     ref,
   ) => {
-    const [copied, setCopied] = useState(false);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const handleCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      userOnClick?.(e);
-      if (e.defaultPrevented) {
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        onCopy?.();
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        timeoutRef.current = setTimeout(() => setCopied(false), successDuration);
-      } catch {
-        // Clipboard API may not be available
-      }
-    };
-
+    const value = valueProp ?? text ?? '';
+    const clipboard = useClipboard({ timeout });
+    const { reset } = clipboard;
+    /**
+     * The value whose copy failed. While it is still the value, the field's
+     * box shows it to copy by hand; a new value hides it.
+     */
+    const [failed, setFailed] = useState<string | null>(null);
+    const manual = failed !== null && failed === value ? failed : null;
+    const valueRef = useRef<HTMLSpanElement>(null);
+    const shownValue = useRef(value);
+    // A new value clears a stale "Copied", even from a copy still in flight.
     useEffect(() => {
-      return () => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      };
-    }, []);
+      if (shownValue.current === value) return;
+      shownValue.current = value;
+      reset();
+    }, [value, reset]);
+    // After a failure the value is selected, ready for the platform's copy keys.
+    useEffect(() => {
+      const node = valueRef.current;
+      const selection = typeof window === 'undefined' ? null : window.getSelection();
+      if (manual !== null && node && selection) selection.selectAllChildren(node);
+    }, [manual]);
+    const shown: ClipboardVariant = variant === 'icon' || variant === 'field' ? variant : 'button';
+    const labels = { copy: label, copied: copiedLabel, copiedMessage, errorMessage };
+    const buttonLabel = clipboardLabel(clipboard.status, labels);
+    const iconOnly = shown === 'icon';
+    const Root = shown === 'field' ? 'div' : 'span';
+
+    const copy = async () => {
+      const copying = value;
+      const copied = await clipboard.copy(copying);
+      // The value changed meanwhile: the result belongs to the old one.
+      if (shownValue.current !== copying) return;
+      setFailed(copied ? null : copying);
+      if (copied) {
+        onCopied?.(copying);
+        onCopy?.(copying);
+      } else onError?.(new Error('The value could not be copied to the clipboard.'));
+    };
+    const showField = shown === 'field' || manual !== null;
 
     return (
-      <button
-        ref={ref}
-        type="button"
-        className={cn('btn', colorMap[color], sizeMap[size], className)}
-        onClick={handleCopy}
-        aria-label={copied ? successLabel : label}
+      <Root
         {...rest}
+        ref={ref as never}
+        className={cx('apui-clipboard', classes.root, className)}
+        data-scope="clipboard"
+        data-part="root"
+        data-variant={shown}
+        data-size={size}
+        data-state={clipboard.status}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className={cn('w-4 h-4', copied && 'text-success')}
-          aria-hidden="true"
+        {showField ? (
+          <span className={classes.field} data-scope="clipboard" data-part="field">
+            <span ref={valueRef} className={classes.value} data-scope="clipboard" data-part="value">
+              {value}
+            </span>
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className={cx('apui-button', classes.button)}
+          data-scope="clipboard"
+          data-part="button"
+          data-variant={iconOnly ? 'ghost' : 'outline'}
+          data-color="neutral"
+          data-size={size}
+          data-state={clipboard.status}
+          data-icon-only={flag(iconOnly)}
+          aria-label={iconOnly ? buttonLabel : undefined}
+          onClick={copy}
         >
-          {copied ? (
-            <path fillRule="evenodd" d={checkIconPath} clipRule="evenodd" />
-          ) : (
-            <>
-              <path d={copyIconPath} />
-              <path d={copyIconPath2} />
-            </>
+          <IconPart
+            scope="button"
+            part="icon"
+            name={clipboard.status === 'copied' ? 'check' : 'copy'}
+          />
+          {iconOnly ? null : (
+            <span data-scope="button" data-part="label">
+              {buttonLabel}
+            </span>
           )}
-        </svg>
-        <span>{copied ? successLabel : label}</span>
-      </button>
+        </button>
+        <span className={classes.tooltip} data-scope="clipboard" data-part="tooltip" role="status">
+          {clipboard.status === 'copied' ? (
+            <span aria-hidden="true">
+              <IconSvg name="check" />
+            </span>
+          ) : null}
+          {clipboardMessage(clipboard.status, labels)}
+        </span>
+      </Root>
     );
   },
 );

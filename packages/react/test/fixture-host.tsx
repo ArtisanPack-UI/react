@@ -71,6 +71,16 @@ import { KpiCard } from '../src/components/data/KpiCard/KpiCard';
 import { Sparkline } from '../src/components/data/Sparkline/Sparkline';
 import { Timeline } from '../src/components/data/Timeline/Timeline';
 import { Diff } from '../src/components/data/Diff/Diff';
+import { Chart } from '../src/components/data/Chart/Chart';
+import { Calendar } from '../src/components/data/Calendar/Calendar';
+import { Carousel } from '../src/components/data/Carousel/Carousel';
+import { Code } from '../src/components/data/Code/Code';
+import { Icon } from '../src/components/utility/Icon/Icon';
+import { ThemeToggle } from '../src/components/utility/ThemeToggle/ThemeToggle';
+import { Markdown } from '../src/components/utility/Markdown/Markdown';
+import { Kbd } from '../src/components/utility/Kbd/Kbd';
+import { Swap } from '../src/components/utility/Swap/Swap';
+import { Clipboard } from '../src/components/utility/Clipboard/Clipboard';
 registerReactHost({
   Avatar,
   Badge,
@@ -137,4 +147,14 @@ registerReactHost({
   Sparkline,
   Timeline,
   Diff,
+  Chart,
+  Calendar,
+  Carousel,
+  Code,
+  Icon,
+  ThemeToggle,
+  Markdown,
+  Kbd,
+  Swap,
+  Clipboard,
 });

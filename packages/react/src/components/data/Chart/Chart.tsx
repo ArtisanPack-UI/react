@@ -1,290 +1,410 @@
 /**
  * @module Chart
  *
- * Charting component powered by ApexCharts (via react-apexcharts). Supports bar, line,
- * area, donut, pie, radialBar, radar, and polarArea chart types. Accepts data as either
- * simple data points or multi-series arrays, with DaisyUI color integration and
- * deep-mergeable ApexCharts options.
+ * The design-system Chart (#63): a bar, line, area or donut chart in a Card,
+ * rendering the `.apui-card.apui-chart` markup contract styled by
+ * `@artisanpack-ui/css`. The geometry comes from the behavior package's
+ * `chartGeometry`, the same one Blade and Vue draw: no chart library. The
+ * behavior package's `attachChartTooltip` opens the tooltip on hover and
+ * keyboard focus of each mark. The plot stays LTR (D-004).
+ *
+ * @packageDocumentation
  */
 
-import { forwardRef, useMemo, type HTMLAttributes } from 'react';
-import ReactApexChart from 'react-apexcharts';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
-import type { ApexOptions } from 'apexcharts';
+import {
+  attachChartTooltip,
+  CHART_HEIGHT,
+  CHART_TYPES,
+  CHART_WIDTH,
+  chartGeometry,
+  type ChartNotation,
+  type ChartSeriesInput,
+  type ChartType,
+} from '@artisanpack-ui/behavior';
+import {
+  forwardRef,
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type HTMLAttributes,
+  type ReactNode,
+  type Ref,
+} from 'react';
 
-/**
- * A single data point for simple chart types (pie, donut, single-series bar/line).
- */
-export interface ChartDataPoint {
-  /** Label for this data point (used as x-axis category or pie slice label). */
-  label: string;
-  /** Numeric value for this data point. */
-  value: number;
-  /** DaisyUI color name or CSS color string for this data point. */
-  color?: DaisyColor | string;
-}
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 
-/**
- * A named data series for multi-series chart types (bar, line, area).
- */
-export interface ChartSeries {
-  /** Display name for the series (shown in legend and tooltips). */
-  name: string;
-  /** Array of numeric values for this series. */
-  data: number[];
-  /** DaisyUI color name or CSS color string for this series. */
-  color?: DaisyColor | string;
-}
+export type { ChartNotation, ChartType };
 
-/**
- * Supported chart type identifiers for the {@link Chart} component.
- */
-export type ChartType =
-  | 'bar'
+/** One named series; `data` lines up with `labels`. */
+export type ChartSeries = ChartSeriesInput;
+
+/** The parts a {@link Chart} accepts extra classes for. */
+export type ChartPart =
+  | 'root'
+  | 'header'
+  | 'title'
+  | 'description'
+  | 'actions'
+  | 'legend'
+  | 'swatch'
+  | 'body'
+  | 'plot'
+  | 'grid'
+  | 'axis'
+  | 'mark'
   | 'line'
   | 'area'
-  | 'donut'
-  | 'pie'
-  | 'radialBar'
-  | 'radar'
-  | 'polarArea';
+  | 'point'
+  | 'crosshair'
+  | 'dot'
+  | 'value'
+  | 'tooltip'
+  | 'table';
 
-/**
- * Props for the {@link Chart} component.
- */
-export interface ChartProps extends HTMLAttributes<HTMLDivElement> {
-  /** The type of chart to render. */
-  type: ChartType;
-  /** Category labels for the x-axis or pie/donut slices. Falls back to `data[].label` if not provided. */
-  labels?: string[];
-  /** Multi-series data for bar, line, and area charts. */
-  series?: ChartSeries[];
-  /** Simple data points for single-series or pie/donut charts. */
-  data?: ChartDataPoint[];
-  /** Chart height in pixels or CSS string. @defaultValue 350 */
-  height?: number | string;
-  /** Chart width in pixels or CSS string. */
-  width?: number | string;
-  /** Default DaisyUI color applied to all series/data points without an explicit color. */
-  color?: DaisyColor;
-  /** ApexCharts options object, deep-merged with the component's defaults. */
-  options?: ApexOptions;
-  /** Whether to show the chart legend. @defaultValue true */
-  showLegend?: boolean;
-  /** Whether to enable chart animations. @defaultValue true */
-  animated?: boolean;
-  /** Optional title displayed above the chart. */
-  title?: string;
+/** Props for the {@link Chart} component. Native `<div>` attributes go to the root. */
+export interface ChartProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  /** Bars (the first series), lines, lines with a fill, or a donut. @defaultValue `'bar'` */
+  type?: ChartType;
+  /** `[{ name, data }]`, or a plain array of values for one series named by `title`. */
+  series: readonly ChartSeries[] | readonly (number | null)[];
+  /** The categories: x-axis labels, or the donut's slices. */
+  labels?: readonly string[];
+  /** The heading; it names the plot and the table. */
+  title: string;
+  /** Supporting text under the title. */
+  description?: string;
+  /** Controls at the end of the header, such as Tabs. */
+  actions?: ReactNode;
+  /** Shows the data table under the plot (the spec's `showTable`). @defaultValue `false` */
+  tabular?: boolean;
+  /** Printed before every value, such as `$`. */
+  prefix?: string;
+  /** Printed after every value, such as `%`. */
+  suffix?: string;
+  /** `standard` (12,500) or `compact` ($12.5k). @defaultValue `'standard'` */
+  notation?: ChartNotation;
+  /** The plot's viewBox width. @defaultValue `520` */
+  width?: number;
+  /** The plot's viewBox height. @defaultValue `220` */
+  height?: number;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<ChartPart>;
 }
 
-const daisyToHex: Record<string, string> = {
-  primary: '#6366f1',
-  secondary: '#a855f7',
-  accent: '#06b6d4',
-  success: '#22c55e',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  info: '#3b82f6',
-  neutral: '#64748b',
-};
-
-const defaultPalette = [
-  '#6366f1',
-  '#f43f5e',
-  '#10b981',
-  '#f59e0b',
-  '#3b82f6',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
-];
-
-function resolveColor(color: string | undefined, index: number): string {
-  if (!color) return defaultPalette[index % defaultPalette.length];
-  if (color in daisyToHex) return daisyToHex[color];
-  return color;
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
+  if (typeof ref === 'function') ref(value);
+  else if (ref) (ref as { current: T | null }).current = value;
 }
 
 /**
- * Chart component powered by ApexCharts with DaisyUI color integration.
- *
- * Supports both simple data points and multi-series data. Automatically resolves
- * DaisyUI color names to hex values and deep-merges user-provided ApexCharts options
- * with sensible defaults.
+ * A bar, line, area or donut chart. The ref points at the root `<div>`.
  *
  * @example
  * ```tsx
- * // Pie chart with simple data
  * <Chart
- *   type="pie"
- *   data={[
- *     { label: 'Desktop', value: 60, color: 'primary' },
- *     { label: 'Mobile', value: 30, color: 'secondary' },
- *     { label: 'Tablet', value: 10, color: 'accent' },
- *   ]}
- * />
- *
- * // Multi-series line chart
- * <Chart
- *   type="line"
- *   labels={['Jan', 'Feb', 'Mar']}
- *   series={[
- *     { name: 'Sales', data: [10, 20, 30], color: 'primary' },
- *     { name: 'Returns', data: [5, 3, 8], color: 'error' },
- *   ]}
+ *   type="bar"
+ *   title="Weekly revenue"
+ *   labels={['W1', 'W2', 'W3']}
+ *   series={[{ name: 'Revenue', data: [4100, 6000, 8200] }]}
+ *   prefix="$"
+ *   notation="compact"
  * />
  * ```
  */
 export const Chart = forwardRef<HTMLDivElement, ChartProps>(
   (
     {
-      type,
-      labels = [],
-      series = [],
-      data = [],
-      height = 350,
-      width,
-      color,
-      options: userOptions,
-      showLegend = true,
-      animated = true,
+      type = 'bar',
+      series,
+      labels,
       title,
+      description,
+      actions,
+      tabular = false,
+      prefix,
+      suffix,
+      notation = 'standard',
+      width = CHART_WIDTH,
+      height = CHART_HEIGHT,
+      classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
-    const isPie =
-      type === 'pie' || type === 'donut' || type === 'radialBar' || type === 'polarArea';
+    const shown: ChartType = CHART_TYPES.includes(type) ? type : 'bar';
+    const geometry = useMemo(
+      () =>
+        chartGeometry(series, {
+          type: shown,
+          labels,
+          width,
+          height,
+          title,
+          prefix,
+          suffix,
+          notation: notation === 'compact' ? 'compact' : 'standard',
+        }),
+      [series, shown, labels, width, height, title, prefix, suffix, notation],
+    );
 
-    const resolvedColors = useMemo(() => {
-      if (isPie && data.length > 0) {
-        return data.map((d, i) => resolveColor(d.color, i));
-      }
-      if (series.length > 0) {
-        return series.map((s, i) => resolveColor(s.color ?? color, i));
-      }
-      return [resolveColor(color, 0)];
-    }, [isPie, data, series, color]);
+    const root = useRef<HTMLDivElement | null>(null);
+    const setRoot = useCallback(
+      (element: HTMLDivElement | null) => {
+        root.current = element;
+        assignRef(ref, element);
+      },
+      [ref],
+    );
+    useEffect(() => (root.current ? attachChartTooltip(root.current) : undefined), []);
 
-    const apexSeries = useMemo(() => {
-      if (isPie) {
-        if (data.length > 0) return data.map((d) => d.value);
-        if (series.length > 0 && series[0]) return series[0].data;
-        return [];
-      }
-      if (series.length > 0) {
-        return series.map((s) => ({
-          name: s.name,
-          data: s.data,
-        }));
-      }
-      if (data.length > 0) {
-        return [{ name: 'Default', data: data.map((d) => d.value) }];
-      }
-      return [];
-    }, [isPie, series, data]);
-
-    const apexLabels = useMemo(() => {
-      if (labels.length > 0) return labels;
-      if (data.length > 0) return data.map((d) => d.label);
-      return [];
-    }, [labels, data]);
-
-    const mergedOptions: ApexOptions = useMemo(() => {
-      const base: ApexOptions = {
-        chart: {
-          toolbar: { show: false },
-          animations: {
-            enabled: animated,
-            easing: 'easeinout',
-            speed: 800,
-            dynamicAnimation: { enabled: true, speed: 350 },
-          },
-          background: 'transparent',
-        },
-        colors: resolvedColors,
-        legend: { show: showLegend },
-        stroke: { curve: 'smooth' },
-        dataLabels: { enabled: isPie },
-        tooltip: { enabled: true },
-        grid: { borderColor: '#e5e7eb' },
-      };
-
-      if (apexLabels.length > 0) {
-        base.labels = apexLabels;
-      }
-
-      if (!isPie && apexLabels.length > 0) {
-        base.xaxis = { categories: apexLabels };
-      }
-
-      if (type === 'area') {
-        base.stroke = { curve: 'smooth', width: 2 };
-        base.fill = {
-          type: 'gradient',
-          gradient: { opacityFrom: 0.4, opacityTo: 0.05 },
-        };
-      }
-
-      if (userOptions) {
-        return deepMerge(
-          base as unknown as Record<string, unknown>,
-          userOptions as unknown as Record<string, unknown>,
-        ) as unknown as ApexOptions;
-      }
-      return base;
-    }, [type, resolvedColors, apexLabels, isPie, showLegend, animated, userOptions]);
+    const donut = shown === 'donut';
+    const named = title ? title : undefined;
+    const legend = (
+      <ul className={classes.legend} data-scope="chart" data-part="legend">
+        {geometry.legend.map((item, index) => (
+          <li key={index}>
+            <span
+              className={classes.swatch}
+              data-scope="chart"
+              data-part="swatch"
+              data-series={item.series}
+              aria-hidden="true"
+            />
+            {item.name}
+            {item.value !== null ? (
+              <span className={classes.value} data-scope="chart" data-part="value">
+                {item.value}
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    );
 
     return (
-      <div ref={ref} className={cn('bg-base-100 rounded-box p-4', className)} {...rest}>
-        {title && <h3 className="text-lg font-bold mb-4">{title}</h3>}
-        <ReactApexChart
-          options={mergedOptions}
-          series={apexSeries}
-          type={type}
-          height={height}
-          width={width}
-        />
+      <div
+        {...rest}
+        ref={setRoot}
+        className={cx('apui-card apui-chart', classes.root, className)}
+        data-type={shown}
+      >
+        <div className={classes.header} data-scope="chart" data-part="header">
+          <div>
+            {title ? (
+              <h3 className={classes.title} data-scope="chart" data-part="title">
+                {title}
+              </h3>
+            ) : null}
+            {description ? (
+              <p className={classes.description} data-scope="chart" data-part="description">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          {!donut && geometry.legend.length > 0 ? legend : null}
+          {hasContent(actions) ? (
+            <div className={classes.actions} data-scope="chart" data-part="actions">
+              {actions}
+            </div>
+          ) : null}
+        </div>
+        <div className={classes.body} data-scope="chart" data-part="body">
+          <svg
+            className={classes.plot}
+            data-scope="chart"
+            data-part="plot"
+            viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+            width={geometry.width}
+            height={geometry.height}
+            role="group"
+            aria-label={named}
+          >
+            {!donut ? (
+              <>
+                <g aria-hidden="true">
+                  {geometry.ticks.map((tick, index) => (
+                    <Fragment key={`tick-${index}`}>
+                      <line
+                        className={classes.grid}
+                        data-scope="chart"
+                        data-part="grid"
+                        x1={geometry.left}
+                        x2={geometry.right}
+                        y1={tick.y}
+                        y2={tick.y}
+                      />
+                      <text
+                        className={classes.axis}
+                        data-scope="chart"
+                        data-part="axis"
+                        x={geometry.tickX}
+                        y={tick.textY}
+                        textAnchor="end"
+                      >
+                        {tick.label}
+                      </text>
+                    </Fragment>
+                  ))}
+                  {geometry.categories.map((category, index) => (
+                    <text
+                      key={`category-${index}`}
+                      className={classes.axis}
+                      data-scope="chart"
+                      data-part="axis"
+                      x={category.x}
+                      y={geometry.labelY}
+                      textAnchor="middle"
+                    >
+                      {category.label}
+                    </text>
+                  ))}
+                </g>
+                {geometry.lines.length > 0 ? (
+                  <>
+                    <g aria-hidden="true">
+                      {geometry.areas.map((area, index) => (
+                        <path
+                          key={`area-${index}`}
+                          className={classes.area}
+                          data-scope="chart"
+                          data-part="area"
+                          data-series={area.series}
+                          d={area.d}
+                        />
+                      ))}
+                      {geometry.lines.map((line, index) => (
+                        <path
+                          key={`line-${index}`}
+                          className={classes.line}
+                          data-scope="chart"
+                          data-part="line"
+                          data-series={line.series}
+                          d={line.d}
+                        />
+                      ))}
+                    </g>
+                    <g aria-hidden="true">
+                      {geometry.points.map((point) => (
+                        <g
+                          key={point.index}
+                          className={classes.point}
+                          data-scope="chart"
+                          data-part="point"
+                          data-index={point.index}
+                          visibility="hidden"
+                        >
+                          <line
+                            className={classes.crosshair}
+                            data-scope="chart"
+                            data-part="crosshair"
+                            x1={point.x}
+                            x2={point.x}
+                            y1={point.top}
+                            y2={point.bottom}
+                          />
+                          {point.dots.map((dot, dotIndex) => (
+                            <circle
+                              key={dotIndex}
+                              className={classes.dot}
+                              data-scope="chart"
+                              data-part="dot"
+                              data-series={dot.series}
+                              cx={dot.cx}
+                              cy={dot.cy}
+                              r="5"
+                            />
+                          ))}
+                        </g>
+                      ))}
+                    </g>
+                  </>
+                ) : null}
+                {geometry.value !== null ? (
+                  <text
+                    className={classes.value}
+                    data-scope="chart"
+                    data-part="value"
+                    x={geometry.value.x}
+                    y={geometry.value.y}
+                    textAnchor="middle"
+                    aria-hidden="true"
+                  >
+                    {geometry.value.text}
+                  </text>
+                ) : null}
+              </>
+            ) : null}
+            {geometry.marks.map((mark) => {
+              const shared = {
+                className: classes.mark,
+                'data-scope': 'chart',
+                'data-part': 'mark',
+                'data-series': mark.series,
+                'data-index': mark.index,
+                tabIndex: 0,
+                role: 'img',
+                'aria-label': mark.label,
+                'data-tooltip-title': mark.title,
+                'data-tooltip-body': mark.body,
+                'data-anchor-x': mark.anchorX,
+                'data-anchor-y': mark.anchorY,
+              };
+              return mark.shape === 'rect' ? (
+                <rect
+                  key={mark.index}
+                  {...shared}
+                  x={mark.x}
+                  y={mark.y}
+                  width={mark.width}
+                  height={mark.height}
+                />
+              ) : (
+                <path key={mark.index} {...shared} d={mark.d} />
+              );
+            })}
+          </svg>
+          {donut ? legend : null}
+          <div
+            className={classes.tooltip}
+            data-scope="chart"
+            data-part="tooltip"
+            aria-hidden="true"
+            hidden
+          />
+        </div>
+        {tabular ? (
+          <table className={classes.table} data-scope="chart" data-part="table" aria-label={named}>
+            <thead>
+              <tr>
+                {geometry.table.columns.map((column, index) =>
+                  index === 0 ? (
+                    <td key={index} />
+                  ) : (
+                    <th key={index} scope="col">
+                      {column}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {geometry.table.rows.map((row, index) => (
+                <tr key={index}>
+                  <th scope="row">{row.label}</th>
+                  {row.cells.map((cell, cellIndex) => (
+                    <td key={cellIndex}>{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
       </div>
     );
   },
 );
 
 Chart.displayName = 'Chart';
-
-/**
- * Recursively deep-merges two plain objects. Arrays and non-object values
- * in `source` overwrite those in `target`.
- *
- * @param target - The base object to merge into.
- * @param source - The object whose values take precedence.
- * @returns A new merged object.
- */
-function deepMerge<T extends Record<string, unknown>>(
-  target: T,
-  source: Record<string, unknown>,
-): T {
-  const result = { ...target } as Record<string, unknown>;
-  for (const key of Object.keys(source)) {
-    const targetVal = result[key];
-    const sourceVal = source[key];
-    if (
-      targetVal &&
-      sourceVal &&
-      typeof targetVal === 'object' &&
-      typeof sourceVal === 'object' &&
-      !Array.isArray(targetVal) &&
-      !Array.isArray(sourceVal)
-    ) {
-      result[key] = deepMerge(
-        targetVal as Record<string, unknown>,
-        sourceVal as Record<string, unknown>,
-      );
-    } else {
-      result[key] = sourceVal;
-    }
-  }
-  return result as T;
-}

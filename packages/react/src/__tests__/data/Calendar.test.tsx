@@ -1,156 +1,242 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Calendar } from '../../components/data/Calendar/Calendar';
-import type { CalendarEvent } from '../../components/data/Calendar/Calendar';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import {
+  Calendar,
+  type CalendarEvent,
+  type CalendarProps,
+} from '../../components/data/Calendar/Calendar';
+
+const declaredProps: (keyof CalendarProps)[] = [
+  'view',
+  'date',
+  'today',
+  'events',
+  'weekStartsOn',
+  'locale',
+  'timeZone',
+  'maxEvents',
+  'creatable',
+  'details',
+  'labels',
+  'classes',
+];
+
+const events: CalendarEvent[] = [
+  {
+    id: 1,
+    start: '2026-11-02T09:00',
+    end: '2026-11-02T10:00',
+    title: 'Team meeting',
+    color: 'error',
+    category: 'Marketing',
+    description: 'Weekly sync.',
+  },
+  { id: 6, start: '2026-11-12T11:00', title: 'Viewing · Lakeview', color: 'primary' },
+  { id: 7, start: '2026-11-12T16:00', title: 'Hubstaff broadcast', color: 'info' },
+  {
+    id: 8,
+    start: '2026-11-12T18:00',
+    title: 'Board dinner',
+    color: 'success',
+    href: 'https://example.com/dinner',
+  },
+];
+
+const base = { id: 'cal', events, today: '2026-11-07', weekStartsOn: 1 };
+
+const q = (container: HTMLElement, selector: string) =>
+  container.querySelector<HTMLElement>(selector)!;
 
 describe('Calendar', () => {
-  it('renders month and year header', () => {
-    render(<Calendar value={new Date(2025, 0, 15)} />);
-    expect(screen.getByText('January 2025')).toBeInTheDocument();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Calendar, 'Calendar', {
+      declared: {
+        props: declaredProps,
+        events: ['onViewChange', 'onDateChange', 'onEventClick', 'onCreate'],
+      },
+    });
   });
 
-  it('renders weekday headers starting Monday by default', () => {
-    render(<Calendar />);
-    const headers = screen.getAllByRole('columnheader');
-    expect(headers[0]).toHaveTextContent('Mon');
-  });
-
-  it('renders weekday headers starting Sunday', () => {
-    render(<Calendar weekStartsOnSunday />);
-    const headers = screen.getAllByRole('columnheader');
-    expect(headers[0]).toHaveTextContent('Sun');
-  });
-
-  it('renders day numbers', () => {
-    render(<Calendar value={new Date(2025, 0, 15)} />);
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('15')).toBeInTheDocument();
-    expect(screen.getByText('31')).toBeInTheDocument();
-  });
-
-  it('calls onChange when day is clicked', () => {
-    const onChange = vi.fn();
-    render(<Calendar value={new Date(2025, 0, 15)} onChange={onChange} />);
-    fireEvent.click(screen.getByText('20'));
-    expect(onChange).toHaveBeenCalled();
-    const calledDate = onChange.mock.calls[0][0] as Date;
-    expect(calledDate.getFullYear()).toBe(2025);
-    expect(calledDate.getMonth()).toBe(0);
-    expect(calledDate.getDate()).toBe(20);
-  });
-
-  it('navigates to previous month', () => {
-    render(<Calendar value={new Date(2025, 1, 15)} />);
-    expect(screen.getByText('February 2025')).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText('Previous month'));
-    expect(screen.getByText('January 2025')).toBeInTheDocument();
-  });
-
-  it('navigates to next month', () => {
-    render(<Calendar value={new Date(2025, 0, 15)} />);
-    fireEvent.click(screen.getByLabelText('Next month'));
-    expect(screen.getByText('February 2025')).toBeInTheDocument();
-  });
-
-  it('renders Today button', () => {
-    render(<Calendar />);
-    expect(screen.getByText('Today')).toBeInTheDocument();
-  });
-
-  it('renders event dots', () => {
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'Meeting', date: '2025-01-15', color: 'primary' },
-    ];
-    render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
-    const dot = screen.getByTitle('Meeting');
-    expect(dot).toBeInTheDocument();
-  });
-
-  it('expands multi-day events across date range', () => {
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'Conference', date: '2025-01-13', endDate: '2025-01-15' },
-    ];
-    render(<Calendar value={new Date(2025, 0, 13)} events={events} />);
-    const dots = screen.getAllByTitle('Conference');
-    expect(dots).toHaveLength(3);
-  });
-
-  it('renders non-interactive dots when onEventClick is absent', () => {
-    const events: CalendarEvent[] = [{ id: 1, title: 'Meeting', date: '2025-01-15' }];
-    render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
-    const dot = screen.getByTitle('Meeting');
-    expect(dot.tagName).toBe('SPAN');
-    expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument();
-  });
-
-  it('syncs visible month when controlled value changes', () => {
-    const { rerender } = render(<Calendar value={new Date(2025, 0, 15)} />);
-    expect(screen.getByText('January 2025')).toBeInTheDocument();
-
-    rerender(<Calendar value={new Date(2025, 4, 1)} />);
-    expect(screen.getByText('May 2025')).toBeInTheDocument();
-  });
-
-  it('renders custom day via renderDay', () => {
-    render(
-      <Calendar
-        value={new Date(2025, 0, 15)}
-        renderDay={(date) => <div data-testid={`day-${date.getDate()}`}>{date.getDate()}</div>}
-      />,
+  it('renders the month grid with a tab stop, today and labeled days', () => {
+    const ref = createRef<HTMLDivElement>();
+    const { container } = render(<Calendar ref={ref} {...base} />);
+    const root = q(container, '.apui-calendar');
+    expect(ref.current).toBe(root);
+    expect(root.getAttribute('data-view')).toBe('month');
+    expect(q(container, '#cal-title').textContent).toBe('November 2026');
+    expect(q(container, '[role="grid"]').getAttribute('aria-labelledby')).toBe('cal-title');
+    expect(container.querySelectorAll('[role="columnheader"]')).toHaveLength(7);
+    expect(container.querySelectorAll('[role="gridcell"]')).toHaveLength(42);
+    expect(q(container, '[role="gridcell"][tabindex="0"]').getAttribute('data-date')).toBe(
+      '2026-11-07',
     );
-    expect(screen.getByTestId('day-15')).toBeInTheDocument();
+    const today = q(container, '[aria-current="date"]');
+    expect(today.querySelector('.apui-sr-only')!.textContent).toBe('Saturday, November 7, 2026');
+    expect(today.hasAttribute('data-today')).toBe(true);
   });
 
-  it('applies selected styling to value date', () => {
-    const { container } = render(<Calendar value={new Date(2025, 0, 15)} color="primary" />);
-    expect(container.querySelector('.bg-primary')).toBeInTheDocument();
-  });
-
-  it('disables days outside minDate/maxDate range', () => {
-    const onChange = vi.fn();
-    render(
-      <Calendar
-        value={new Date(2025, 0, 15)}
-        onChange={onChange}
-        minDate={new Date(2025, 0, 10)}
-        maxDate={new Date(2025, 0, 20)}
-      />,
+  it('names events by title, category and time, and folds the rest into +N more', () => {
+    const { container } = render(<Calendar {...base} />);
+    const event = q(container, '[data-date="2026-11-02"] [data-part="event"]');
+    expect(event.tagName).toBe('BUTTON');
+    expect(event.getAttribute('data-color')).toBe('error');
+    expect(event.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(event.hasAttribute('aria-label')).toBe(false);
+    expect(event.textContent).toBe(
+      '09:00Team meeting, Marketing, Monday, November 2, 2026, 09:00 – 10:00',
     );
-    // Day 5 should be disabled
-    const day5 = screen.getByText('5').closest('button');
-    expect(day5).toBeDisabled();
-    fireEvent.click(day5!);
-    expect(onChange).not.toHaveBeenCalled();
-
-    // Day 25 should be disabled
-    const day25 = screen.getByText('25').closest('button');
-    expect(day25).toBeDisabled();
+    expect(container.querySelectorAll('[data-date="2026-11-12"] [data-part="event"]')).toHaveLength(
+      2,
+    );
+    const more = q(container, '[data-date="2026-11-12"] [data-part="more"]');
+    expect(more.textContent).toBe('+1 more');
+    expect(more.getAttribute('aria-label')).toBe(
+      'Show 1 more events on Thursday, November 12, 2026',
+    );
   });
 
-  it('renders overflow indicator for more than 3 events', () => {
-    const events: CalendarEvent[] = [
-      { id: 1, title: 'E1', date: '2025-01-15' },
-      { id: 2, title: 'E2', date: '2025-01-15' },
-      { id: 3, title: 'E3', date: '2025-01-15' },
-      { id: 4, title: 'E4', date: '2025-01-15' },
-    ];
-    render(<Calendar value={new Date(2025, 0, 15)} events={events} />);
-    expect(screen.getByText('+1')).toBeInTheDocument();
+  it('moves between dates and views, controlled or not', () => {
+    const onDateChange = vi.fn();
+    const onViewChange = vi.fn();
+    const { container } = render(
+      <Calendar {...base} onDateChange={onDateChange} onViewChange={onViewChange} />,
+    );
+    fireEvent.click(q(container, '[data-part="next-trigger"]'));
+    expect(onDateChange).toHaveBeenLastCalledWith('2026-12-07');
+    expect(q(container, '#cal-title').textContent).toBe('December 2026');
+    fireEvent.click(q(container, '[data-part="today-trigger"]'));
+    expect(q(container, '#cal-title').textContent).toBe('November 2026');
+    fireEvent.click(screen.getByRole('tab', { name: 'Week' }));
+    expect(onViewChange).toHaveBeenLastCalledWith('week');
+    expect(q(container, '#cal-title').textContent).toBe('Nov 2 – Nov 8, 2026');
+    expect(q(container, '#cal-body').getAttribute('aria-labelledby')).toBe('cal-tab-week');
+
+    const onControlledView = vi.fn();
+    const controlled = render(
+      <Calendar {...base} id="c2" view="month" onViewChange={onControlledView} />,
+    );
+    fireEvent.click(q(controlled.container, '#c2-tab-day'));
+    expect(onControlledView).toHaveBeenCalledWith('day');
+    expect(q(controlled.container, '#c2').getAttribute('data-view')).toBe('month');
   });
 
-  it('fires onEventClick via click on event dot button', () => {
+  it('opens the day from +N more', () => {
+    const { container } = render(<Calendar {...base} />);
+    fireEvent.click(q(container, '[data-date="2026-11-12"] [data-part="more"]'));
+    expect(q(container, '.apui-calendar').getAttribute('data-view')).toBe('day');
+    expect(container.querySelectorAll('[data-part="event"]')).toHaveLength(3);
+  });
+
+  it('moves focus to the day +N more opens', () => {
+    const { container } = render(<Calendar {...base} />);
+    const more = q(container, '[data-date="2026-11-12"] [data-part="more"]');
+    more.focus();
+    fireEvent.click(more);
+    const cell = q(container, '[role="gridcell"][data-date="2026-11-12"]');
+    expect(document.activeElement).toBe(cell);
+    expect(cell.tabIndex).toBe(0);
+  });
+
+  it('reports event clicks and opens the details Dialog', async () => {
     const onEventClick = vi.fn();
-    const events: CalendarEvent[] = [{ id: 1, title: 'Meeting', date: '2025-01-15' }];
-    render(<Calendar value={new Date(2025, 0, 15)} events={events} onEventClick={onEventClick} />);
-    const dot = screen.getByLabelText('Meeting');
-    expect(dot.tagName).toBe('BUTTON');
-    fireEvent.click(dot);
+    const { container } = render(<Calendar {...base} onEventClick={onEventClick} />);
+    fireEvent.click(q(container, '[data-date="2026-11-02"] [data-part="event"]'));
     expect(onEventClick).toHaveBeenCalledWith(events[0]);
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.textContent).toContain('Team meeting');
+    expect(dialog.textContent).toContain('Monday, November 2, 2026, 09:00 – 10:00');
+    expect(dialog.textContent).toContain('Weekly sync.');
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Calendar ref={ref} />);
-    expect(ref).toHaveBeenCalled();
+  it('renders links for events with href and the New event button', () => {
+    const onCreate = vi.fn();
+    const { container } = render(
+      <Calendar {...base} maxEvents={3} creatable onCreate={onCreate} />,
+    );
+    const link = q(container, 'a[data-part="event"]');
+    expect(link.getAttribute('href')).toBe('https://example.com/dinner');
+    expect(link.hasAttribute('aria-haspopup')).toBe(false);
+    fireEvent.click(q(container, '[data-part="create-trigger"]'));
+    expect(onCreate).toHaveBeenCalledWith('2026-11-07');
+  });
+
+  it('moves focus with the arrow keys, following the text direction', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <Calendar {...base} />
+      </div>,
+    );
+    const start = q(container, '[data-date="2026-11-07"]');
+    start.focus();
+    fireEvent.keyDown(start, { key: 'ArrowLeft' });
+    expect(document.activeElement?.getAttribute('data-date')).toBe('2026-11-08');
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' });
+    expect(document.activeElement?.getAttribute('data-date')).toBe('2026-11-15');
+    fireEvent.keyDown(document.activeElement!, { key: 'Home' });
+    expect(document.activeElement?.getAttribute('data-date')).toBe('2026-11-09');
+    expect(q(container, '[data-date="2026-11-09"]').tabIndex).toBe(0);
+    expect(start.tabIndex).toBe(-1);
+  });
+
+  it('keeps one tab stop after arrow keys and a period change', () => {
+    const { container } = render(<Calendar {...base} />);
+    const start = q(container, '[data-date="2026-11-07"]');
+    start.focus();
+    fireEvent.keyDown(start, { key: 'ArrowUp' });
+    expect(document.activeElement?.getAttribute('data-date')).toBe('2026-10-31');
+    fireEvent.click(q(container, '[data-part="previous-trigger"]'));
+    const stops = container.querySelectorAll('[role="gridcell"][tabindex="0"]');
+    expect(stops).toHaveLength(1);
+    fireEvent.click(q(container, '[data-part="next-trigger"]'));
+    expect(container.querySelectorAll('[role="gridcell"][tabindex="0"]')).toHaveLength(1);
+  });
+
+  it('seeds the date from the 2.x value without locking it', () => {
+    const onChange = vi.fn();
+    const { container, rerender } = render(
+      <Calendar {...base} value={new Date(2026, 2, 10)} onChange={onChange} />,
+    );
+    const title = () => q(container, '[data-part="title"]').textContent;
+    expect(title()).toBe('March 2026');
+    fireEvent.click(q(container, '[data-part="next-trigger"]'));
+    expect(title()).toBe('April 2026');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange.mock.calls[0]![0]).toBeInstanceOf(Date);
+    expect((onChange.mock.calls[0]![0] as Date).getMonth()).toBe(3);
+    rerender(<Calendar {...base} value={new Date(2026, 2, 10)} onChange={onChange} />);
+    expect(title()).toBe('April 2026');
+    rerender(<Calendar {...base} value={new Date(2026, 7, 1)} onChange={onChange} />);
+    expect(title()).toBe('August 2026');
+  });
+
+  it('renders the agenda as a list, with an empty state', () => {
+    const { container } = render(<Calendar {...base} view="agenda" />);
+    expect(container.querySelectorAll('ul[data-part="grid"] > li[data-part="row"]')).toHaveLength(
+      2,
+    );
+    expect(q(container, 'h3[data-part="weekday"]').textContent).toBe('Monday, November 2, 2026');
+    const empty = render(<Calendar {...base} id="e" events={[]} view="agenda" />);
+    expect(q(empty.container, '.apui-empty-state').textContent).toContain('No events');
+  });
+
+  it('takes labels, classes and the 2.x props', () => {
+    const { container } = render(
+      <Calendar
+        {...base}
+        weekStartsOn={undefined}
+        weekStartsOnSunday
+        labels={{ today: 'Hoy' }}
+        classes={{ cell: 'my-cell' }}
+        events={[{ id: 'x', date: '2026-11-03', title: '2.x event' }]}
+      />,
+    );
+    expect(q(container, '[data-part="today-trigger"]').textContent).toBe('Hoy');
+    expect(q(container, '[role="columnheader"]').textContent).toBe('Sun');
+    expect(container.querySelectorAll('.my-cell')).toHaveLength(35);
+    expect(q(container, '[data-date="2026-11-03"] [data-part="event-title"]').textContent).toBe(
+      '2.x event',
+    );
   });
 });

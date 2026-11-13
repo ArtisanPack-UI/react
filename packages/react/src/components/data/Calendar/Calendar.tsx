@@ -1,439 +1,602 @@
 /**
  * @module Calendar
  *
- * Full month calendar component with date selection, event display, and month navigation.
- * Supports configurable week start day, min/max date constraints, event dots with click
- * handlers, weekend highlighting, and custom day rendering.
+ * The design-system Calendar (#64): events on a month grid, a week, a day or
+ * an agenda list, rendering the `.apui-calendar` markup contract styled by
+ * `@artisanpack-ui/css`. The days, titles, labels and event order come from
+ * the behavior package's `calendarModel`, the same rules Livewire's
+ * server-rendered grid ports to PHP. The toolbar uses the design-system
+ * Button and the Tabs markup; event details open in the design-system Dialog.
+ *
+ * @packageDocumentation
  */
 
 import {
+  CALENDAR_LABELS,
+  CALENDAR_MAX_EVENTS,
+  calendarGridKeydown,
+  calendarModel,
+  focusCalendarCell,
+  rovingKeydown,
+  type CalendarColor,
+  type CalendarEvent,
+  type CalendarItem,
+  type CalendarLabels,
+  type CalendarView,
+} from '@artisanpack-ui/behavior';
+import {
   forwardRef,
-  useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
   type HTMLAttributes,
+  type KeyboardEvent,
   type ReactNode,
 } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
 
-/**
- * Represents a calendar event displayed as a colored dot on a day cell.
- */
-export interface CalendarEvent {
-  /** Unique identifier for the event. */
-  id: string | number;
-  /** Display title for the event, shown in tooltips and as aria-label. */
-  title: string;
-  /** Start date in ISO format (YYYY-MM-DD). */
-  date: string;
-  /** Optional end date in ISO format for multi-day events. */
-  endDate?: string;
-  /** DaisyUI color for the event dot indicator. @defaultValue 'primary' */
-  color?: DaisyColor;
-  /** Optional description text for the event. */
-  description?: string;
-}
+import { cx, devWarnOnce, flag, type PartClasses } from '../../../internal/parts';
+import { safeHref } from '../../../internal/url';
+import { Button } from '../../form/Button/Button';
+import { EmptyState } from '../../feedback/EmptyState/EmptyState';
+import { Dialog } from '../../layout/Dialog/Dialog';
+import { Badge } from '../Badge/Badge';
+import { Text } from '../../layout/Text/Text';
+import { Stack } from '../../layout/Stack/Stack';
 
-/**
- * Props for the {@link Calendar} component.
- */
-export interface CalendarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  /** Currently selected date (controlled). Syncs the view month when changed. */
-  value?: Date;
-  /** Callback fired when a day is clicked. Receives the selected Date object. */
-  onChange?: (date: Date) => void;
-  /** Array of events to display as colored dots on their respective days. */
-  events?: CalendarEvent[];
-  /** Callback fired when an event dot is clicked. */
+export type { CalendarColor, CalendarEvent, CalendarLabels, CalendarView };
+
+/** The parts a {@link Calendar} accepts extra classes for. */
+export type CalendarPart =
+  | 'root'
+  | 'toolbar'
+  | 'todayTrigger'
+  | 'previousTrigger'
+  | 'nextTrigger'
+  | 'title'
+  | 'viewTabs'
+  | 'createTrigger'
+  | 'body'
+  | 'grid'
+  | 'row'
+  | 'weekday'
+  | 'cell'
+  | 'date'
+  | 'event'
+  | 'eventTime'
+  | 'eventTitle'
+  | 'more'
+  | 'legend'
+  | 'legendItem';
+
+/** Props for the {@link Calendar} component. Native `<div>` attributes go to the root. */
+export interface CalendarProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange' | 'defaultValue'
+> {
+  /** month, week, day or agenda. Controlled with `onViewChange`; uncontrolled when unset. @defaultValue `'month'` */
+  view?: CalendarView;
+  /** The date the view shows, YYYY-MM-DD. Controlled with `onDateChange`; uncontrolled (today) when unset. */
+  date?: string;
+  /** The date marked as today, YYYY-MM-DD. Defaults to the current date in `timeZone`. */
+  today?: string;
+  /** The events: `{ id, start, end, title, color, allDay, category, description, href }`. */
+  events?: readonly CalendarEvent[];
+  /** The first day of the week, 0 (Sunday) to 6. Follows the locale unless set. */
+  weekStartsOn?: number;
+  /** BCP 47 locale for names and the first day of the week. @defaultValue `'en-US'` */
+  locale?: string;
+  /** IANA zone for today and for times with Z or an offset. @defaultValue `'UTC'` */
+  timeZone?: string;
+  /** Events a month cell shows before "+N more". @defaultValue `2` */
+  maxEvents?: number;
+  /** Shows a New event button that fires `onCreate`. @defaultValue `false` */
+  creatable?: boolean;
+  /** Clicking an event opens a Dialog with its details. @defaultValue `true` */
+  details?: boolean;
+  /** Built-in text; keys you leave out keep their defaults. Translate them. */
+  labels?: Partial<CalendarLabels>;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CalendarPart>;
+  /** A view tab or "+N more" chose a view. */
+  onViewChange?: (view: CalendarView) => void;
+  /** Today, previous, next or "+N more" moved the date. */
+  onDateChange?: (date: string) => void;
+  /** An event without href was chosen. */
   onEventClick?: (event: CalendarEvent) => void;
-  /** Whether weeks start on Sunday instead of Monday. @defaultValue false */
+  /** The New event button was chosen, with the shown date. */
+  onCreate?: (date: string) => void;
+  /** Replaces the details Dialog's body. */
+  renderEventDetails?: (event: CalendarEvent) => ReactNode;
+  /**
+   * @deprecated 2.x: use `date` (YYYY-MM-DD). Seeds the shown date, and
+   * re-seeds it whenever it changes to another day; it doesn't lock it, so
+   * the toolbar still moves.
+   */
+  value?: Date;
+  /**
+   * @deprecated 2.x: use `onDateChange`; this one receives a Date. Fires
+   * whenever the shown date moves (today, previous, next, "+N more").
+   */
+  onChange?: (date: Date) => void;
+  /** @deprecated 2.x: use `weekStartsOn={0}`. */
   weekStartsOnSunday?: boolean;
-  /** Whether to visually highlight weekend days. @defaultValue false */
+  /** @deprecated 2.x: no longer drawn. Ignored. */
   highlightWeekends?: boolean;
-  /** Whether to highlight today's date with a ring indicator. @defaultValue true */
+  /** @deprecated 2.x: today is always marked. Ignored. */
   highlightToday?: boolean;
-  /** Minimum selectable date. Days before this are disabled. */
+  /** @deprecated 2.x: no longer limited. Ignored. */
   minDate?: Date;
-  /** Maximum selectable date. Days after this are disabled. */
+  /** @deprecated 2.x: no longer limited. Ignored. */
   maxDate?: Date;
-  /** DaisyUI color for the selected day highlight. @defaultValue 'primary' */
-  color?: DaisyColor;
-  /** Custom render function for day cells, receiving the date and its events. */
+  /** @deprecated 2.x: events take their own `color`. Ignored. */
+  color?: string;
+  /** @deprecated 2.x: no longer supported. Ignored. */
   renderDay?: (date: Date, events: CalendarEvent[]) => ReactNode;
 }
 
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'bg-primary text-primary-content',
-  secondary: 'bg-secondary text-secondary-content',
-  accent: 'bg-accent text-accent-content',
-  success: 'bg-success text-success-content',
-  warning: 'bg-warning text-warning-content',
-  error: 'bg-error text-error-content',
-  info: 'bg-info text-info-content',
-  neutral: 'bg-neutral text-neutral-content',
-};
+const VIEWS: readonly CalendarView[] = ['month', 'week', 'day', 'agenda'];
 
-const eventDotMap: Record<DaisyColor, string> = {
-  primary: 'bg-primary',
-  secondary: 'bg-secondary',
-  accent: 'bg-accent',
-  success: 'bg-success',
-  warning: 'bg-warning',
-  error: 'bg-error',
-  info: 'bg-info',
-  neutral: 'bg-neutral',
-};
-
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function isBeforeDay(a: Date, b: Date): boolean {
-  const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return aDay < bDay;
-}
-
-function isAfterDay(a: Date, b: Date): boolean {
-  const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return aDay > bDay;
-}
-
-function formatDateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-const WEEKDAYS_SUN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const WEEKDAYS_MON = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
+const isoOf = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 /**
- * Full month calendar with date selection, event display, and month navigation.
- *
- * Renders an accessible grid with weekday headers, day buttons, and event dot indicators.
- * Includes previous/next month buttons and a "Today" shortcut.
+ * Events on a month grid, a week, a day or an agenda list. The ref points at
+ * the root.
  *
  * @example
  * ```tsx
- * const [date, setDate] = useState<Date>();
- *
- * <Calendar
- *   value={date}
- *   onChange={setDate}
- *   events={[
- *     { id: 1, title: 'Meeting', date: '2025-03-15', color: 'primary' },
- *   ]}
- *   highlightWeekends
- *   color="primary"
- * />
+ * <Calendar events={[{ start: '2026-11-02T09:00', title: 'Team meeting', color: 'error' }]} />
  * ```
  */
 export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
   (
     {
+      view: controlledView,
+      date: controlledDate,
+      today,
+      events = [],
+      weekStartsOn,
+      locale = 'en-US',
+      timeZone,
+      maxEvents = CALENDAR_MAX_EVENTS,
+      creatable = false,
+      details = true,
+      labels,
+      classes = {},
+      onViewChange,
+      onDateChange,
+      onEventClick,
+      onCreate,
+      renderEventDetails,
       value,
       onChange,
-      events = [],
-      onEventClick,
-      weekStartsOnSunday = false,
-      highlightWeekends = false,
-      highlightToday = true,
-      minDate,
-      maxDate,
-      color = 'primary',
+      weekStartsOnSunday,
+      highlightWeekends: _highlightWeekends,
+      highlightToday: _highlightToday,
+      minDate: _minDate,
+      maxDate: _maxDate,
+      color: _color,
       renderDay,
       className,
+      id: idProp,
       ...rest
     },
     ref,
   ) => {
-    const today = new Date();
-    const [viewDate, setViewDate] = useState(() => value ?? today);
+    const generated = useId();
+    const id = idProp ?? `apui-calendar-${generated.replace(/:/g, '')}`;
+    if (renderDay)
+      devWarnOnce('calendar-render-day', 'Calendar: renderDay is no longer supported.');
 
-    // Sync viewDate when controlled value changes
-    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync from controlled prop */
+    const legacyDate =
+      value instanceof Date && !Number.isNaN(value.getTime()) ? isoOf(value) : undefined;
+    const [ownView, setOwnView] = useState<CalendarView>(controlledView ?? 'month');
+    const [ownDate, setOwnDate] = useState<string | undefined>(controlledDate ?? legacyDate);
+    const [seededFrom, setSeededFrom] = useState(legacyDate);
+    if (legacyDate !== seededFrom) {
+      setSeededFrom(legacyDate);
+      if (legacyDate !== undefined) setOwnDate(legacyDate);
+    }
+    const [roving, setRoving] = useState<{ period: string; date: string } | null>(null);
+    const [selected, setSelected] = useState<CalendarItem | null>(null);
+    const [moreFocus, setMoreFocus] = useState<{ date: string } | null>(null);
+    const view = controlledView ?? ownView;
+    const shownDate = controlledDate ?? ownDate;
+    const weekStart = weekStartsOn ?? (weekStartsOnSunday ? 0 : undefined);
+
+    const model = useMemo(
+      () =>
+        calendarModel({
+          view,
+          date: shownDate,
+          today,
+          events,
+          weekStartsOn: weekStart,
+          locale,
+          timeZone,
+          maxEvents,
+          labels: { ...CALENDAR_LABELS, ...labels },
+        }),
+      [view, shownDate, today, events, weekStart, locale, timeZone, maxEvents, labels],
+    );
+    const text = model.labels;
+    const period = `${model.view}:${model.date}`;
+    const tabStop = roving !== null && roving.period === period ? roving.date : null;
+    const hasStop =
+      tabStop !== null && model.rows.some((row) => row.some((day) => day.date === tabStop));
+    const titleId = `${id}-title`;
+    const bodyId = `${id}-body`;
+    const tabId = (option: CalendarView) => `${id}-tab-${option}`;
+
+    const changeView = (next: CalendarView) => {
+      if (controlledView === undefined) setOwnView(next);
+      onViewChange?.(next);
+    };
+    const changeDate = (next: string) => {
+      if (controlledDate === undefined) setOwnDate(next);
+      onDateChange?.(next);
+      if (onChange) {
+        const [y, m, d] = next.split('-').map(Number);
+        onChange(new Date(y!, m! - 1, d!));
+      }
+    };
+    // "+N more" removes the button it was on; once the day view has
+    // rendered, focus that day's cell unless focus is still in the calendar.
     useEffect(() => {
-      if (value) setViewDate(value);
-    }, [value]);
-    /* eslint-enable react-hooks/set-state-in-effect */
-
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-    const weekdays = weekStartsOnSunday ? WEEKDAYS_SUN : WEEKDAYS_MON;
-
-    const eventsByDate = useMemo(() => {
-      const map = new Map<string, CalendarEvent[]>();
-      for (const event of events) {
-        const startKey = event.date;
-        if (event.endDate && event.endDate > startKey) {
-          const start = new Date(startKey + 'T00:00:00');
-          const end = new Date(event.endDate + 'T00:00:00');
-          const cursor = new Date(start);
-          while (cursor <= end) {
-            const key = formatDateKey(cursor);
-            const existing = map.get(key) ?? [];
-            existing.push(event);
-            map.set(key, existing);
-            cursor.setDate(cursor.getDate() + 1);
-          }
-        } else {
-          const existing = map.get(startKey) ?? [];
-          existing.push(event);
-          map.set(startKey, existing);
-        }
+      if (moreFocus === null) return;
+      const root = document.getElementById(id);
+      const active = document.activeElement;
+      if (!active || active === document.body || !root?.contains(active)) {
+        focusCalendarCell(root, moreFocus.date);
       }
-      return map;
-    }, [events]);
+    }, [moreFocus, id]);
 
-    const calendarDays = useMemo(() => {
-      const firstOfMonth = new Date(year, month, 1);
-      const lastOfMonth = new Date(year, month + 1, 0);
-
-      const startDay = firstOfMonth.getDay();
-      const offset = weekStartsOnSunday ? startDay : (startDay + 6) % 7;
-
-      const days: (Date | null)[] = [];
-
-      for (let i = 0; i < offset; i++) {
-        days.push(null);
-      }
-
-      for (let d = 1; d <= lastOfMonth.getDate(); d++) {
-        days.push(new Date(year, month, d));
-      }
-
-      while (days.length % 7 !== 0) {
-        days.push(null);
-      }
-
-      return days;
-    }, [year, month, weekStartsOnSunday]);
-
-    const goToPrevMonth = useCallback(() => {
-      setViewDate(new Date(year, month - 1, 1));
-    }, [year, month]);
-
-    const goToNextMonth = useCallback(() => {
-      setViewDate(new Date(year, month + 1, 1));
-    }, [year, month]);
-
-    const goToToday = useCallback(() => {
-      setViewDate(new Date());
-    }, []);
-
-    const handleDayClick = (date: Date) => {
-      if (minDate && isBeforeDay(date, minDate)) return;
-      if (maxDate && isAfterDay(date, maxDate)) return;
-      onChange?.(date);
+    const chooseEvent = (item: CalendarItem) => {
+      onEventClick?.(item.event);
+      if (details) setSelected(item);
     };
 
-    const isWeekend = (date: Date): boolean => {
-      const day = date.getDay();
-      return day === 0 || day === 6;
+    const renderEvent = (item: CalendarItem, time: string) => {
+      const href = safeHref(item.href ?? undefined);
+      const inner = (
+        <>
+          {time !== '' ? (
+            <span data-scope="calendar" data-part="event-time" className={classes.eventTime}>
+              {time}
+            </span>
+          ) : null}
+          <span data-scope="calendar" data-part="event-title" className={classes.eventTitle}>
+            {item.title}
+          </span>
+          <span className="apui-sr-only">, {item.context}</span>
+        </>
+      );
+      const common = {
+        'data-scope': 'calendar',
+        'data-part': 'event',
+        'data-color': item.color,
+        'data-event-key': item.eventKey,
+        className: classes.event,
+      };
+      return href ? (
+        <a key={item.key} {...common} href={href}>
+          {inner}
+        </a>
+      ) : (
+        <button
+          key={item.key}
+          {...common}
+          type="button"
+          aria-haspopup={details ? 'dialog' : undefined}
+          onClick={() => chooseEvent(item)}
+        >
+          {inner}
+        </button>
+      );
     };
 
-    const isDisabled = (date: Date): boolean => {
-      if (minDate && isBeforeDay(date, minDate)) return true;
-      if (maxDate && isAfterDay(date, maxDate)) return true;
-      return false;
+    const onGridKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+      const cell = calendarGridKeydown(event.nativeEvent, event.currentTarget);
+      const date = cell?.getAttribute('data-date');
+      if (date) setRoving({ period, date });
+    };
+    const onTabsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+      rovingKeydown(event.nativeEvent, event.currentTarget, '[role="tab"]');
     };
 
-    const handleEventDotInteraction = (event: CalendarEvent, e: React.MouseEvent) => {
-      if (onEventClick) {
-        e.stopPropagation();
-        onEventClick(event);
-      }
-    };
-
-    return (
-      <div ref={ref} className={cn('bg-base-100 rounded-box p-4 shadow', className)} {...rest}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={goToPrevMonth}
-            aria-label="Previous month"
+    let body: ReactNode;
+    if (model.view === 'agenda') {
+      body =
+        model.agenda.length === 0 ? (
+          <EmptyState size="sm" icon="calendar" title={text.empty} />
+        ) : (
+          <ul
+            data-scope="calendar"
+            data-part="grid"
+            aria-labelledby={titleId}
+            className={classes.grid}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold">
-              {MONTH_NAMES[month]} {year}
-            </h2>
-            <button type="button" className="btn btn-ghost btn-xs" onClick={goToToday}>
-              Today
-            </button>
+            {model.agenda.map((day) => (
+              <li
+                key={day.date}
+                data-scope="calendar"
+                data-part="row"
+                data-date={day.date}
+                data-today={flag(day.today)}
+                className={classes.row}
+              >
+                <h3
+                  data-scope="calendar"
+                  data-part="weekday"
+                  id={`${id}-${day.date}`}
+                  data-today={flag(day.today)}
+                  className={classes.weekday}
+                >
+                  {day.label}
+                </h3>
+                <ul
+                  data-scope="calendar"
+                  data-part="cell"
+                  aria-labelledby={`${id}-${day.date}`}
+                  className={classes.cell}
+                >
+                  {day.events.map((item) => (
+                    <li key={item.key}>{renderEvent(item, item.range)}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        );
+    } else {
+      body = (
+        <div
+          data-scope="calendar"
+          data-part="grid"
+          role="grid"
+          aria-labelledby={titleId}
+          onKeyDown={onGridKeyDown}
+          className={classes.grid}
+        >
+          <div data-scope="calendar" data-part="row" role="row" className={classes.row}>
+            {model.weekdays.map((weekday, index) => (
+              <div
+                key={index}
+                data-scope="calendar"
+                data-part="weekday"
+                role="columnheader"
+                data-today={flag(weekday.today)}
+                className={classes.weekday}
+              >
+                {weekday.short}
+                {weekday.day !== null ? (
+                  <>
+                    {' '}
+                    <span data-scope="calendar" data-part="date" className={classes.date}>
+                      {weekday.day}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            ))}
           </div>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={goToNextMonth}
-            aria-label="Next month"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 mb-1" role="row" aria-label="Days of the week">
-          {weekdays.map((day) => (
+          {model.rows.map((row) => (
             <div
-              key={day}
-              className="text-center text-sm font-medium opacity-60 py-2"
-              role="columnheader"
-              aria-label={day}
+              key={row[0]!.date}
+              data-scope="calendar"
+              data-part="row"
+              role="row"
+              className={classes.row}
             >
-              {day}
+              {row.map((day) => (
+                <div
+                  key={day.date}
+                  data-scope="calendar"
+                  data-part="cell"
+                  role="gridcell"
+                  id={`${id}-${day.date}`}
+                  data-date={day.date}
+                  tabIndex={(hasStop ? day.date === tabStop : day.focus) ? 0 : -1}
+                  data-outside={flag(day.outside)}
+                  data-today={flag(day.today)}
+                  aria-current={day.today ? 'date' : undefined}
+                  className={classes.cell}
+                >
+                  <span className="apui-sr-only">{day.label}</span>
+                  {model.view === 'month' ? (
+                    <span
+                      data-scope="calendar"
+                      data-part="date"
+                      aria-hidden="true"
+                      className={classes.date}
+                    >
+                      {day.day}
+                    </span>
+                  ) : null}
+                  {day.events.map((item) =>
+                    renderEvent(item, model.view === 'month' ? item.time : item.range),
+                  )}
+                  {day.more > 0 ? (
+                    <button
+                      type="button"
+                      data-scope="calendar"
+                      data-part="more"
+                      aria-label={day.moreLabel}
+                      className={classes.more}
+                      onClick={() => {
+                        setMoreFocus({ date: day.date });
+                        changeDate(day.date);
+                        changeView('day');
+                      }}
+                    >
+                      {day.moreText}
+                    </button>
+                  ) : null}
+                </div>
+              ))}
             </div>
           ))}
         </div>
+      );
+    }
 
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7" role="grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>
-          {calendarDays.map((date, i) => {
-            if (!date) {
-              return <div key={`empty-${i}`} className="p-2" role="gridcell" />;
-            }
-
-            const dateKey = formatDateKey(date);
-            const dayEvents = eventsByDate.get(dateKey) ?? [];
-            const isToday = highlightToday && isSameDay(date, today);
-            const isSelected = value && isSameDay(date, value);
-            const disabled = isDisabled(date);
-            const weekend = highlightWeekends && isWeekend(date);
-
-            if (renderDay) {
-              return (
-                <div key={dateKey} className="p-1" role="gridcell">
-                  {renderDay(date, dayEvents)}
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={dateKey}
-                role="gridcell"
-                className={cn(
-                  'flex flex-col items-center p-2 rounded-lg transition-colors min-h-12',
-                  weekend && !isSelected && 'bg-base-200/50',
-                  disabled && 'opacity-30',
-                )}
-              >
+    return (
+      <div
+        {...rest}
+        ref={ref}
+        id={id}
+        className={cx('apui-calendar', classes.root, className)}
+        data-view={model.view}
+      >
+        <div data-scope="calendar" data-part="toolbar" className={classes.toolbar}>
+          <Button
+            variant="outline"
+            color="neutral"
+            size="sm"
+            data-scope="calendar"
+            data-part="today-trigger"
+            className={classes.todayTrigger}
+            onClick={() => changeDate(model.today)}
+          >
+            {text.today}
+          </Button>
+          <Button
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            iconOnly
+            leadingIcon="chevron-left"
+            aria-label={text.previous}
+            data-scope="calendar"
+            data-part="previous-trigger"
+            className={classes.previousTrigger}
+            onClick={() => changeDate(model.previousDate)}
+          />
+          <Button
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            iconOnly
+            leadingIcon="chevron-right"
+            aria-label={text.next}
+            data-scope="calendar"
+            data-part="next-trigger"
+            className={classes.nextTrigger}
+            onClick={() => changeDate(model.nextDate)}
+          />
+          <h2
+            data-scope="calendar"
+            data-part="title"
+            id={titleId}
+            aria-live="polite"
+            className={classes.title}
+          >
+            {model.title}
+          </h2>
+          <div
+            className={cx('apui-tabs', classes.viewTabs)}
+            data-variant="segmented"
+            data-size="sm"
+            data-scope="calendar"
+            data-part="view-tabs"
+          >
+            <div
+              data-scope="tabs"
+              data-part="list"
+              role="tablist"
+              aria-label={text.views}
+              onKeyDown={onTabsKeyDown}
+            >
+              {VIEWS.map((option) => (
                 <button
+                  key={option}
                   type="button"
-                  className={cn(
-                    'w-full rounded-md px-1 py-0.5 text-sm transition-colors',
-                    'hover:bg-base-200',
-                    isToday && !isSelected && 'ring-2 ring-current',
-                    isSelected && color && colorMap[color],
-                    disabled && 'cursor-not-allowed',
-                  )}
-                  onClick={() => handleDayClick(date)}
-                  disabled={disabled}
-                  aria-label={date.toLocaleDateString(undefined, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                  aria-selected={isSelected ?? undefined}
-                  aria-current={isToday ? 'date' : undefined}
+                  data-scope="tabs"
+                  data-part="trigger"
+                  role="tab"
+                  id={tabId(option)}
+                  aria-selected={option === model.view ? 'true' : 'false'}
+                  aria-controls={bodyId}
+                  tabIndex={option === model.view ? 0 : -1}
+                  data-selected={flag(option === model.view)}
+                  onClick={() => changeView(option)}
                 >
-                  {date.getDate()}
+                  {text[option]}
                 </button>
-                {dayEvents.length > 0 && (
-                  <div className="flex gap-0.5 mt-0.5">
-                    {dayEvents.slice(0, 3).map((event) =>
-                      onEventClick ? (
-                        <button
-                          key={event.id}
-                          type="button"
-                          className="relative flex items-center justify-center w-4 h-4 cursor-pointer"
-                          aria-label={event.title}
-                          onClick={(e) => handleEventDotInteraction(event, e)}
-                        >
-                          <span
-                            className={cn(
-                              'w-1.5 h-1.5 rounded-full',
-                              event.color ? eventDotMap[event.color] : eventDotMap.primary,
-                            )}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      ) : (
-                        <span
-                          key={event.id}
-                          className={cn(
-                            'w-1.5 h-1.5 rounded-full',
-                            event.color ? eventDotMap[event.color] : eventDotMap.primary,
-                          )}
-                          title={event.title}
-                          role="img"
-                          aria-label={event.title}
-                        />
-                      ),
-                    )}
-                    {dayEvents.length > 3 && (
-                      <span className="text-xs opacity-50">+{dayEvents.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          </div>
+          {creatable ? (
+            <Button
+              size="sm"
+              leadingIcon="plus"
+              data-scope="calendar"
+              data-part="create-trigger"
+              className={classes.createTrigger}
+              onClick={() => onCreate?.(model.date)}
+            >
+              {text.newEvent}
+            </Button>
+          ) : null}
         </div>
+        <div
+          data-scope="calendar"
+          data-part="body"
+          id={bodyId}
+          role="tabpanel"
+          aria-labelledby={tabId(model.view)}
+          className={classes.body}
+        >
+          {body}
+        </div>
+        {model.legend.length > 0 ? (
+          <ul
+            data-scope="calendar"
+            data-part="legend"
+            aria-label={text.legend}
+            className={classes.legend}
+          >
+            {model.legend.map((entry) => (
+              <li
+                key={entry.category}
+                data-scope="calendar"
+                data-part="legend-item"
+                data-color={entry.color}
+                className={classes.legendItem}
+              >
+                {entry.category}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {details ? (
+          <Dialog
+            open={selected !== null}
+            onOpenChange={(open) => {
+              if (!open) setSelected(null);
+            }}
+            title={selected?.title}
+            description={selected?.when}
+          >
+            {selected !== null ? (
+              renderEventDetails ? (
+                renderEventDetails(selected.event)
+              ) : (
+                <Stack gap="3">
+                  {selected.category ? (
+                    <div>
+                      <Badge variant="soft" color={selected.color}>
+                        {selected.category}
+                      </Badge>
+                    </div>
+                  ) : null}
+                  {selected.description ? <Text>{selected.description}</Text> : null}
+                </Stack>
+              )
+            ) : null}
+          </Dialog>
+        ) : null}
       </div>
     );
   },

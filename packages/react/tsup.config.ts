@@ -15,6 +15,6 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ['react', 'react-dom', 'apexcharts', 'react-apexcharts'],
+  external: ['react', 'react-dom'],
   outExtension: () => ({ js: '.mjs' }),
 });
