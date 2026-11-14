@@ -7,7 +7,7 @@ menu_order: 7
 
 The `@artisanpack-ui/react/ai` subpath has admin screens for the [`artisanpack-ui/ai`](https://github.com/ArtisanPack-UI/ai) Laravel package's JSON API: a settings form, a usage dashboard and a feature list. They give a React app the same admin surfaces as the Livewire ones.
 
-They're built from the design system components (Form, Select, Password, Table, Stat, Toggle, Alert and the rest), so they follow your theme, density and preset, and need only `@artisanpack-ui/css`. Their text is English and isn't configurable through props.
+They're built from the design system components (Form, Select, Password, Table, Stat, Toggle, Alert and the rest), so they follow your theme, density and preset, and need only `@artisanpack-ui/css`. Their text defaults to English, and every string can be replaced through a `labels` prop (see [Translating](#translating)).
 
 The subpath ships inside `@artisanpack-ui/react`, and the package root doesn't export it, so nothing from it reaches your bundle unless you import it.
 
@@ -69,11 +69,12 @@ The components depend only on the `AiApiClient` interface, so an app with its ow
 
 A form for the provider credentials and the per-feature overrides, backed by `GET` and `PUT /settings` and `POST /test-connection`.
 
-| Prop        | Type          | Default                             |
-| ----------- | ------------- | ----------------------------------- |
-| `client`    | `AiApiClient` | Required                            |
-| `providers` | `string[]`    | `['openai', 'anthropic', 'ollama']` |
-| `heading`   | `string`      |                                     |
+| Prop        | Type                          | Default                             |
+| ----------- | ----------------------------- | ----------------------------------- |
+| `client`    | `AiApiClient`                 | Required                            |
+| `providers` | `string[]`                    | `['openai', 'anthropic', 'ollama']` |
+| `heading`   | `string`                      |                                     |
+| `labels`    | `Partial<SettingsPageLabels>` | `SETTINGS_PAGE_LABELS`              |
 
 - **The stored key stays on the server.** The API reports only whether a key is stored. The API key field starts empty; leaving it blank keeps the stored key, for both saving and testing the connection. The field is hidden for Ollama, where the base URL is required instead.
 - **Switching provider clears the typed key** and the last connection test result, so a key is never tested or saved against the wrong provider.
@@ -86,12 +87,13 @@ A form for the provider credentials and the per-feature overrides, backed by `GE
 
 Totals, a per-feature table and a daily table, backed by `GET /usage`.
 
-| Prop              | Type          | Default  | What it does                                             |
-| ----------------- | ------------- | -------- | -------------------------------------------------------- |
-| `client`          | `AiApiClient` | Required |                                                          |
-| `from`, `to`      | `string`      |          | The date range (`YYYY-MM-DD`), sent as query parameters. |
-| `refreshInterval` | `number`      | `0`      | Milliseconds between refreshes. `0` turns polling off.   |
-| `heading`         | `string`      |          |                                                          |
+| Prop              | Type                            | Default                  | What it does                                             |
+| ----------------- | ------------------------------- | ------------------------ | -------------------------------------------------------- |
+| `client`          | `AiApiClient`                   | Required                 |                                                          |
+| `from`, `to`      | `string`                        |                          | The date range (`YYYY-MM-DD`), sent as query parameters. |
+| `refreshInterval` | `number`                        | `0`                      | Milliseconds between refreshes. `0` turns polling off.   |
+| `heading`         | `string`                        |                          |                                                          |
+| `labels`          | `Partial<UsageDashboardLabels>` | `USAGE_DASHBOARD_LABELS` | The visible text.                                        |
 
 - **Polling never overlaps.** The next request is scheduled only after the previous one settles, so a slow response can't overwrite a newer one.
 - **Changing the range or the client** clears the figures and loads again. Responses for the old range are discarded.
@@ -102,15 +104,29 @@ Totals, a per-feature table and a daily table, backed by `GET /usage`.
 
 A switch per registered AI feature, backed by `GET /features` and `POST /features/{key}/toggle`.
 
-| Prop       | Type                                           | What it does                                      |
-| ---------- | ---------------------------------------------- | ------------------------------------------------- |
-| `client`   | `AiApiClient`                                  | Required                                          |
-| `heading`  | `string`                                       | Shown in the loading, empty and error states too. |
-| `onToggle` | `(feature: { key, package, enabled }) => void` | Called after the server saves a change.           |
+| Prop       | Type                                           | What it does                                            |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------- |
+| `client`   | `AiApiClient`                                  | Required                                                |
+| `heading`  | `string`                                       | Shown in the loading, empty and error states too.       |
+| `onToggle` | `(feature: { key, package, enabled }) => void` | Called after the server saves a change.                 |
+| `labels`   | `Partial<FeatureTogglesLabels>`                | The visible text. Defaults to `FEATURE_TOGGLES_LABELS`. |
 
 - **Optimistic.** A switch flips at once and is disabled until the server answers. If the request fails, it flips back and an error alert appears.
 - If `onToggle` throws, the error is logged and the saved change stays.
 - With no features registered, it shows an empty state. A failed load shows an error alert.
+
+## Translating
+
+Each component takes a `labels` prop for its visible text: headings, field labels, table headers, buttons, loading and empty states, and the fallback error messages. Pass only the strings you want to change; the rest keep their English defaults, which are exported as `SETTINGS_PAGE_LABELS`, `USAGE_DASHBOARD_LABELS` and `FEATURE_TOGGLES_LABELS`, with the types `SettingsPageLabels`, `UsageDashboardLabels` and `FeatureTogglesLabels`.
+
+```tsx
+import { SettingsPage, UsageDashboard } from '@artisanpack-ui/react/ai';
+
+<SettingsPage client={client} labels={{ save: t('Save settings'), retry: t('Retry') }} />
+<UsageDashboard client={client} refreshInterval={30000} labels={{ live: t('Live · refreshing every :seconds s') }} />
+```
+
+`UsageDashboard`'s `live` label takes a `:seconds` placeholder for the refresh interval.
 
 ## useStreamingText
 

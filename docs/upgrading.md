@@ -30,7 +30,8 @@ Upgrade the whole app at once, on a branch: 1.x and 2.0 can't be mixed in one ap
 
 3. Load `@artisanpack-ui/css`, with or without Tailwind, as in [Getting Started](Getting-Started), and remove the DaisyUI plugin from your Tailwind stylesheet.
 4. Move your DaisyUI theme to a [preset](https://docs.artisanpackui.dev/documentation/design-system/theming/presets), and add `ThemeScript` (see [Theming](Theming)).
-5. Replace the [deprecated components](Components) the codemod couldn't rewrite.
+5. Replace the [deprecated components](Components) the codemod couldn't rewrite. They keep working meanwhile: each renders its replacement.
+6. Replace imports of the 1.x shared types `DaisyColor`, `Size`, `GlassProps`, `ColorProps` and `FormFieldProps`. The root no longer exports them; use each component's own types, such as `ButtonColor` and `ButtonSize` (see [TypeScript](Typescript)).
 
 ## Laravel apps
 
