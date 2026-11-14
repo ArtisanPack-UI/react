@@ -12,6 +12,23 @@ import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiFeature } from '../types';
 import { errorMessage } from '../errorMessage';
 
+/** The text a {@link FeatureToggles} shows. Translate it through `labels`. */
+export interface FeatureTogglesLabels {
+  /** While the features load. */
+  loading: string;
+  /** The empty state's title, when no features are registered. */
+  empty: string;
+  /** When a request fails without a message. */
+  error: string;
+}
+
+/** The English defaults for {@link FeatureTogglesLabels}. */
+export const FEATURE_TOGGLES_LABELS: FeatureTogglesLabels = {
+  loading: 'Loading features…',
+  empty: 'No AI features registered.',
+  error: 'Something went wrong.',
+};
+
 /**
  * Props for {@link FeatureToggles}.
  */
@@ -22,6 +39,8 @@ export interface FeatureTogglesProps {
   heading?: string;
   /** Callback fired after a successful toggle. */
   onToggle?: (feature: Pick<AiFeature, 'key' | 'package' | 'enabled'>) => void;
+  /** The list's text, for translation; missing keys keep their English defaults. */
+  labels?: Partial<FeatureTogglesLabels>;
 }
 
 /**
@@ -29,9 +48,12 @@ export interface FeatureTogglesProps {
  * POST `/features/{key}/toggle`. Each row optimistically flips its own
  * switch and rolls back on API failure.
  */
-export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProps) {
+export function FeatureToggles({ client, heading, onToggle, labels }: FeatureTogglesProps) {
+  const text = { ...FEATURE_TOGGLES_LABELS, ...labels };
   const [features, setFeatures] = useState<AiFeature[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // The failure itself, so its message is formatted with the current labels.
+  const [failure, setFailure] = useState<{ reason: unknown } | null>(null);
+  const error = failure ? errorMessage(failure.reason, text.error) : null;
   const [pending, setPending] = useState<Record<string, boolean>>({});
   // Bumped whenever `client` changes or the component unmounts, so a request
   // started against an earlier client can never write into the current state.
@@ -41,7 +63,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
     const counter = generationRef;
     const generation = ++counter.current;
     setFeatures(null);
-    setError(null);
+    setFailure(null);
     setPending({});
     client
       .getFeatures()
@@ -49,7 +71,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
         if (generation === generationRef.current) setFeatures(response.features);
       })
       .catch((err: unknown) => {
-        if (generation === generationRef.current) setError(errorMessage(err));
+        if (generation === generationRef.current) setFailure({ reason: err });
       });
     return () => {
       counter.current++;
@@ -77,7 +99,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
               prev?.map((f) => (f.key === feature.key ? { ...f, enabled: feature.enabled } : f)) ??
               prev,
           );
-          setError(errorMessage(err));
+          setFailure({ reason: err });
         }
         return;
       } finally {
@@ -91,7 +113,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
       }
 
       if (!isCurrent()) return;
-      setError(null);
+      setFailure(null);
       // Outside the request's try: the server has saved the change, so a
       // throwing callback must not roll the switch back or show as a failure.
       try {
@@ -118,7 +140,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
     return (
       <Stack gap="3">
         {headingNode}
-        <Loading size="sm">Loading features…</Loading>
+        <Loading size="sm">{text.loading}</Loading>
       </Stack>
     );
   }
@@ -127,7 +149,7 @@ export function FeatureToggles({ client, heading, onToggle }: FeatureTogglesProp
     return (
       <Stack gap="3">
         {headingNode}
-        <EmptyState size="sm" title="No AI features registered." />
+        <EmptyState size="sm" title={text.empty} />
       </Stack>
     );
   }
