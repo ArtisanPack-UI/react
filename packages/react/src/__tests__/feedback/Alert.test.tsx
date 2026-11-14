@@ -1,117 +1,109 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { Alert } from '../../components/feedback/Alert/Alert';
+import { createRef } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import { Alert, type AlertProps } from '../../components/feedback/Alert/Alert';
+
+const declaredProps: (keyof AlertProps)[] = [
+  'title',
+  'description',
+  'color',
+  'variant',
+  'surface',
+  'icon',
+  'actions',
+  'dismissible',
+  'closeLabel',
+  'classes',
+];
+
+const part = (root: ParentNode, name: string) =>
+  root.querySelector(`[data-scope="alert"][data-part="${name}"]`);
 
 describe('Alert', () => {
-  it('renders children', () => {
-    render(<Alert>Something happened</Alert>);
-    expect(screen.getByText('Something happened')).toBeInTheDocument();
-  });
-
-  it('has role="alert"', () => {
-    render(<Alert>Message</Alert>);
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-  });
-
-  it('applies color class', () => {
-    render(<Alert color="success">Done</Alert>);
-    expect(screen.getByRole('alert')).toHaveClass('alert-success');
-  });
-
-  it('applies all color variants', () => {
-    const colors = ['info', 'success', 'warning', 'error'] as const;
-    colors.forEach((color) => {
-      const { unmount } = render(<Alert color={color}>Test</Alert>);
-      expect(screen.getByRole('alert')).toHaveClass(`alert-${color}`);
-      unmount();
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Alert, 'Alert', {
+      declared: { props: declaredProps, events: ['onOpenChange'] },
     });
   });
 
-  it('renders icon when provided', () => {
-    render(<Alert icon={<span data-testid="icon">!</span>}>Message</Alert>);
-    expect(screen.getByTestId('icon')).toBeInTheDocument();
+  it('renders the contract anatomy in order', () => {
+    const { container } = render(
+      <Alert title="Listing published" description="Live in search." actions="Undo" dismissible />,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('apui-alert');
+    expect(root).toHaveAttribute('role', 'status');
+    expect(root).toHaveAttribute('data-color', 'neutral');
+    expect(root).toHaveAttribute('data-variant', 'soft');
+    expect(root).toHaveAttribute('data-surface', 'default');
+    expect([...root.children].map((el) => el.getAttribute('data-part'))).toEqual([
+      'icon',
+      'title',
+      'description',
+      'actions',
+      'close-trigger',
+    ]);
+    expect(part(root, 'title')!.tagName).toBe('P');
+    expect(part(root, 'description')!.tagName).toBe('DIV');
+    expect(part(root, 'icon')).toHaveAttribute('aria-hidden', 'true');
+    const close = screen.getByRole('button', { name: 'Dismiss' });
+    expect(close).toHaveAttribute('data-variant', 'ghost');
+    expect(close).toHaveAttribute('data-size', 'xs');
   });
 
-  it('does not show dismiss button by default', () => {
-    render(<Alert>Message</Alert>);
-    expect(screen.queryByLabelText('Dismiss alert')).not.toBeInTheDocument();
+  it('is an alert for errors and a status otherwise', () => {
+    render(<Alert color="error" title="Payment failed" />);
+    expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'error');
   });
 
-  it('shows dismiss button when dismissible', () => {
-    render(<Alert dismissible>Message</Alert>);
-    expect(screen.getByLabelText('Dismiss alert')).toBeInTheDocument();
+  it("shows the color's status icon, a named icon, or a node", () => {
+    const { container, rerender } = render(<Alert color="success" title="Saved" />);
+    const svg = () => part(container, 'icon')!.querySelector('svg')!.innerHTML;
+    const success = svg();
+    rerender(<Alert color="info" title="Saved" />);
+    expect(svg()).not.toBe(success);
+    rerender(<Alert icon={<i data-testid="custom" />} title="Saved" />);
+    expect(part(container, 'icon')).toContainElement(screen.getByTestId('custom'));
   });
 
-  it('hides alert when dismissed', () => {
-    render(<Alert dismissible>Message</Alert>);
-    fireEvent.click(screen.getByLabelText('Dismiss alert'));
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('calls onDismiss callback when dismissed', () => {
-    const onDismiss = vi.fn();
-    render(
-      <Alert dismissible onDismiss={onDismiss}>
-        Message
+  it('fills the description from children', () => {
+    const { container } = render(
+      <Alert title="Payment failed" description="ignored">
+        <ul>
+          <li>Update the card</li>
+        </ul>
       </Alert>,
     );
-    fireEvent.click(screen.getByLabelText('Dismiss alert'));
-    expect(onDismiss).toHaveBeenCalledOnce();
-  });
-
-  it('applies custom className', () => {
-    render(<Alert className="custom-class">Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveClass('custom-class');
-  });
-
-  it('forwards ref', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<Alert ref={ref}>Message</Alert>);
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
-  });
-
-  it('uses polite aria-live for info and success', () => {
-    const { unmount } = render(<Alert color="info">Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
-    unmount();
-
-    render(<Alert color="success">Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
-  });
-
-  it('uses assertive aria-live for warning and error', () => {
-    const { unmount } = render(<Alert color="warning">Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'assertive');
-    unmount();
-
-    render(<Alert color="error">Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'assertive');
-  });
-
-  it('defaults to polite aria-live without color', () => {
-    render(<Alert>Message</Alert>);
-    expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
-  });
-
-  it('supports controlled visible prop', () => {
-    const { rerender } = render(<Alert visible={true}>Controlled</Alert>);
-    expect(screen.getByText('Controlled')).toBeInTheDocument();
-
-    rerender(<Alert visible={false}>Controlled</Alert>);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('does not hide internally when controlled and dismissed', () => {
-    const onDismiss = vi.fn();
-    render(
-      <Alert visible={true} dismissible onDismiss={onDismiss}>
-        Controlled
-      </Alert>,
+    expect(part(container, 'description')!.querySelector('li')).toHaveTextContent(
+      'Update the card',
     );
-    fireEvent.click(screen.getByLabelText('Dismiss alert'));
-    expect(onDismiss).toHaveBeenCalledOnce();
-    // Still visible because parent controls visibility
-    expect(screen.getByText('Controlled')).toBeInTheDocument();
+  });
+
+  it('hides itself and reports open-change false when dismissed', () => {
+    const onOpenChange = vi.fn();
+    const { container } = render(
+      <Alert title="Saved" dismissible closeLabel="Fermer" onOpenChange={onOpenChange} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(container.firstElementChild).toHaveAttribute('hidden');
+  });
+
+  it('applies classes, className and native attributes to the root', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <Alert
+        ref={ref}
+        title="Saved"
+        className="extra"
+        classes={{ root: 'r', title: 't' }}
+        data-testid="alert"
+      />,
+    );
+    const root = screen.getByTestId('alert');
+    expect(ref.current).toBe(root);
+    expect(root).toHaveClass('apui-alert', 'r', 'extra');
+    expect(part(root, 'title')).toHaveClass('t');
   });
 });

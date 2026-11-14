@@ -1,2 +1,6 @@
+/* @artisanpack-ui/css sits between Tailwind's base and components layers
+   (design-system docs/css-conventions.md, With Tailwind): Preflight never
+   overrides a design-system component, and Tailwind utilities still win. */
+@layer theme, base, apui, components, utilities;
 @import 'tailwindcss';
-@plugin "daisyui";
+@import '@artisanpack-ui/css';

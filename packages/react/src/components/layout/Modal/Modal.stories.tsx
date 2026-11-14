@@ -4,14 +4,14 @@ import { Modal } from './Modal';
 import { Button } from '../../form/Button/Button';
 
 const meta: Meta<typeof Modal> = {
-  title: 'Layout/Modal',
+  title: 'Layout/Modal (deprecated)',
   component: Modal,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Dialog overlay with title, subtitle, action buttons, persistent mode, glass backdrop, and bottom-sheet variant.',
+          'Deprecated alias of Dialog: subtitle maps to description, actions to footer, glass to the glass surface and persistent to an alertdialog without a close button. bottom is ignored.',
       },
     },
   },
@@ -45,7 +45,9 @@ export const Default: Story = {
     const [open, setOpen] = useState(false);
     return (
       <>
-        <Button label="Open Modal" color="primary" onClick={() => setOpen(true)} />
+        <Button color="primary" onClick={() => setOpen(true)}>
+          Open Modal
+        </Button>
         <Modal open={open} onClose={() => setOpen(false)} title="Modal Title">
           <p>This is the modal body content.</p>
         </Modal>
@@ -59,7 +61,9 @@ export const WithActions: Story = {
     const [open, setOpen] = useState(false);
     return (
       <>
-        <Button label="Open Modal" color="primary" onClick={() => setOpen(true)} />
+        <Button color="primary" onClick={() => setOpen(true)}>
+          Open Modal
+        </Button>
         <Modal
           open={open}
           onClose={() => setOpen(false)}
@@ -67,8 +71,12 @@ export const WithActions: Story = {
           subtitle="This action cannot be undone."
           actions={
             <>
-              <Button label="Cancel" color="ghost" onClick={() => setOpen(false)} />
-              <Button label="Delete" color="error" onClick={() => setOpen(false)} />
+              <Button variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button color="error" onClick={() => setOpen(false)}>
+                Delete
+              </Button>
             </>
           }
         >
@@ -84,13 +92,19 @@ export const Persistent: Story = {
     const [open, setOpen] = useState(false);
     return (
       <>
-        <Button label="Open Persistent Modal" color="warning" onClick={() => setOpen(true)} />
+        <Button color="warning" onClick={() => setOpen(true)}>
+          Open Persistent Modal
+        </Button>
         <Modal
           open={open}
           onClose={() => setOpen(false)}
           title="Required Action"
           persistent
-          actions={<Button label="I Understand" color="primary" onClick={() => setOpen(false)} />}
+          actions={
+            <Button color="primary" onClick={() => setOpen(false)}>
+              I Understand
+            </Button>
+          }
         >
           <p>You must acknowledge this before continuing. Clicking outside will not close it.</p>
         </Modal>
@@ -104,13 +118,19 @@ export const Bottom: Story = {
     const [open, setOpen] = useState(false);
     return (
       <>
-        <Button label="Open Bottom Sheet" color="accent" onClick={() => setOpen(true)} />
+        <Button color="accent" onClick={() => setOpen(true)}>
+          Open Bottom Sheet
+        </Button>
         <Modal
           open={open}
           onClose={() => setOpen(false)}
           title="Bottom Sheet"
           bottom
-          actions={<Button label="Close" color="ghost" onClick={() => setOpen(false)} />}
+          actions={
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          }
         >
           <p>This modal slides up from the bottom on mobile.</p>
         </Modal>

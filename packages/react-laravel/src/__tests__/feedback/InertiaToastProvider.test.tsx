@@ -1,138 +1,73 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import { afterAll, afterEach, beforeAll, describe, it, expect, vi } from 'vitest';
+import { toast } from '@artisanpack-ui/react/feedback';
 import { InertiaToastProvider } from '../../feedback/InertiaToastProvider';
 
 const mockUsePage = vi.fn();
-const mockToastSuccess = vi.fn();
-const mockToastError = vi.fn();
-const mockToastWarning = vi.fn();
-const mockToastInfo = vi.fn();
 
 vi.mock('@inertiajs/react', () => ({
   usePage: () => mockUsePage(),
 }));
 
-vi.mock('@artisanpack-ui/react/feedback', () => ({
-  ToastProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="toast-provider">{children}</div>
-  ),
-  useToast: () => ({
-    show: vi.fn(),
-    success: mockToastSuccess,
-    error: mockToastError,
-    warning: mockToastWarning,
-    info: mockToastInfo,
-    dismiss: vi.fn(),
-    dismissAll: vi.fn(),
-  }),
-}));
+// Zag appends the placement and the hotkey to the label: "Notifications, bottom-end (alt+T)".
+const region = () => screen.getByRole('region', { name: /^Notifications/ });
 
 describe('InertiaToastProvider', () => {
-  beforeEach(() => {
-    mockUsePage.mockClear();
-    mockToastSuccess.mockClear();
-    mockToastError.mockClear();
-    mockToastWarning.mockClear();
-    mockToastInfo.mockClear();
+  // The toaster keeps scheduling work after each update, so these tests leave
+  // the act environment and wait for the DOM instead (as the react package's
+  // Toaster tests do).
+  const actEnvironment = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
+  let previousActEnvironment: boolean | undefined;
+  beforeAll(() => {
+    previousActEnvironment = actEnvironment.IS_REACT_ACT_ENVIRONMENT;
+    actEnvironment.IS_REACT_ACT_ENVIRONMENT = false;
+  });
+  afterAll(() => {
+    actEnvironment.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+  });
+  afterEach(() => {
+    toast.remove();
   });
 
-  it('renders children inside ToastProvider', () => {
-    mockUsePage.mockReturnValue({
-      props: { flash: {} },
-      url: '/',
-    });
-
+  it('renders its children and a design-system Toaster region', async () => {
+    mockUsePage.mockReturnValue({ props: { flash: {} }, url: '/' });
     render(
-      <InertiaToastProvider>
+      <InertiaToastProvider placement="top-end">
         <span>App content</span>
       </InertiaToastProvider>,
     );
-
-    expect(screen.getByTestId('toast-provider')).toBeInTheDocument();
     expect(screen.getByText('App content')).toBeInTheDocument();
+    await waitFor(() => expect(region()).toHaveAttribute('data-placement', 'top-end'));
+    expect(region()).toHaveAttribute('data-scope', 'toast');
   });
 
-  it('triggers success toast from flash message', () => {
+  it('shows the flash messages as design-system toasts', async () => {
     mockUsePage.mockReturnValue({
-      props: { flash: { success: 'Item saved!' } },
+      props: { flash: { success: 'Item saved!', error: 'Something went wrong' } },
       url: '/items',
     });
-
     render(
-      <InertiaToastProvider>
+      <InertiaToastProvider duration={0}>
         <span>Content</span>
       </InertiaToastProvider>,
     );
-
-    expect(mockToastSuccess).toHaveBeenCalledWith('Item saved!');
+    const saved = await within(region()).findByText('Item saved!');
+    expect(saved.closest('.apui-toast')).toHaveAttribute('data-color', 'success');
+    expect(saved.closest('.alert')).toBeNull();
+    expect(await within(region()).findByRole('alert')).toHaveTextContent('Something went wrong');
   });
 
-  it('triggers error toast from flash message', () => {
-    mockUsePage.mockReturnValue({
-      props: { flash: { error: 'Something went wrong' } },
-      url: '/items',
-    });
-
+  it('maps the 1.x position and defaultDuration', async () => {
+    mockUsePage.mockReturnValue({ props: { flash: { info: 'Hi' } }, url: '/' });
     render(
-      <InertiaToastProvider>
+      <InertiaToastProvider position={['toast-start', 'toast-top']} defaultDuration={1234}>
         <span>Content</span>
       </InertiaToastProvider>,
     );
-
-    expect(mockToastError).toHaveBeenCalledWith('Something went wrong');
-  });
-
-  it('does not trigger toast when flash is empty', () => {
-    mockUsePage.mockReturnValue({
-      props: { flash: {} },
-      url: '/items',
-    });
-
-    render(
-      <InertiaToastProvider>
-        <span>Content</span>
-      </InertiaToastProvider>,
+    await waitFor(() => expect(region()).toHaveAttribute('data-placement', 'top-start'));
+    await within(region()).findByText('Hi');
+    expect(toast.store.getVisibleToasts().find((entry) => entry.title === 'Hi')?.duration).toBe(
+      1234,
     );
-
-    expect(mockToastSuccess).not.toHaveBeenCalled();
-    expect(mockToastError).not.toHaveBeenCalled();
-    expect(mockToastWarning).not.toHaveBeenCalled();
-    expect(mockToastInfo).not.toHaveBeenCalled();
-  });
-
-  it('triggers warning toast from flash message', () => {
-    mockUsePage.mockReturnValue({
-      props: { flash: { warning: 'Be careful' } },
-      url: '/items',
-    });
-
-    render(
-      <InertiaToastProvider>
-        <span>Content</span>
-      </InertiaToastProvider>,
-    );
-
-    expect(mockToastWarning).toHaveBeenCalledWith('Be careful');
-    expect(mockToastSuccess).not.toHaveBeenCalled();
-    expect(mockToastError).not.toHaveBeenCalled();
-    expect(mockToastInfo).not.toHaveBeenCalled();
-  });
-
-  it('triggers info toast from flash message', () => {
-    mockUsePage.mockReturnValue({
-      props: { flash: { info: 'For your info' } },
-      url: '/items',
-    });
-
-    render(
-      <InertiaToastProvider>
-        <span>Content</span>
-      </InertiaToastProvider>,
-    );
-
-    expect(mockToastInfo).toHaveBeenCalledWith('For your info');
-    expect(mockToastSuccess).not.toHaveBeenCalled();
-    expect(mockToastError).not.toHaveBeenCalled();
-    expect(mockToastWarning).not.toHaveBeenCalled();
   });
 });

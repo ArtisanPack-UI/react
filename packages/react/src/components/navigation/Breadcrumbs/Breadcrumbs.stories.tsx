@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Breadcrumbs } from './Breadcrumbs';
+import { Breadcrumbs, BreadcrumbsItem } from './Breadcrumbs';
 
 const meta: Meta<typeof Breadcrumbs> = {
   title: 'Navigation/Breadcrumbs',
@@ -9,7 +9,7 @@ const meta: Meta<typeof Breadcrumbs> = {
     docs: {
       description: {
         component:
-          'Navigation breadcrumb trail showing the current page hierarchy. Supports icons per item and automatic truncation when maxItems is exceeded.',
+          'Shows where the current page sits in the hierarchy. The last item is the current page; past maxItems the middle collapses behind a button that reveals it.',
       },
     },
   },
@@ -21,32 +21,30 @@ type Story = StoryObj<typeof Breadcrumbs>;
 export const Default: Story = {
   args: {
     items: [
-      { label: 'Home', href: '/home' },
-      { label: 'Products', href: '/products' },
-      { label: 'Widget Pro' },
+      { label: 'Dashboard', href: '#' },
+      { label: 'Properties', href: '#' },
+      { label: 'Lakeview Lofts' },
     ],
   },
 };
 
-export const WithIcons: Story = {
+export const HomeIconAndOverflow: Story = {
   args: {
     items: [
-      { label: 'Home', href: '/home', icon: <span aria-hidden="true">🏠</span> },
-      { label: 'Settings', href: '/settings', icon: <span aria-hidden="true">⚙️</span> },
-      { label: 'Profile' },
+      { label: 'Home', href: '#', icon: 'house', hideLabel: true },
+      { label: 'Properties', href: '#' },
+      { label: 'Lakeview Lofts', href: '#' },
+      { label: 'Analytics', href: '#' },
+      { label: 'Visitor' },
     ],
   },
 };
 
-export const Truncated: Story = {
-  args: {
-    items: [
-      { label: 'Home', href: '/home' },
-      { label: 'Category', href: '/category' },
-      { label: 'Subcategory', href: '/category/sub' },
-      { label: 'Sub-subcategory', href: '/category/sub/deep' },
-      { label: 'Current Page' },
-    ],
-    maxItems: 3,
-  },
+export const Composed: Story = {
+  render: () => (
+    <Breadcrumbs>
+      <BreadcrumbsItem label="All media" href="#" onClick={(event) => event.preventDefault()} />
+      <BreadcrumbsItem label="Invoices" />
+    </Breadcrumbs>
+  ),
 };

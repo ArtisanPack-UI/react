@@ -3,14 +3,14 @@ import { Dropdown, DropdownItem } from './Dropdown';
 import { Button } from '../../form/Button/Button';
 
 const meta: Meta<typeof Dropdown> = {
-  title: 'Layout/Dropdown',
+  title: 'Layout/Dropdown (deprecated)',
   component: Dropdown,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Floating dropdown menu triggered by click or hover. Supports custom trigger elements, end alignment, and DaisyUI dropdown positioning.',
+          'Deprecated alias of DropdownMenu: end maps to align="end" and a custom trigger to its content as the label; top and hover are ignored. DropdownItem renders a DropdownMenuItem and calls onClick when chosen.',
       },
     },
   },
@@ -34,7 +34,7 @@ export const Default: Story = {
 
 export const WithTrigger: Story = {
   args: {
-    trigger: <Button label="Actions" color="primary" />,
+    trigger: <Button color="primary">Actions</Button>,
     children: (
       <>
         <DropdownItem>View</DropdownItem>

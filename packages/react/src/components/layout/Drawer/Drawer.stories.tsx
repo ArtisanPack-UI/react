@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Drawer } from './Drawer';
 import { Button } from '../../form/Button/Button';
+import { Input } from '../../form/Input/Input';
+import { Toggle } from '../../form/Toggle/Toggle';
+import { Drawer } from './Drawer';
 
 const meta: Meta<typeof Drawer> = {
   title: 'Layout/Drawer',
@@ -11,105 +13,68 @@ const meta: Meta<typeof Drawer> = {
     docs: {
       description: {
         component:
-          'Slide-out drawer panel anchored to the left or right edge of the viewport. Accepts a side slot for navigation or form content.',
+          'A panel that slides in from an edge for filters, details or secondary tasks, on the dialog machine. The side follows the reading direction: end is on the right in LTR and on the left in RTL. bottom is a full-width sheet.',
       },
     },
   },
   argTypes: {
-    end: {
-      control: 'boolean',
-    },
-    persistent: {
-      control: 'boolean',
-    },
+    side: { control: 'select', options: ['end', 'start', 'bottom'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    surface: { control: 'select', options: ['overlay', 'glass'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Drawer>;
 
-const handleLinkClick = (e: React.MouseEvent) => e.preventDefault();
-
 export const Default: Story = {
-  args: {
-    end: false,
-    persistent: false,
-  },
-  render: (args) => {
+  render: function Render(args) {
     const [open, setOpen] = useState(false);
     return (
       <Drawer
+        {...args}
         open={open}
-        onClose={() => setOpen(false)}
-        end={args.end}
-        persistent={args.persistent}
-        side={
-          <ul className="menu bg-base-200 min-h-full w-60 p-4">
-            <li>
-              <a href="/home" onClick={handleLinkClick}>
-                Home
-              </a>
-            </li>
-            <li>
-              <a href="/about" onClick={handleLinkClick}>
-                About
-              </a>
-            </li>
-            <li>
-              <a href="/contact" onClick={handleLinkClick}>
-                Contact
-              </a>
-            </li>
-          </ul>
+        onOpenChange={setOpen}
+        footer={
+          <>
+            <Button variant="ghost" color="neutral">
+              Reset
+            </Button>
+            <Button onClick={() => setOpen(false)}>Show 218 results</Button>
+          </>
         }
       >
-        <div className="p-4">
-          <Button label="Open Drawer" color="primary" onClick={() => setOpen(true)} />
-          <p className="mt-4">Main content area. The drawer slides in from the left.</p>
-        </div>
+        <Input label="Location" leadingIcon="search" />
+        <Toggle label="Only show pet friendly" />
       </Drawer>
     );
+  },
+  args: {
+    trigger: 'Filters',
+    title: 'Filters',
+    description: '218 properties match',
   },
 };
 
-export const EndSide: Story = {
+export const Start: Story = {
+  ...Default,
+  args: { ...Default.args, side: 'start' },
+};
+
+export const BottomSheet: Story = {
   args: {
-    end: true,
-    persistent: false,
-  },
-  render: (args) => {
-    const [open, setOpen] = useState(false);
-    return (
-      <Drawer
-        open={open}
-        onClose={() => setOpen(false)}
-        end={args.end}
-        persistent={args.persistent}
-        side={
-          <ul className="menu bg-base-200 min-h-full w-60 p-4">
-            <li>
-              <a href="/settings" onClick={handleLinkClick}>
-                Settings
-              </a>
-            </li>
-            <li>
-              <a href="/profile" onClick={handleLinkClick}>
-                Profile
-              </a>
-            </li>
-            <li>
-              <a href="/logout" onClick={handleLinkClick}>
-                Logout
-              </a>
-            </li>
-          </ul>
-        }
-      >
-        <div className="p-4">
-          <Button label="Open Right Drawer" color="secondary" onClick={() => setOpen(true)} />
-          <p className="mt-4">The drawer opens from the right side.</p>
-        </div>
-      </Drawer>
-    );
+    side: 'bottom',
+    trigger: 'Share',
+    title: 'Share listing',
+    children: (
+      <>
+        <Button variant="outline" color="neutral" leadingIcon="copy">
+          Copy link
+        </Button>
+        <Button variant="outline" color="neutral" leadingIcon="mail">
+          Email
+        </Button>
+      </>
+    ),
   },
 };

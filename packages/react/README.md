@@ -4,105 +4,59 @@
 [![npm](https://img.shields.io/npm/v/@artisanpack-ui/react)](https://www.npmjs.com/package/@artisanpack-ui/react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ArtisanPack-UI/react/blob/main/LICENSE)
 
-56+ React UI components for building modern web applications, styled with [DaisyUI](https://daisyui.com/) and [Tailwind CSS](https://tailwindcss.com/). Part of the [ArtisanPack UI](https://github.com/ArtisanPack-UI/react) ecosystem.
+The React components of the [ArtisanPack UI design system](https://docs.artisanpackui.dev/documentation/design-system/home): the same components, props and markup as the Livewire and Vue libraries, styled by `@artisanpack-ui/css` and driven by the `@artisanpack-ui/behavior` engine.
 
-## Installation
-
-```bash
-npm install @artisanpack-ui/react @artisanpack-ui/tokens
-```
-
-### Peer Dependencies
+## Install
 
 ```bash
-npm install react react-dom
+npm install @artisanpack-ui/react @artisanpack-ui/css
 ```
 
-Optional peers for chart components:
+`react` and `react-dom` 18 or 19 are peer dependencies.
 
-```bash
-npm install apexcharts react-apexcharts
+## Set up
+
+Load the CSS once. Without Tailwind, in your app's entry:
+
+```ts
+import '@artisanpack-ui/css';
 ```
 
-## Setup
-
-Import the tokens CSS in your Tailwind entry file:
+With Tailwind v4, in your Tailwind stylesheet:
 
 ```css
-@import "tailwindcss";
-@import "@artisanpack-ui/tokens/css";
+@layer theme, base, apui, components, utilities;
+@import 'tailwindcss';
+@import '@artisanpack-ui/css';
 ```
 
-## Usage
+Render `ThemeScript` first in `<head>` to apply the stored theme before the first paint, and use the components:
 
 ```tsx
-import { Button, Input, Card, ThemeProvider } from '@artisanpack-ui/react';
+import { Button, Input, ThemeScript, ThemeToggle } from '@artisanpack-ui/react';
 
-function App() {
-  return (
-    <ThemeProvider>
-      <Card>
-        <Input label="Email" type="email" />
-        <Button color="primary">Submit</Button>
-      </Card>
-    </ThemeProvider>
-  );
-}
+<head>
+  <ThemeScript />
+</head>;
+
+<ThemeToggle />
+<Input label="Email" type="email" />
+<Button color="primary">Save</Button>
 ```
 
-### Tree-Shakeable Imports
-
-Import from specific categories to minimize bundle size:
-
-```tsx
-import { Button, Input, Select } from '@artisanpack-ui/react/form';
-import { Card, Modal, Tabs } from '@artisanpack-ui/react/layout';
-import { Menu, Breadcrumbs } from '@artisanpack-ui/react/navigation';
-import { Table, Badge, Avatar } from '@artisanpack-ui/react/data';
-import { Alert, Toast, Loading } from '@artisanpack-ui/react/feedback';
-import { Icon, ThemeToggle, Tooltip } from '@artisanpack-ui/react/utility';
-```
-
-## Component Categories
-
-- **Form** - Button, Input, Select, Checkbox, Toggle, DatePicker, ColorPicker, RichTextEditor, and more
-- **Layout** - Card, Modal, Tabs, Accordion, Drawer, Dropdown, Grid, Stack, Popover
-- **Navigation** - Menu, Breadcrumbs, Pagination, Steps, Navbar, Sidebar, SpotlightSearch
-- **Data Display** - Table, Chart, Calendar, Avatar, Badge, Progress, Stat, Timeline, Carousel, Code, Diff
-- **Feedback** - Alert, Toast, Loading, Skeleton, EmptyState, ErrorDisplay
-- **Utility** - Icon, ThemeToggle, Tooltip, Clipboard, Markdown
-
-## Theming
-
-All components support DaisyUI's 31 built-in themes plus custom themes:
-
-```tsx
-import { ThemeProvider, ThemeToggle } from '@artisanpack-ui/react';
-
-<ThemeProvider defaultColorScheme="system">
-  <ThemeToggle />
-  {/* your app */}
-</ThemeProvider>
-```
-
-## React Compatibility
-
-Supports both React 18 and React 19.
+Every component is exported from the root and from a category subpath: `/form`, `/layout`, `/navigation`, `/data`, `/feedback`, `/utility`, and `/chart` for Chart alone. The AI admin components are only on `/ai`.
 
 ## Documentation
 
-- [Getting Started](https://github.com/ArtisanPack-UI/react/wiki/Getting-Started)
-- [Component API Reference](https://github.com/ArtisanPack-UI/react/wiki/Component-API-Reference)
-- [Theming Guide](https://github.com/ArtisanPack-UI/react/wiki/Theming)
-
-## Part of ArtisanPack UI
-
-| Package | Description |
-|---------|-------------|
-| [`@artisanpack-ui/tokens`](https://www.npmjs.com/package/@artisanpack-ui/tokens) | Design tokens, color resolver, glass helpers |
-| [`@artisanpack-ui/react`](https://www.npmjs.com/package/@artisanpack-ui/react) | 56+ React UI components |
-| [`@artisanpack-ui/react-laravel`](https://www.npmjs.com/package/@artisanpack-ui/react-laravel) | Inertia.js adapter wrappers |
+- [Getting Started](https://docs.artisanpackui.dev/documentation/react/getting-started)
+- [Components](https://docs.artisanpackui.dev/documentation/react/components): every component, linked to its design-system page
+- [Hooks and Utilities](https://docs.artisanpackui.dev/documentation/react/utilities)
+- [Theming](https://docs.artisanpackui.dev/documentation/react/theming)
+- [AI Components](https://docs.artisanpackui.dev/documentation/react/ai-components)
+- [Server Rendering](https://docs.artisanpackui.dev/documentation/react/server-rendering)
+- [TypeScript](https://docs.artisanpackui.dev/documentation/react/typescript)
+- [Upgrading from 1.x](https://docs.artisanpackui.dev/documentation/react/upgrading): the codemod and the deprecated 1.x components
 
 ## License
 
-[MIT](https://github.com/ArtisanPack-UI/react/blob/main/LICENSE) - Jacob Martella
+[MIT](https://github.com/ArtisanPack-UI/react/blob/main/LICENSE) — Jacob Martella

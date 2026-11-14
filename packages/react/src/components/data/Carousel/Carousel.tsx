@@ -1,330 +1,301 @@
 /**
  * @module Carousel
  *
- * Image/content carousel component with autoplay, keyboard navigation (arrow keys, Home, End),
- * touch swipe support, navigation arrows, and dot indicators. Supports custom slide rendering
- * and respects the `prefers-reduced-motion` media query for autoplay.
+ * The design-system Carousel (#65): scroll-snapped slides with previous and
+ * next buttons, position dots and optional autoplay with a pause button, on
+ * the behavior engine's carousel (`useCarousel`, Zag's carousel machine
+ * scoped `carousel`, the one ImageSlider runs on, D-041). `perView` shows
+ * several slides at once with the next one peeking; a slide's `id` keys it,
+ * so reordered slides keep their own state. The autoplay button comes first
+ * in the Tab order. It renders the `.apui-carousel` markup contract styled by
+ * `@artisanpack-ui/css`.
+ *
+ * @packageDocumentation
  */
 
+import { carouselPageCount, useCarousel } from '@artisanpack-ui/behavior/react';
 import {
+  createElement,
   forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
+  type CSSProperties,
+  type ForwardedRef,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
 } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
 
-/**
- * Represents a single slide in the carousel.
- */
+import { IconSvg } from '../../../internal/icon';
+import { mergePartProps } from '../../../internal/merge';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+import { Button } from '../../form/Button/Button';
+import { Card } from '../../layout/Card/Card';
+
+/** One slide of a {@link Carousel}: the default Card's content, or anything `renderSlide` draws. */
 export interface CarouselSlide {
-  /** URL of the slide image. */
+  /**
+   * A stable id. When every slide has a distinct one it keys the slide, so a
+   * reordered list keeps each `renderSlide`'s own state; else slides are
+   * keyed by position.
+   */
+  id?: string | number;
+  /** The Card's image URL. */
   image?: string;
-  /** Alt text for the slide image. */
+  /** Describes the image. */
   alt?: string;
-  /** Title text displayed over the slide image in a gradient overlay. */
+  /** The Card's title. */
   title?: ReactNode;
-  /** Description text displayed below the title in the gradient overlay. */
+  /** The Card's supporting text. */
   description?: ReactNode;
-  /** Arbitrary content to render as the slide. When provided, `image`, `title`, and `description` are ignored. */
+  /** Links the Card's title. */
+  href?: string;
+  /** Content that replaces the Card, as in 2.x. Prefer `renderSlide`. */
   content?: ReactNode;
+  [key: string]: unknown;
 }
 
-/**
- * Props for the {@link Carousel} component.
- */
-export interface CarouselProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
-  /** Array of slides to display. */
-  slides: CarouselSlide[];
-  /** Whether to automatically advance slides at the given interval. @defaultValue false */
+/** The parts a {@link Carousel} accepts extra classes for. */
+export type CarouselPart =
+  | 'root'
+  | 'header'
+  | 'title'
+  | 'viewport'
+  | 'itemGroup'
+  | 'item'
+  | 'prevTrigger'
+  | 'nextTrigger'
+  | 'indicatorGroup'
+  | 'indicator'
+  | 'autoplayTrigger';
+
+/** Props for the {@link Carousel} component. Native `<div>` attributes go to the root. */
+export interface CarouselProps<Slide = CarouselSlide> extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'title'
+> {
+  /** The slides, in order. */
+  slides: Slide[];
+  /** Slides in view at once, a whole number; above 1 the next one peeks. @defaultValue `1` */
+  perView?: number;
+  /** The position shown, 0-based (controlled). Pair it with `onIndexChange`. */
+  index?: number;
+  /** The initial position of an uncontrolled carousel. @defaultValue `0` */
+  defaultIndex?: number;
+  /** Called when the carousel moves to another position. Setting `index` doesn't call it. */
+  onIndexChange?: (index: number) => void;
+  /** Wraps from the last position to the first and back. @defaultValue `false` */
+  loop?: boolean;
+  /** Advances every `interval` ms, with a pause button. @defaultValue `false` */
   autoplay?: boolean;
-  /** Autoplay interval in milliseconds. @defaultValue 3000 */
+  /** Milliseconds between slides while autoplay runs. @defaultValue `5000` */
   interval?: number;
-  /** Whether to show dot indicators at the bottom. @defaultValue true */
-  showIndicators?: boolean;
-  /** Whether to show left/right arrow buttons. @defaultValue true */
-  showArrows?: boolean;
-  /** Custom render function for slides, receiving the slide data and its index. */
-  renderSlide?: (slide: CarouselSlide, index: number) => ReactNode;
+  /** A heading in the header, with the buttons beside it. Without it they overlay the slides. */
+  title?: string;
+  /** The title's heading level, 2 to 6. @defaultValue `3` */
+  headingLevel?: number;
+  /** Names the region. Defaults to a passed `aria-label`, then the title, else `'Carousel'`. */
+  label?: string;
+  /** The previous button's accessible name. @defaultValue `'Previous slide'` */
+  previousLabel?: string;
+  /** The next button's accessible name. @defaultValue `'Next slide'` */
+  nextLabel?: string;
+  /** A dot's accessible name; `{index}` is replaced. @defaultValue `'Go to slide {index}'` */
+  indicatorLabel?: string;
+  /** A slide's accessible name. @defaultValue `'{index} of {count}'` */
+  slideLabel?: string;
+  /** The autoplay button's name while paused. @defaultValue `'Start slide rotation'` */
+  playLabel?: string;
+  /** The autoplay button's name while playing. @defaultValue `'Stop slide rotation'` */
+  pauseLabel?: string;
+  /** Renders one slide's content. Without it each slide is a Card. */
+  renderSlide?: (slide: Slide, index: number) => ReactNode;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CarouselPart>;
 }
 
-const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+const text = (value: unknown): string | undefined =>
+  typeof value === 'string' && value !== '' ? value : undefined;
 
-function subscribeReducedMotion(onStoreChange: () => void): () => void {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
-  const mql = window.matchMedia(reducedMotionQuery);
-  mql.addEventListener('change', onStoreChange);
-  return () => mql.removeEventListener('change', onStoreChange);
-}
-
-function getReducedMotionSnapshot(): boolean {
+/** The default slide: a Card from `{ image, alt, title, description, href }`. */
+function DefaultSlide({ slide }: { slide: CarouselSlide }) {
+  if (hasContent(slide.content)) return <>{slide.content}</>;
   return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia(reducedMotionQuery).matches
+    <Card
+      media={text(slide.image)}
+      mediaAlt={text(slide.alt) ?? ''}
+      title={hasContent(slide.title) ? slide.title : undefined}
+      description={hasContent(slide.description) ? slide.description : undefined}
+      href={text(slide.href)}
+    />
   );
 }
 
-function getReducedMotionServerSnapshot(): boolean {
-  return false;
+/**
+ * Each slide's React key: its `id` when every slide has a distinct string or
+ * number one, so reordered slides keep their own state; else its position.
+ */
+function slideKeys(list: readonly unknown[]): (string | number)[] {
+  const ids = list.map((slide) =>
+    slide && typeof slide === 'object' ? (slide as { id?: unknown }).id : undefined,
+  );
+  const usable =
+    ids.every((id) => (typeof id === 'string' && id !== '') || typeof id === 'number') &&
+    new Set(ids).size === ids.length;
+  return usable ? (ids as (string | number)[]) : list.map((_, i) => i);
 }
 
+const headingTag = (level: number) =>
+  `h${Math.min(6, Math.max(2, Math.floor(level)))}` as 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
 /**
- * Image/content carousel with autoplay, keyboard navigation, and touch swipe support.
- *
- * Renders an accessible `role="region"` with `aria-roledescription="carousel"`.
- * Each slide is wrapped in a `role="group"` with `aria-roledescription="slide"`.
- * Autoplay is disabled when the user prefers reduced motion.
+ * Scroll-snapped slides with previous and next buttons and position dots.
+ * Arrow keys on the dots follow the text direction.
  *
  * @example
  * ```tsx
- * <Carousel
- *   slides={[
- *     { image: '/slide1.jpg', alt: 'Slide 1', title: 'Welcome' },
- *     { image: '/slide2.jpg', alt: 'Slide 2', title: 'Features' },
- *     { content: <div>Custom slide content</div> },
- *   ]}
- *   autoplay
- *   interval={5000}
- * />
+ * <Carousel title="Featured properties" perView={3} slides={properties} />
  * ```
  */
-export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
-  (
-    {
-      slides,
-      autoplay = false,
-      interval = 3000,
-      showIndicators = true,
-      showArrows = true,
-      renderSlide,
-      className,
-      'aria-label': ariaLabel = 'Carousel',
-      onKeyDown: onKeyDownProp,
-      onTouchStart: onTouchStartProp,
-      onTouchEnd: onTouchEndProp,
-      onTouchCancel: onTouchCancelProp,
-      ...rest
+function CarouselInner<Slide = CarouselSlide>(
+  {
+    slides,
+    perView = 1,
+    index,
+    defaultIndex,
+    onIndexChange,
+    loop = false,
+    autoplay = false,
+    interval = 5000,
+    title,
+    headingLevel = 3,
+    label,
+    previousLabel = 'Previous slide',
+    nextLabel = 'Next slide',
+    indicatorLabel = 'Go to slide {index}',
+    slideLabel = '{index} of {count}',
+    playLabel = 'Start slide rotation',
+    pauseLabel = 'Stop slide rotation',
+    renderSlide,
+    classes = {},
+    className,
+    style,
+    ...rest
+  }: CarouselProps<Slide>,
+  ref: ForwardedRef<HTMLDivElement>,
+) {
+  const list = slides ?? [];
+  const view = Math.max(1, Math.floor(perView));
+  const pages = carouselPageCount(list.length, view);
+  const hasTitle = typeof title === 'string' && title !== '';
+  const api = useCarousel({
+    slideCount: list.length,
+    perView: view,
+    spacing: '12px',
+    scope: 'carousel',
+    index,
+    defaultIndex,
+    onIndexChange: ({ index: next }) => onIndexChange?.(next),
+    loop,
+    autoplay,
+    interval,
+    labels: {
+      previous: previousLabel,
+      next: nextLabel,
+      indicator: indicatorLabel,
+      slide: slideLabel,
+      play: playLabel,
+      pause: pauseLabel,
     },
-    ref,
-  ) => {
-    const [current, setCurrent] = useState(0);
-    const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const touchStartRef = useRef<number | null>(null);
+  });
+  const rootProps = api.getRootProps() as { style?: CSSProperties };
+  const keys = slideKeys(list);
 
-    const total = slides.length;
+  const triggers = (
+    <>
+      <Button
+        {...api.getPrevTriggerProps()}
+        variant={hasTitle ? 'outline' : 'soft'}
+        color="neutral"
+        size="sm"
+        iconOnly
+        leadingIcon="chevron-left"
+        className={classes.prevTrigger}
+      />
+      <Button
+        {...api.getNextTriggerProps()}
+        variant={hasTitle ? 'outline' : 'soft'}
+        color="neutral"
+        size="sm"
+        iconOnly
+        leadingIcon="chevron-right"
+        className={classes.nextTrigger}
+      />
+    </>
+  );
 
-    const prefersReducedMotion = useSyncExternalStore(
-      subscribeReducedMotion,
-      getReducedMotionSnapshot,
-      getReducedMotionServerSnapshot,
-    );
-    const effectiveAutoplay = autoplay && !prefersReducedMotion;
-
-    const goTo = useCallback(
-      (index: number) => {
-        if (total === 0) return;
-        const safe = ((index % total) + total) % total;
-        setCurrent(safe);
-      },
-      [total],
-    );
-
-    /* eslint-disable react-hooks/set-state-in-effect -- clamp index when slides are removed */
-    useEffect(() => {
-      if (total > 0) {
-        setCurrent((c) => Math.min(c, total - 1));
-      }
-    }, [total]);
-    /* eslint-enable react-hooks/set-state-in-effect */
-
-    const safeIndex = total > 0 ? Math.max(0, Math.min(current, total - 1)) : 0;
-
-    const next = useCallback(() => goTo(safeIndex + 1), [safeIndex, goTo]);
-    const prev = useCallback(() => goTo(safeIndex - 1), [safeIndex, goTo]);
-
-    useEffect(() => {
-      if (!effectiveAutoplay || total <= 1) return;
-
-      autoplayRef.current = setInterval(() => {
-        setCurrent((c) => (c + 1) % total);
-      }, interval);
-      return () => {
-        if (autoplayRef.current) clearInterval(autoplayRef.current);
-      };
-    }, [effectiveAutoplay, interval, total]);
-
-    const isInteractiveTarget = (target: EventTarget): boolean => {
-      if (!(target instanceof HTMLElement)) return false;
-      const tag = target.tagName;
-      return (
-        tag === 'INPUT' ||
-        tag === 'TEXTAREA' ||
-        tag === 'SELECT' ||
-        tag === 'BUTTON' ||
-        tag === 'A' ||
-        target.isContentEditable
-      );
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-      onKeyDownProp?.(e);
-      if (e.defaultPrevented || isInteractiveTarget(e.target)) return;
-
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        prev();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        next();
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        goTo(0);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        goTo(total - 1);
-      }
-    };
-
-    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-      onTouchStartProp?.(e);
-      if (e.defaultPrevented) return;
-      touchStartRef.current = e.touches[0].clientX;
-    };
-
-    const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-      onTouchEndProp?.(e);
-      if (e.defaultPrevented || touchStartRef.current === null) {
-        touchStartRef.current = null;
-        return;
-      }
-      const diff = touchStartRef.current - e.changedTouches[0].clientX;
-      touchStartRef.current = null;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) next();
-        else prev();
-      }
-    };
-
-    const handleTouchCancel = (e: React.TouchEvent<HTMLDivElement>) => {
-      touchStartRef.current = null;
-      onTouchCancelProp?.(e);
-    };
-
-    if (total === 0) return null;
-
-    const slide = slides[safeIndex];
-
-    return (
-      <div
-        ref={ref}
-        className={cn('relative w-full overflow-hidden rounded-box', className)}
-        role="region"
-        aria-label={ariaLabel}
-        aria-roledescription="carousel"
-        onKeyDown={handleKeyDown}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchCancel}
-        tabIndex={0}
-        {...rest}
-      >
-        <div
-          className="w-full"
-          role="group"
-          aria-roledescription="slide"
-          aria-label={`Slide ${safeIndex + 1} of ${total}`}
-          aria-live={effectiveAutoplay ? 'off' : 'polite'}
-          aria-atomic="true"
-        >
-          {renderSlide ? (
-            renderSlide(slide, safeIndex)
-          ) : slide.content !== undefined ? (
-            slide.content
-          ) : (
-            <div className="relative">
-              {slide.image && (
-                <img src={slide.image} alt={slide.alt ?? ''} className="w-full object-cover" />
-              )}
-              {(slide.title || slide.description) && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white">
-                  {slide.title && <h3 className="text-xl font-bold">{slide.title}</h3>}
-                  {slide.description && <p className="mt-1 opacity-80">{slide.description}</p>}
-                </div>
+  return (
+    <div
+      {...mergePartProps(rest, rootProps)}
+      ref={ref}
+      className={cx('apui-carousel', classes.root, className)}
+      aria-label={label || rest['aria-label'] || title || 'Carousel'}
+      style={{ ...rootProps.style, ...style }}
+    >
+      {/* First in the Tab order, before the rotating slides; CSS places it over the viewport. */}
+      {autoplay ? (
+        <button {...api.getAutoplayTriggerProps()} className={classes.autoplayTrigger}>
+          <IconSvg name={api.isPlaying ? 'pause' : 'play'} />
+        </button>
+      ) : null}
+      {hasTitle ? (
+        <div className={classes.header} data-scope="carousel" data-part="header">
+          {createElement(
+            headingTag(headingLevel),
+            { className: classes.title, 'data-scope': 'carousel', 'data-part': 'title' },
+            title,
+          )}
+          {triggers}
+        </div>
+      ) : null}
+      <div className={classes.viewport} data-scope="carousel" data-part="viewport">
+        <div {...api.getItemGroupProps()} className={classes.itemGroup} tabIndex={0}>
+          {list.map((slide, i) => (
+            <div key={keys[i]} {...api.getItemProps({ index: i })} className={classes.item}>
+              {renderSlide ? (
+                renderSlide(slide, i)
+              ) : (
+                <DefaultSlide slide={slide as unknown as CarouselSlide} />
               )}
             </div>
-          )}
+          ))}
         </div>
-
-        {showArrows && total > 1 && (
-          <>
-            <button
-              type="button"
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-base-100/80 hover:bg-base-100 cursor-pointer transition-colors"
-              onClick={prev}
-              aria-label="Previous slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-5 h-5"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-base-100/80 hover:bg-base-100 cursor-pointer transition-colors"
-              onClick={next}
-              aria-label="Next slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-5 h-5"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </>
-        )}
-
-        {showIndicators && total > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={cn(
-                  'w-3 h-3 rounded-full transition-opacity',
-                  i === safeIndex ? 'bg-base-100 opacity-100' : 'bg-base-100 opacity-50',
-                )}
-                onClick={() => goTo(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                aria-current={i === safeIndex ? 'step' : undefined}
-              />
-            ))}
-          </div>
-        )}
+        {hasTitle ? null : triggers}
       </div>
-    );
-  },
-);
+      {pages > 1 ? (
+        <div {...api.getIndicatorGroupProps()} className={classes.indicatorGroup}>
+          {Array.from({ length: pages }, (_, i) => (
+            <button
+              key={i}
+              {...api.getIndicatorProps({ index: i })}
+              className={classes.indicator}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Scroll-snapped slides with previous and next buttons and position dots.
+ *
+ * @example
+ * ```tsx
+ * <Carousel title="Featured properties" perView={3} slides={properties} />
+ * <Carousel label="Customer notes" slides={quotes} autoplay renderSlide={(quote) => <Card>{quote.text}</Card>} />
+ * ```
+ */
+export const Carousel = forwardRef(CarouselInner) as (<Slide = CarouselSlide>(
+  props: CarouselProps<Slide> & { ref?: Ref<HTMLDivElement> },
+) => ReturnType<typeof CarouselInner>) & { displayName?: string };
 
 Carousel.displayName = 'Carousel';

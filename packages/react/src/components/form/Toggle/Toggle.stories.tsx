@@ -9,14 +9,15 @@ const meta: Meta<typeof Toggle> = {
     docs: {
       description: {
         component:
-          'Toggle switch input with label, hint, error state, DaisyUI color variants, and disabled mode.',
+          'A switch (role=switch on a native checkbox) for settings that take effect immediately.',
       },
     },
   },
   argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
   },
 };
@@ -25,52 +26,29 @@ export default meta;
 type Story = StoryObj<typeof Toggle>;
 
 export const Default: Story = {
-  args: {
-    label: 'Dark mode',
-  },
+  args: { label: 'Dark mode' },
 };
 
-export const Checked: Story = {
-  args: {
-    label: 'Notifications enabled',
-    defaultChecked: true,
-    color: 'success',
-  },
-};
-
-export const Colors: Story = {
+export const Settings: Story = {
   render: () => (
-    <div className="flex flex-col gap-2">
-      <Toggle label="Primary" color="primary" defaultChecked />
-      <Toggle label="Secondary" color="secondary" defaultChecked />
-      <Toggle label="Accent" color="accent" defaultChecked />
-      <Toggle label="Success" color="success" defaultChecked />
-      <Toggle label="Warning" color="warning" defaultChecked />
-      <Toggle label="Error" color="error" defaultChecked />
-      <Toggle label="Info" color="info" defaultChecked />
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Toggle label="Weekly revenue digest" description="Every Monday at 9:00." />
+      <Toggle
+        label="Two-factor authentication"
+        description="Required by your workspace admin."
+        checked
+        disabled
+      />
     </div>
   ),
 };
 
-export const WithHint: Story = {
-  args: {
-    label: 'Auto-save',
-    hint: 'Automatically save changes every 30 seconds.',
-    color: 'primary',
-  },
-};
-
-export const WithError: Story = {
-  args: {
-    label: 'Enable feature',
-    error: 'This feature requires a premium plan.',
-  },
-};
-
-export const Disabled: Story = {
-  args: {
-    label: 'Maintenance mode',
-    disabled: true,
-    defaultChecked: true,
-  },
+export const Sizes: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <Toggle label="Small" size="sm" defaultChecked />
+      <Toggle label="Medium" defaultChecked />
+      <Toggle label="Large" size="lg" color="success" defaultChecked />
+    </div>
+  ),
 };

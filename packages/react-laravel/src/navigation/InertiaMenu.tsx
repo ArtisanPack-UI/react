@@ -1,59 +1,79 @@
-import { forwardRef, useMemo, type ReactElement } from 'react';
+import { forwardRef, useMemo, type ComponentProps, type ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
-import { Menu, type MenuProps, type MenuItemType } from '@artisanpack-ui/react/navigation';
+import { Menu, type MenuItemData, type MenuProps } from '@artisanpack-ui/react/navigation';
 
 /**
  * Menu item descriptor with Inertia `href` support.
- * Extends the base `MenuItemType` but replaces `renderLink` with a simple `href` string
- * that is automatically wired to Inertia's `<Link>` for client-side navigation.
+ * Items with an `href` render Inertia's `<Link>` for client-side navigation;
+ * items with `children` render a sub-menu; the rest render buttons.
  *
  * @see {@link InertiaMenuProps}
  */
-export interface InertiaMenuItemType extends Omit<MenuItemType, 'renderLink' | 'children'> {
+export interface InertiaMenuItemType {
+  /** Identifies the item, for {@link InertiaMenuProps.activeKey}. */
+  key?: string;
+  /** The item's text. */
+  label: ReactNode;
   /** Inertia route URL for this menu item */
   href?: string;
-  /** Nested sub-items */
+  /** An icon name from the registry, or a node, before the label. */
+  icon?: ReactNode;
+  /** A count or status at the end of the item. */
+  badge?: ReactNode;
+  /** Disables the item. */
+  disabled?: boolean;
+  /** Nested sub-items; the item becomes a sub-menu. */
   children?: InertiaMenuItemType[];
 }
 
 /**
  * Props for the {@link InertiaMenu} component.
- * Extends the base `MenuProps` but accepts {@link InertiaMenuItemType} items
- * with Inertia `href` instead of `renderLink`.
+ * Extends the base `MenuProps` but accepts {@link InertiaMenuItemType} items.
  */
 export interface InertiaMenuProps extends Omit<MenuProps, 'items'> {
   /** Menu items with Inertia href support */
   items: InertiaMenuItemType[];
+  /** The `key` of the current page's item: it gets `aria-current="page"`. */
+  activeKey?: string;
 }
 
-/**
- * Converts InertiaMenuItemType items to MenuItemType by injecting Inertia Link
- * via the `renderLink` prop for items that have an `href`.
- */
-function toMenuItems(items: InertiaMenuItemType[]): MenuItemType[] {
-  return items.map((item) => {
-    const { href, children, ...rest } = item;
+/** Whether an item or any of its descendants is the active one. */
+function holdsActive(item: InertiaMenuItemType, activeKey?: string): boolean {
+  if (activeKey === undefined) return false;
+  if (item.key === activeKey) return true;
+  return item.children?.some((child) => holdsActive(child, activeKey)) ?? false;
+}
 
-    const menuItem: MenuItemType = { ...rest };
-
-    if (href) {
-      menuItem.renderLink = (props): ReactElement => (
-        <Link
-          href={href}
-          className={props.className}
-          onClick={props.onClick}
-          aria-current={props['aria-current']}
-        >
-          {props.children}
-        </Link>
-      );
-    }
+/** Converts InertiaMenuItemType items to Menu data, rendering links with Inertia's `<Link>`. */
+function toMenuItems(items: InertiaMenuItemType[], activeKey?: string): MenuItemData[] {
+  return items.map((item): MenuItemData => {
+    const { key, href, children, ...rest } = item;
 
     if (children) {
-      menuItem.children = toMenuItems(children);
+      return {
+        type: 'sub',
+        key,
+        label: rest.label,
+        icon: rest.icon,
+        badge: rest.badge,
+        disabled: rest.disabled,
+        // Opens initially when it holds the active item; the sub-menu also
+        // opens itself when a child becomes current later (persistent layouts).
+        open: holdsActive(item, activeKey) || undefined,
+        items: toMenuItems(children, activeKey),
+      };
     }
 
-    return menuItem;
+    return {
+      ...rest,
+      key,
+      href,
+      current: key !== undefined && key === activeKey,
+      // The item's attributes, handlers and ref pass through to Inertia's Link.
+      renderLink: href
+        ? (props) => <Link {...(props as unknown as ComponentProps<typeof Link>)} />
+        : undefined,
+    };
   });
 }
 
@@ -66,20 +86,21 @@ function toMenuItems(items: InertiaMenuItemType[]): MenuItemType[] {
  * @example
  * ```tsx
  * <InertiaMenu
+ *   activeKey="dashboard"
  *   items={[
- *     { label: 'Dashboard', href: '/dashboard', icon: <HomeIcon /> },
- *     { label: 'Users', href: '/users' },
- *     { label: 'Settings', href: '/settings', children: [
- *       { label: 'Profile', href: '/settings/profile' },
- *       { label: 'Security', href: '/settings/security' },
+ *     { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'house' },
+ *     { key: 'users', label: 'Users', href: '/users' },
+ *     { key: 'settings', label: 'Settings', children: [
+ *       { key: 'profile', label: 'Profile', href: '/settings/profile' },
+ *       { key: 'security', label: 'Security', href: '/settings/security' },
  *     ]},
  *   ]}
  * />
  * ```
  */
-export const InertiaMenu = forwardRef<HTMLUListElement, InertiaMenuProps>(
-  ({ items, ...rest }, ref) => {
-    const menuItems = useMemo(() => toMenuItems(items), [items]);
+export const InertiaMenu = forwardRef<HTMLElement, InertiaMenuProps>(
+  ({ items, activeKey, ...rest }, ref) => {
+    const menuItems = useMemo(() => toMenuItems(items, activeKey), [items, activeKey]);
 
     return <Menu ref={ref} items={menuItems} {...rest} />;
   },

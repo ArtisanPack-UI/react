@@ -1,74 +1,114 @@
+import { createRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Navbar } from '../../components/navigation/Navbar/Navbar';
+import { expectReactParity } from '@artisanpack-ui/testing/react';
+import {
+  Navbar,
+  NavbarItem,
+  type NavbarLinkData,
+  type NavbarProps,
+} from '../../components/navigation/Navbar/Navbar';
+
+const declaredProps: (keyof NavbarProps)[] = [
+  'layout',
+  'surface',
+  'sticky',
+  'brand',
+  'links',
+  'search',
+  'actions',
+  'label',
+  'classes',
+];
+
+const LINKS: NavbarLinkData[] = [
+  { label: 'Properties', href: '#properties', current: true },
+  { label: 'Analytics', href: '#analytics' },
+];
 
 describe('Navbar', () => {
-  it('renders with navbar class', () => {
-    render(<Navbar data-testid="navbar" />);
-    expect(screen.getByTestId('navbar')).toHaveClass('navbar');
+  it('matches the design-system manifest', async () => {
+    await expectReactParity(Navbar, 'Navbar', { declared: { props: declaredProps, events: [] } });
   });
 
-  it('renders start section', () => {
-    render(<Navbar start={<span data-testid="start">Logo</span>} />);
-    expect(screen.getByTestId('start')).toBeInTheDocument();
-    expect(screen.getByTestId('start').parentElement).toHaveClass('navbar-start');
-  });
-
-  it('renders center section', () => {
-    render(<Navbar center={<span data-testid="center">Title</span>} />);
-    expect(screen.getByTestId('center')).toBeInTheDocument();
-    expect(screen.getByTestId('center').parentElement).toHaveClass('navbar-center');
-  });
-
-  it('renders end section', () => {
-    render(<Navbar end={<span data-testid="end">Actions</span>} />);
-    expect(screen.getByTestId('end')).toBeInTheDocument();
-    expect(screen.getByTestId('end').parentElement).toHaveClass('navbar-end');
-  });
-
-  it('renders all three sections', () => {
-    render(
-      <Navbar start={<span>Start</span>} center={<span>Center</span>} end={<span>End</span>} />,
+  it('renders the same markup from links as from composition', () => {
+    expect(renderToStaticMarkup(<Navbar brand="Horizon" links={LINKS} />)).toBe(
+      renderToStaticMarkup(
+        <Navbar brand="Horizon">
+          <NavbarItem href="#properties" current>
+            Properties
+          </NavbarItem>
+          <NavbarItem href="#analytics">Analytics</NavbarItem>
+        </Navbar>,
+      ),
     );
-    expect(screen.getByText('Start')).toBeInTheDocument();
-    expect(screen.getByText('Center')).toBeInTheDocument();
-    expect(screen.getByText('End')).toBeInTheDocument();
   });
 
-  it('renders children', () => {
-    render(
-      <Navbar>
-        <span data-testid="child">Custom content</span>
+  it('renders the contract anatomy with its defaults', () => {
+    const { container } = render(
+      <Navbar brand="Horizon" links={LINKS} search="Search" actions={<button>Sign in</button>} />,
+    );
+    const root = container.querySelector('header.apui-navbar')!;
+    expect(root).toHaveAttribute('data-layout', 'bar');
+    expect(root).toHaveAttribute('data-surface', 'default');
+    expect(root).toHaveAttribute('data-sticky', '');
+    for (const part of ['brand', 'links', 'link', 'search', 'actions']) {
+      expect(container.querySelector(`[data-scope="navbar"][data-part="${part}"]`)).not.toBeNull();
+    }
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Properties' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Analytics' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('leaves out empty parts', () => {
+    const { container } = render(<Navbar brand="Horizon" />);
+    expect(container.querySelector('[data-part="links"]')).toBeNull();
+    expect(container.querySelector('[data-part="search"]')).toBeNull();
+    expect(container.querySelector('[data-part="actions"]')).toBeNull();
+  });
+
+  it('emits layout, surface and sticky, and names the nav', () => {
+    const { container } = render(
+      <Navbar layout="island" surface="glass" sticky={false} label="Primary" links={LINKS} />,
+    );
+    const root = container.querySelector('.apui-navbar')!;
+    expect(root).toHaveAttribute('data-layout', 'island');
+    expect(root).toHaveAttribute('data-surface', 'glass');
+    expect(root).not.toHaveAttribute('data-sticky');
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
+  });
+
+  it('applies classes per part and className to the root, and forwards the ref', () => {
+    const ref = createRef<HTMLElement>();
+    render(<Navbar ref={ref} className="mine" classes={{ links: 'l', link: 'k' }} links={LINKS} />);
+    expect(ref.current).toHaveClass('apui-navbar', 'mine');
+    expect(screen.getByRole('navigation')).toHaveClass('l');
+    expect(screen.getByRole('link', { name: 'Properties' })).toHaveClass('k');
+  });
+
+  it('throws when an item is rendered outside a navbar', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<NavbarItem href="#">A</NavbarItem>)).toThrow(/inside <Navbar>/);
+    spy.mockRestore();
+  });
+  it('renders a javascript: href as a plain non-link, from data and children', () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <Navbar links={[{ label: 'A', href: 'javascript:alert(1)' }]}>
+        <NavbarItem href="javascript:alert(2)" onClick={onClick}>
+          B
+        </NavbarItem>
       </Navbar>,
     );
-    expect(screen.getByTestId('child')).toBeInTheDocument();
-  });
-
-  it('applies glass class', () => {
-    render(<Navbar glass data-testid="navbar" />);
-    expect(screen.getByTestId('navbar')).toHaveClass('glass');
-  });
-
-  it('does not render empty sections', () => {
-    const { container } = render(<Navbar data-testid="navbar" />);
-    expect(container.querySelector('.navbar-start')).toBeNull();
-    expect(container.querySelector('.navbar-center')).toBeNull();
-    expect(container.querySelector('.navbar-end')).toBeNull();
-  });
-
-  it('applies custom className', () => {
-    render(<Navbar data-testid="navbar" className="custom-class" />);
-    expect(screen.getByTestId('navbar')).toHaveClass('custom-class');
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Navbar ref={ref} />);
-    expect(ref).toHaveBeenCalled();
-  });
-
-  it('renders as nav element', () => {
-    render(<Navbar data-testid="navbar" />);
-    expect(screen.getByTestId('navbar').tagName).toBe('NAV');
+    const links = [...container.querySelectorAll('[data-part="link"]')];
+    expect(links).toHaveLength(2);
+    expect(links.every((link) => !link.hasAttribute('href'))).toBe(true);
+    expect(container.innerHTML).not.toContain('javascript:');
+    links[1]!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onClick).not.toHaveBeenCalled();
   });
 });

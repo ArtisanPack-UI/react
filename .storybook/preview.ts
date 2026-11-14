@@ -1,49 +1,18 @@
 import type { Preview } from '@storybook/react-vite';
 import './storybook.css';
 
-const DAISY_THEMES = [
-  'light',
-  'dark',
-  'cupcake',
-  'bumblebee',
-  'emerald',
-  'corporate',
-  'synthwave',
-  'retro',
-  'cyberpunk',
-  'valentine',
-  'halloween',
-  'garden',
-  'forest',
-  'aqua',
-  'lofi',
-  'pastel',
-  'fantasy',
-  'wireframe',
-  'black',
-  'luxury',
-  'dracula',
-  'cmyk',
-  'autumn',
-  'business',
-  'acid',
-  'lemonade',
-  'night',
-  'coffee',
-  'winter',
-  'dim',
-  'nord',
-  'sunset',
-];
+// The design-system themes, applied the way ThemeScript applies them: as
+// `data-theme` on <html>, styled by @artisanpack-ui/css.
+const THEMES = ['light', 'dark', 'high-contrast'];
 
 const preview: Preview = {
   globalTypes: {
     theme: {
-      description: 'DaisyUI theme',
+      description: 'Design-system theme',
       toolbar: {
         title: 'Theme',
         icon: 'paintbrush',
-        items: DAISY_THEMES.map((t) => ({ value: t, title: t })),
+        items: THEMES.map((t) => ({ value: t, title: t })),
         dynamicTitle: true,
       },
     },

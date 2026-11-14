@@ -1,118 +1,84 @@
 /**
  * @module Stack
  *
- * A flexbox layout component for vertical or horizontal stacking with
- * type-safe gap, alignment, and justification props. Maps to Tailwind
- * CSS flex utilities.
+ * The design-system Stack (#58), a layout primitive: children in a column
+ * or a row, with a gap from the space scale, alignment and optional
+ * wrapping. Renders `.apui-stack`, styled by `@artisanpack-ui/css`; no
+ * Tailwind needed. A horizontal stack runs in the text direction.
  *
  * @packageDocumentation
  */
 
 import { forwardRef, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
 
-/** Allowed gap size values corresponding to Tailwind's spacing scale. */
-type GapSize = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16;
+import { cx, flag } from '../../../internal/parts';
+import type { SpaceStep } from '../Grid/Grid';
 
-/** Cross-axis alignment options (maps to Tailwind `items-*`). */
-type Align = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+/** The stack's axis. */
+export type StackOrientation = 'vertical' | 'horizontal';
 
-/** Main-axis justification options (maps to Tailwind `justify-*`). */
-type Justify = 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+/** `align-items`. */
+export type StackAlign = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
 
-/**
- * Props for the {@link Stack} component.
- */
+/** `justify-content`. */
+export type StackJustify = 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+
+/** Props for the {@link Stack} component. Native `<div>` attributes go to the root. */
 export interface StackProps extends HTMLAttributes<HTMLDivElement> {
-  /** Stack direction. @defaultValue `'vertical'` */
-  direction?: 'vertical' | 'horizontal';
-  /** Gap between items using Tailwind's spacing scale. @defaultValue `2` */
-  gap?: GapSize;
-  /** Cross-axis alignment of child items (`items-*`). */
-  align?: Align;
-  /** Main-axis justification of child items (`justify-*`). */
-  justify?: Justify;
-  /** Allow child items to wrap to the next line. */
+  /** A column or a row. Emitted as `data-orientation`. Replaces 1.x `direction`. @defaultValue `'vertical'` */
+  orientation?: StackOrientation;
+  /** The gap, a step of the space scale. Emitted as `data-gap`. @defaultValue `'2'` */
+  gap?: SpaceStep | number;
+  /** Emitted as `data-align`. @defaultValue `'stretch'` */
+  align?: StackAlign;
+  /** Emitted as `data-justify`. @defaultValue `'start'` */
+  justify?: StackJustify;
+  /** Lets a row wrap. Emitted as `data-wrap`. */
   wrap?: boolean;
+  /**
+   * The 1.x name of `orientation`.
+   *
+   * @deprecated Use `orientation` (vocabulary: one prop for orientation). Removed in a later major release.
+   */
+  direction?: StackOrientation;
 }
 
-const gapMap: Record<GapSize, string> = {
-  0: 'gap-0',
-  1: 'gap-1',
-  2: 'gap-2',
-  3: 'gap-3',
-  4: 'gap-4',
-  5: 'gap-5',
-  6: 'gap-6',
-  8: 'gap-8',
-  10: 'gap-10',
-  12: 'gap-12',
-  16: 'gap-16',
-};
-
-const alignMap: Record<Align, string> = {
-  start: 'items-start',
-  center: 'items-center',
-  end: 'items-end',
-  stretch: 'items-stretch',
-  baseline: 'items-baseline',
-};
-
-const justifyMap: Record<Justify, string> = {
-  start: 'justify-start',
-  center: 'justify-center',
-  end: 'justify-end',
-  between: 'justify-between',
-  around: 'justify-around',
-  evenly: 'justify-evenly',
-};
-
 /**
- * Flexbox layout component for vertical or horizontal stacking.
- *
- * A convenience wrapper around `display: flex` with declarative props
- * for direction, gap, alignment, justification, and wrapping.
+ * Lays its children out in a column or a row.
  *
  * @example
  * ```tsx
- * <Stack gap={4}>
- *   <div>First</div>
- *   <div>Second</div>
- *   <div>Third</div>
- * </Stack>
- * ```
- *
- * @example
- * ```tsx
- * <Stack direction="horizontal" align="center" justify="between" gap={6}>
- *   <span>Left</span>
- *   <span>Right</span>
- * </Stack>
+ * <Stack orientation="horizontal" gap="3" align="center" wrap>…</Stack>
  * ```
  */
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
   (
-    { direction = 'vertical', gap = 2, align, justify, wrap = false, className, children, ...rest },
+    {
+      orientation,
+      direction,
+      gap = '2',
+      align = 'stretch',
+      justify = 'start',
+      wrap = false,
+      className,
+      children,
+      ...rest
+    },
     ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex',
-          direction === 'vertical' ? 'flex-col' : 'flex-row',
-          gapMap[gap],
-          align && alignMap[align],
-          justify && justifyMap[justify],
-          wrap && 'flex-wrap',
-          className,
-        )}
-        {...rest}
-      >
-        {children}
-      </div>
-    );
-  },
+  ) => (
+    <div
+      {...rest}
+      ref={ref}
+      className={cx('apui-stack', className)}
+      data-orientation={orientation ?? direction ?? 'vertical'}
+      data-gap={String(gap)}
+      data-align={align}
+      data-justify={justify}
+      data-wrap={flag(wrap)}
+    >
+      {children}
+    </div>
+  ),
 );
 
 Stack.displayName = 'Stack';

@@ -19,6 +19,11 @@ const config: StorybookConfig = {
     return {
       ...config,
       plugins: [...(config.plugins ?? []), tailwindcss()],
+      // Keep one React so the behavior engine's Zag React adapter hooks work.
+      resolve: {
+        ...config.resolve,
+        dedupe: [...(config.resolve?.dedupe ?? []), 'react', 'react-dom'],
+      },
     };
   },
 };

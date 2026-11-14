@@ -6,7 +6,7 @@
  */
 
 export { InertiaLink } from './InertiaLink';
-export type { InertiaLinkProps } from './InertiaLink';
+export type { InertiaLinkProps, InertiaLinkColor } from './InertiaLink';
 
 export { InertiaMenu } from './InertiaMenu';
 export type { InertiaMenuProps, InertiaMenuItemType } from './InertiaMenu';

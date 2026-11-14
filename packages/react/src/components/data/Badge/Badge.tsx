@@ -1,77 +1,105 @@
 /**
  * @module Badge
  *
- * Inline badge component for displaying short labels, counts, or status indicators.
- * Built on DaisyUI's badge classes with support for color variants, sizes, and outline style.
+ * The design-system Badge (#61): a small, non-interactive label for a
+ * status, category or count, rendering the `.apui-badge` markup contract
+ * styled by `@artisanpack-ui/css`.
+ *
+ * @packageDocumentation
  */
 
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
-/**
- * Props for the {@link Badge} component.
- */
+import { IconPart } from '../../../internal/icon';
+import { cx, type PartClasses } from '../../../internal/parts';
+
+/** A {@link Badge}'s visual treatment. Emitted as `data-variant`. */
+export type BadgeVariant = 'solid' | 'soft' | 'outline' | 'ghost';
+
+/** A {@link Badge}'s semantic color. Emitted as `data-color`. */
+export type BadgeColor =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'neutral'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info';
+
+/** A {@link Badge}'s height: 18, 20 or 24px. Emitted as `data-size`. */
+export type BadgeSize = 'sm' | 'md' | 'lg';
+
+/** The parts a {@link Badge} accepts extra classes for. */
+export type BadgePart = 'root' | 'dot' | 'icon' | 'label';
+
+/** Props for the {@link Badge} component. Native `<span>` attributes go to the root. */
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  /** Content to display inside the badge. Falls back to `children` if not provided. */
-  value?: ReactNode;
-  /** DaisyUI color variant, or 'ghost' for a subtle appearance. */
-  color?: DaisyColor | 'ghost';
-  /** Size of the badge (xs, sm, md, lg). */
-  size?: Size;
-  /** Whether to render with an outline style instead of a solid fill. */
-  outline?: boolean;
+  /** Visual treatment. @defaultValue `'soft'` */
+  variant?: BadgeVariant;
+  /** Semantic color; use the same one for the same status everywhere. @defaultValue `'neutral'` */
+  color?: BadgeColor;
+  /** Height. @defaultValue `'md'` */
+  size?: BadgeSize;
+  /** A decorative dot before the label, in the badge's color. @defaultValue `false` */
+  dot?: boolean;
+  /** Icon name before the label, resolved through the icon registry. `icon` overrides it. */
+  leadingIcon?: string;
+  /** Leading icon node; overrides `leadingIcon`. */
+  icon?: ReactNode;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<BadgePart>;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'badge-primary',
-  secondary: 'badge-secondary',
-  accent: 'badge-accent',
-  success: 'badge-success',
-  warning: 'badge-warning',
-  error: 'badge-error',
-  info: 'badge-info',
-  neutral: 'badge-neutral',
-  ghost: 'badge-ghost',
-};
-
-const sizeMap: Record<Size, string> = {
-  xs: 'badge-xs',
-  sm: 'badge-sm',
-  md: 'badge-md',
-  lg: 'badge-lg',
-};
-
 /**
- * Inline badge component for displaying labels, counts, or status indicators.
- *
- * Renders a `<span>` with DaisyUI badge classes. Accepts content via the `value`
- * prop or `children`.
+ * A small label for a status, category or count. Never interactive: use a
+ * Button or a filter chip for that. The ref points at the root.
  *
  * @example
  * ```tsx
- * <Badge value="NEW" color="primary" size="sm" />
- * <Badge color="error" outline>3</Badge>
+ * <Badge color="success" dot>Active</Badge>
  * ```
  */
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ value, color, size, outline = false, className, children, ...rest }, ref) => {
-    return (
-      <span
-        ref={ref}
-        className={cn(
-          'badge',
-          color && colorMap[color],
-          size && sizeMap[size],
-          outline && 'badge-outline',
-          className,
-        )}
-        {...rest}
-      >
-        {value ?? children}
+  (
+    {
+      variant = 'soft',
+      color = 'neutral',
+      size = 'md',
+      dot = false,
+      leadingIcon,
+      icon,
+      classes = {},
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => (
+    <span
+      {...rest}
+      ref={ref}
+      className={cx('apui-badge', classes.root, className)}
+      data-variant={variant}
+      data-color={color}
+      data-size={size}
+    >
+      {dot ? (
+        <span className={classes.dot} data-scope="badge" data-part="dot" aria-hidden="true" />
+      ) : null}
+      <IconPart
+        scope="badge"
+        part="icon"
+        name={leadingIcon}
+        node={icon}
+        mirror
+        className={classes.icon}
+      />
+      <span className={classes.label} data-scope="badge" data-part="label">
+        {children}
       </span>
-    );
-  },
+    </span>
+  ),
 );
 
 Badge.displayName = 'Badge';

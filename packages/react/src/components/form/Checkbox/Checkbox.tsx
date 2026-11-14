@@ -1,154 +1,206 @@
-/** @module Checkbox */
+/**
+ * @module Checkbox
+ *
+ * The design-system Checkbox (#47): a native checkbox in the shared field
+ * anatomy, rendering the `.apui-checkbox` markup contract styled by
+ * `@artisanpack-ui/css`. Supports the indeterminate (mixed) state.
+ */
 
-import { forwardRef, useId, type InputHTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from 'react';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { IconSvg } from '../../../internal/icon';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+
+/** `useLayoutEffect` in the browser, `useEffect` on the server (no SSR warning on React 18). */
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+/** The parts a {@link Checkbox} accepts extra classes for. */
+export type CheckboxPart =
+  | 'root'
+  | 'box'
+  | 'control'
+  | 'indicator'
+  | 'label'
+  | 'description'
+  | 'error';
 
 /**
  * Props for the {@link Checkbox} component.
  *
- * Extends native `<input>` HTML attributes (excluding `size` and `type`).
- * Supports both standard and card layout variants.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `value`, `aria-*`, `data-*`, `id`, …) goes to the native `<input>`.
  */
 export interface CheckboxProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'size' | 'type'
+  'size' | 'type' | 'checked' | 'defaultChecked'
 > {
-  /** Text label displayed next to the checkbox. Includes a required indicator when `required` is true. */
-  label?: string;
-  /** When true, positions the label to the right of the checkbox (reverses flex order). @defaultValue `false` */
-  right?: boolean;
-  /** Helper text displayed below the checkbox. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the checkbox. Replaces `hint` when present and adds `aria-invalid`. */
+  /** Whether it's checked (controlled). Emitted as `data-state`. */
+  checked?: boolean;
+  /** The initial state of an uncontrolled checkbox. @defaultValue `false` */
+  defaultChecked?: boolean;
+  /**
+   * Shows the mixed state and sets the native `indeterminate` property.
+   * Clearing it after a click is up to the owner. @defaultValue `false`
+   */
+  indeterminate?: boolean;
+  /** The visible label, linked to the control. Without it, pass an `aria-label`. */
+  label?: ReactNode;
+  /** Supporting text under the label, linked with `aria-describedby`. */
+  description?: ReactNode;
+  /** Validation message. Marks it invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** DaisyUI color variant for the checkbox indicator. */
-  color?: DaisyColor;
-  /** When true, renders the checkbox inside a bordered card layout with checked-state highlighting. @defaultValue `false` */
-  card?: boolean;
-  /** Additional CSS classes applied to the card container when `card` is true. */
-  cardClass?: string;
+  /** Marks it invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the control. @defaultValue `false` */
+  disabled?: boolean;
+  /** Sets `required` on the control (no visual mark). @defaultValue `false` */
+  required?: boolean;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<CheckboxPart>;
+  /** Called with the new checked state. The native `onChange` still fires. */
+  onCheckedChange?: (checked: boolean) => void;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'checkbox-primary',
-  secondary: 'checkbox-secondary',
-  accent: 'checkbox-accent',
-  success: 'checkbox-success',
-  warning: 'checkbox-warning',
-  error: 'checkbox-error',
-  info: 'checkbox-info',
-  neutral: 'checkbox-neutral',
-};
-
 /**
- * A single checkbox input with label, hint text, error state, DaisyUI color variants,
- * and an optional card layout. Automatically generates accessible IDs and ARIA attributes.
+ * Turns one option on or off. Controlled (`checked` + `onCheckedChange`) or
+ * uncontrolled (`defaultChecked`). The ref points at the native `<input>`.
  *
  * @example
  * ```tsx
- * <Checkbox label="Accept terms" color="primary" required />
- * ```
- *
- * @example
- * ```tsx
- * <Checkbox label="Premium plan" card hint="Includes all features" />
+ * <Checkbox label="Select all" checked={all} indeterminate={some} onCheckedChange={toggleAll} />
  * ```
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
     {
+      checked,
+      defaultChecked = false,
+      indeterminate = false,
       label,
-      right = false,
-      hint,
+      description,
       error,
-      color,
-      card = false,
-      cardClass,
+      invalid = false,
+      disabled = false,
+      required = false,
+      classes = {},
       className,
-      id: providedId,
-      required,
+      id: explicitId,
+      onChange,
+      onCheckedChange,
+      'aria-describedby': callerDescribedBy,
+      'aria-invalid': callerInvalid,
       ...rest
     },
-    ref,
+    forwardedRef,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const errorId = error ? `${id}-error` : undefined;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-
-    const checkbox = (
-      <input
-        ref={ref}
-        id={id}
-        type="checkbox"
-        className={cn('checkbox', color && colorMap[color], className)}
-        required={required}
-        {...rest}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
-      />
+    const [uncontrolledChecked, setUncontrolledChecked] = useState(defaultChecked);
+    const isControlled = checked !== undefined;
+    const isChecked = isControlled ? checked : uncontrolledChecked;
+    const isInvalid = invalid || Boolean(error);
+    const state = indeterminate ? 'indeterminate' : isChecked ? 'checked' : 'unchecked';
+    const { id, helpId, errorId, describedBy } = useFieldIds(
+      explicitId,
+      { suffix: 'description', content: description },
+      error,
+      callerDescribedBy,
     );
 
-    if (card) {
-      return (
-        <fieldset className="fieldset">
-          <label
-            htmlFor={id}
-            className={cn(
-              'flex items-center gap-3 p-4 border rounded-lg cursor-pointer',
-              'hover:bg-base-200 transition-colors',
-              'has-[:checked]:border-primary has-[:checked]:bg-primary/5',
-              cardClass,
-            )}
-          >
-            {checkbox}
-            {label && (
-              <span>
-                {label}
-                {required && <span className="text-error ml-1">*</span>}
-              </span>
-            )}
-          </label>
-          {hint && !error && (
-            <p id={hintId} className="fieldset-label">
-              {hint}
-            </p>
-          )}
-          {error && (
-            <p id={errorId} className="fieldset-label text-error" role="alert">
-              {error}
-            </p>
-          )}
-        </fieldset>
-      );
-    }
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const setRefs = useCallback(
+      (element: HTMLInputElement | null) => {
+        inputRef.current = element;
+        if (typeof forwardedRef === 'function') forwardedRef(element);
+        else if (forwardedRef) forwardedRef.current = element;
+      },
+      [forwardedRef],
+    );
+
+    // Only script can set the native property. A click clears it in the browser, so it is
+    // re-asserted on every render and right after each change (an owner that keeps its state
+    // doesn't re-render).
+    useIsomorphicLayoutEffect(() => {
+      if (inputRef.current) inputRef.current.indeterminate = indeterminate;
+    });
+
+    // An uncontrolled checkbox follows its form's reset, which changes the input without a
+    // change event; read the result in a later task, since a native reset button resets
+    // the controls only after the event's microtasks have run.
+    useEffect(() => {
+      const form = inputRef.current?.form;
+      if (isControlled || !form) return;
+      const handleReset = () => {
+        setTimeout(() => {
+          if (inputRef.current) setUncontrolledChecked(inputRef.current.checked);
+        }, 0);
+      };
+      form.addEventListener('reset', handleReset);
+      return () => form.removeEventListener('reset', handleReset);
+    }, [isControlled]);
+
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const nextChecked = event.target.checked;
+      if (!isControlled) setUncontrolledChecked(nextChecked);
+      onChange?.(event);
+      onCheckedChange?.(nextChecked);
+      event.target.indeterminate = indeterminate;
+    };
 
     return (
-      <fieldset className="fieldset">
-        <label
+      <div
+        className={cx('apui-checkbox', classes.root, className)}
+        data-state={state}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+      >
+        <span className={classes.box} data-scope="checkbox" data-part="box">
+          <input
+            {...rest}
+            ref={setRefs}
+            type="checkbox"
+            className={classes.control}
+            data-scope="checkbox"
+            data-part="control"
+            id={id}
+            checked={isChecked}
+            disabled={disabled || undefined}
+            required={required || undefined}
+            aria-invalid={isInvalid ? true : callerInvalid}
+            aria-describedby={describedBy}
+            onChange={handleChange}
+          />
+          <span
+            className={classes.indicator}
+            data-scope="checkbox"
+            data-part="indicator"
+            aria-hidden="true"
+          >
+            <IconSvg name="check" dataIcon="check" />
+            <IconSvg name="minus" dataIcon="minus" />
+          </span>
+        </span>
+        <FieldLabel
+          scope="checkbox"
           htmlFor={id}
-          className={cn('flex items-center gap-2 cursor-pointer', right && 'flex-row-reverse')}
-        >
-          {checkbox}
-          {label && (
-            <span>
-              {label}
-              {required && <span className="text-error ml-1">*</span>}
-            </span>
-          )}
-        </label>
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
-      </fieldset>
+          label={label}
+          required={false}
+          className={classes.label}
+        />
+        <FieldHelp scope="checkbox" part="description" id={helpId} className={classes.description}>
+          {description}
+        </FieldHelp>
+        <FieldError scope="checkbox" id={errorId} message={error} className={classes.error} />
+      </div>
     );
   },
 );

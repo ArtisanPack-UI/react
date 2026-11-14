@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Timeline } from './Timeline';
-import type { TimelineItemData } from './Timeline';
+import { Timeline, TimelineItem } from './Timeline';
 
 const meta: Meta<typeof Timeline> = {
   title: 'Data Display/Timeline',
@@ -10,63 +9,62 @@ const meta: Meta<typeof Timeline> = {
     docs: {
       description: {
         component:
-          'Chronological event timeline in vertical or horizontal layout. Items support icons, colored indicators, and a pending-state marker for in-progress events.',
+          'Events in order, each with an icon or dot marker. Compose it from TimelineItem children, or pass the same events as items. For steps still to come, use Steps.',
       },
     },
+  },
+  argTypes: {
+    variant: { control: 'select', options: ['icon', 'dot'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Timeline>;
 
-const defaultItems: TimelineItemData[] = [
-  { title: 'Order Placed', subtitle: 'March 25, 2026' },
-  { title: 'Processing', subtitle: 'March 26, 2026' },
-  { title: 'Shipped', subtitle: 'March 27, 2026' },
-  { title: 'Delivered', subtitle: 'March 30, 2026' },
-];
-
-export const Default: Story = {
-  args: {
-    items: defaultItems,
-  },
+export const ActivityFeed: Story = {
+  render: (args) => (
+    <div style={{ maxWidth: 460 }}>
+      <Timeline {...args} label="Activity">
+        <TimelineItem
+          icon="circle-check"
+          color="success"
+          time="2h ago"
+          datetime="2026-11-12T08:00"
+          description="Phoenix Baker accepted $248,000."
+        >
+          <strong>Offer accepted</strong> on Lakeview Lofts
+        </TimelineItem>
+        <TimelineItem
+          icon="message-square"
+          time="5h ago"
+          card="Can we move the viewing to Thursday at 11:00? The tenant is out until then."
+        >
+          <strong>Olivia Rhye</strong> commented
+        </TimelineItem>
+        <TimelineItem
+          icon="circle-alert"
+          color="error"
+          time="Dec 28"
+          description="Card ending 4242"
+        >
+          <strong>Payment declined</strong> for ARKG
+        </TimelineItem>
+        <TimelineItem icon="house" color="primary" time="Dec 13" title="Listing published" />
+      </Timeline>
+    </div>
+  ),
 };
 
-export const Horizontal: Story = {
+export const DotsFromData: Story = {
   args: {
-    items: defaultItems,
-    vertical: false,
-  },
-};
-
-export const Compact: Story = {
-  args: {
-    items: defaultItems,
-    compact: true,
-  },
-};
-
-export const WithColors: Story = {
-  args: {
+    variant: 'dot',
+    label: 'Shipping history',
     items: [
-      { title: 'Primary', subtitle: 'Step 1', color: 'primary' },
-      { title: 'Secondary', subtitle: 'Step 2', color: 'secondary' },
-      { title: 'Accent', subtitle: 'Step 3', color: 'accent' },
-      { title: 'Neutral', subtitle: 'Step 4', color: 'neutral' },
-      { title: 'Info', subtitle: 'Step 5', color: 'info' },
-      { title: 'Success', subtitle: 'Step 6', color: 'success' },
-      { title: 'Warning', subtitle: 'Step 7', color: 'warning' },
-      { title: 'Error', subtitle: 'Step 8', color: 'error' },
+      { title: 'Delivered', time: 'Nov 7, 14:02', color: 'success' },
+      { title: 'Out for delivery', time: 'Nov 7, 08:15', color: 'primary' },
+      { title: 'Arrived at Barcelona hub', time: 'Nov 6, 22:40' },
+      { title: 'Shipped from Madrid', time: 'Nov 6, 09:10' },
     ],
-  },
-};
-
-export const WithPending: Story = {
-  args: {
-    items: [
-      { title: 'Step 1', subtitle: 'Completed', color: 'success' },
-      { title: 'Step 2', subtitle: 'In Progress', color: 'primary' },
-      { title: 'Step 3', subtitle: 'Pending', pending: true },
-    ],
+    style: { maxWidth: 360 },
   },
 };

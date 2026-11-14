@@ -1,373 +1,154 @@
 /**
  * @module Popover
  *
- * Positioned floating content triggered by hover or click. Built on DaisyUI's
- * dropdown positioning with added keyboard support, focus management,
- * configurable show/hide delays, and controlled/uncontrolled state.
+ * The design-system Popover (#58): an anchored, non-modal `role=dialog`
+ * panel on the behavior engine's popover machine (`usePopover`), rendering
+ * the `.apui-popover` markup contract styled by `@artisanpack-ui/css`. The
+ * panel carries the root class and is Zag's `content` part (D-019).
  *
  * @packageDocumentation
  */
 
-import {
-  forwardRef,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useId,
-  isValidElement,
-  cloneElement,
-  Fragment,
-  type HTMLAttributes,
-  type ReactNode,
-  type ReactElement,
-  type KeyboardEvent,
-  type FocusEvent,
-  type MutableRefObject,
-  type MouseEvent as ReactMouseEvent,
-} from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { usePopover } from '@artisanpack-ui/behavior/react';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
-/**
- * Props for the {@link Popover} component.
- */
-export interface PopoverProps extends Omit<
-  HTMLAttributes<HTMLDivElement>,
-  'onMouseEnter' | 'onMouseLeave' | 'onFocus' | 'onBlur'
-> {
-  /** The element that activates the popover. Can be any ReactNode; non-focusable elements are automatically wrapped. */
-  trigger: ReactNode;
-  /** How the popover is activated. @defaultValue `'hover'` */
-  triggerMode?: 'hover' | 'click';
-  /** Placement of the floating content relative to the trigger. @defaultValue `'bottom'` */
-  position?: 'top' | 'bottom' | 'left' | 'right';
-  /** Delay in milliseconds before showing the popover (hover mode only). @defaultValue `0` */
-  showDelay?: number;
-  /** Delay in milliseconds before hiding the popover (hover mode only). @defaultValue `300` */
-  hideDelay?: number;
-  /** Whether the popover is open (controlled mode). */
+import { mergePartProps } from '../../../internal/merge';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+import { Portal } from '../../../internal/portal';
+import { cloneTrigger, triggerElement, triggerId } from '../../../internal/trigger';
+import { Button } from '../../form/Button/Button';
+
+/** The trigger's side a {@link Popover} sits on. `start` and `end` follow the reading direction. */
+export type PopoverPlacement = 'top' | 'bottom' | 'start' | 'end';
+
+/** The parts a {@link Popover} accepts extra classes for. `root` is the panel. */
+export type PopoverPart =
+  | 'root'
+  | 'trigger'
+  | 'positioner'
+  | 'arrow'
+  | 'title'
+  | 'body'
+  | 'actions';
+
+/** Props for the {@link Popover} component. Native `<div>` attributes go to the panel. */
+export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  /** Whether it's open (controlled). Pair it with `onOpenChange`. Emitted as `data-state`. */
   open?: boolean;
-  /** Callback fired when the open state changes. */
+  /** The initial state of an uncontrolled popover. @defaultValue `false` */
+  defaultOpen?: boolean;
+  /**
+   * Called when the popover opens or closes itself: the trigger, Escape or an
+   * outside click. Setting `open` doesn't call it.
+   */
   onOpenChange?: (open: boolean) => void;
-  /** Prevent closing via outside click or Escape key. */
-  persistent?: boolean;
-  /** External mouse-enter handler forwarded to the container. */
-  onMouseEnter?: (e: ReactMouseEvent<HTMLDivElement>) => void;
-  /** External mouse-leave handler forwarded to the container. */
-  onMouseLeave?: (e: ReactMouseEvent<HTMLDivElement>) => void;
-  /** External focus handler forwarded to the container. */
-  onFocus?: (e: FocusEvent<HTMLDivElement>) => void;
-  /** External blur handler forwarded to the container. */
-  onBlur?: (e: FocusEvent<HTMLDivElement>) => void;
+  /**
+   * The trigger's side the panel sits on, lined up with the trigger's start
+   * edge. Emitted as `data-placement`; the side it settled on, after
+   * flipping, is `data-side`. @defaultValue `'bottom'`
+   */
+  placement?: PopoverPlacement;
+  /** Draws the arrow that points at the trigger. @defaultValue `true` */
+  arrow?: boolean;
+  /** The heading, the panel's accessible name. Without one, give the popover an `aria-label`. */
+  title?: ReactNode;
+  /** A row of actions at the end of the panel. */
+  actions?: ReactNode;
+  /**
+   * The control that opens it. Text renders an outline Button; an element (a
+   * Button, an icon button) becomes the trigger itself and keeps its own id.
+   */
+  trigger?: ReactNode;
+  /** Renders the panel at the end of the body (a React portal). Off renders it in place. @defaultValue `true` */
+  portal?: boolean;
+  /** Extra classes per part; `classes.root` (the panel) merges with `className`. */
+  classes?: PartClasses<PopoverPart>;
 }
 
-type Position = NonNullable<PopoverProps['position']>;
-
-const positionMap: Record<Position, string> = {
-  top: 'dropdown-top',
-  bottom: 'dropdown-bottom',
-  left: 'dropdown-left',
-  right: 'dropdown-right',
-};
-
 /**
- * Positioned floating content triggered by hover or click.
- *
- * Wraps a trigger element and a floating content panel. In hover mode,
- * the popover also responds to focus/blur for keyboard accessibility.
- * In click mode, the trigger receives `aria-expanded` and `aria-controls`
- * attributes. The popover dismisses on Escape and outside clicks unless
- * `persistent` is set.
+ * An anchored, non-modal panel for a short task tied to one control. Focus
+ * moves in when it opens and returns to the trigger when it closes. The ref
+ * points at the panel, which renders (hidden) while closed.
  *
  * @example
  * ```tsx
- * <Popover trigger={<Button>Hover me</Button>}>
- *   <p>Popover content</p>
- * </Popover>
- * ```
- *
- * @example
- * ```tsx
- * // Click-triggered popover on the right
- * <Popover trigger={<Button>Click</Button>} triggerMode="click" position="right">
- *   <p>Side panel content</p>
+ * <Popover trigger="Share" title="Share report" actions={<Button size="sm">Copy link</Button>}>
+ *   <Input label="Link" readOnly value={url} />
  * </Popover>
  * ```
  */
 export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
   (
     {
-      trigger,
-      triggerMode = 'hover',
-      position = 'bottom',
-      showDelay = 0,
-      hideDelay = 300,
       open,
+      defaultOpen,
       onOpenChange,
-      persistent = false,
+      placement = 'bottom',
+      arrow = true,
+      title,
+      actions,
+      trigger,
+      portal = true,
+      classes = {},
       className,
       children,
-      onMouseEnter: externalOnMouseEnter,
-      onMouseLeave: externalOnMouseLeave,
-      onFocus: externalOnFocus,
-      onBlur: externalOnBlur,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const contentId = `popover-content-${autoId}`;
-    const [internalOpen, setInternalOpen] = useState(false);
-    const isControlled = open !== undefined;
-    const isOpen = isControlled ? open : internalOpen;
-    const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const containerRef = useRef<HTMLDivElement | null>(null);
+    const ownTrigger = triggerElement(trigger);
+    const api = usePopover({
+      open,
+      defaultOpen,
+      placement,
+      portalled: portal,
+      ids: { trigger: triggerId(trigger) },
+      onOpenChange: ({ open: next }) => onOpenChange?.(next),
+    });
 
-    // Track the latest open state in a ref so `setOpen` and toggle callbacks can read it
-    // without listing it as a dep. Without this, `setOpen` rebuilds on every toggle and the
-    // click-outside/Escape effects re-attach document listeners — fatal in editor-heavy hosts
-    // like Tiptap where document events are already under heavy load (#37).
-    const isOpenRef = useRef(isOpen);
-    useEffect(() => {
-      isOpenRef.current = isOpen;
-    }, [isOpen]);
-
-    const setRefs = useCallback(
-      (node: HTMLDivElement | null) => {
-        containerRef.current = node;
-        if (typeof ref === 'function') {
-          ref(node);
-        } else if (ref) {
-          (ref as MutableRefObject<HTMLDivElement | null>).current = node;
-        }
-      },
-      [ref],
-    );
-
-    const setOpen = useCallback(
-      (next: boolean) => {
-        if (next === isOpenRef.current) return;
-        if (!isControlled) {
-          setInternalOpen(next);
-        }
-        onOpenChange?.(next);
-      },
-      [isControlled, onOpenChange],
-    );
-
-    const clearTimers = () => {
-      if (showTimer.current) clearTimeout(showTimer.current);
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
-
-    useEffect(() => {
-      return clearTimers;
-    }, []);
-
-    // Click-outside for click mode
-    useEffect(() => {
-      if (triggerMode !== 'click' || !isOpen || persistent) return;
-
-      const handleClickOutside = (e: MouseEvent) => {
-        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-          setOpen(false);
-        }
-      };
-
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [triggerMode, isOpen, persistent, setOpen]);
-
-    // Global Escape key to close when open
-    useEffect(() => {
-      if (!isOpen || persistent) return;
-
-      const handleEscape = (e: globalThis.KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setOpen(false);
-          e.stopPropagation();
-          // Restore focus to trigger
-          const triggerEl = containerRef.current?.querySelector<HTMLElement>(
-            '[aria-controls], [aria-expanded]',
-          );
-          triggerEl?.focus();
-        }
-      };
-
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, persistent, setOpen]);
-
-    const handleMouseEnter = (e: ReactMouseEvent<HTMLDivElement>) => {
-      externalOnMouseEnter?.(e);
-      if (triggerMode !== 'hover') return;
-      clearTimers();
-      if (showDelay > 0) {
-        showTimer.current = setTimeout(() => setOpen(true), showDelay);
-      } else {
-        setOpen(true);
-      }
-    };
-
-    const handleMouseLeave = (e: ReactMouseEvent<HTMLDivElement>) => {
-      externalOnMouseLeave?.(e);
-      if (triggerMode !== 'hover') return;
-      if (containerRef.current?.contains(e.relatedTarget as Node)) return;
-      clearTimers();
-      hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
-    };
-
-    const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
-      externalOnFocus?.(e);
-      if (triggerMode !== 'hover') return;
-      clearTimers();
-      if (showDelay > 0) {
-        showTimer.current = setTimeout(() => setOpen(true), showDelay);
-      } else {
-        setOpen(true);
-      }
-    };
-
-    const handleBlur = (e: FocusEvent<HTMLDivElement>) => {
-      externalOnBlur?.(e);
-      if (triggerMode !== 'hover') return;
-      if (containerRef.current?.contains(e.relatedTarget as Node)) return;
-      clearTimers();
-      hideTimer.current = setTimeout(() => setOpen(false), hideDelay);
-    };
-
-    const handleClick = () => {
-      if (triggerMode !== 'click') return;
-      setOpen(!isOpenRef.current);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (triggerMode !== 'click') return;
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setOpen(!isOpenRef.current);
-      }
-    };
-
-    const FOCUSABLE_INTRINSICS = new Set([
-      'button',
-      'input',
-      'select',
-      'textarea',
-      'a',
-      'area',
-      'iframe',
-      'object',
-    ]);
-
-    const isFocusableElement = (el: ReactElement): boolean => {
-      if (typeof el.type !== 'string') return true; // components assumed focusable
-      if (FOCUSABLE_INTRINSICS.has(el.type)) return true;
-      return (el.props as Record<string, unknown>).tabIndex !== undefined;
-    };
-
-    const wrapInFocusable = (content: ReactNode): ReactElement => {
-      if (triggerMode === 'click') {
-        // In controlled click mode the consumer owns open state. Don't bind library
-        // toggle handlers — see #37. The consumer's own children inside the Fragment
-        // are responsible for triggering the toggle through their own onClick.
-        const clickHandlers = isControlled
-          ? {}
-          : { onClick: handleClick, onKeyDown: handleKeyDown };
-        return (
-          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
-            {content}
-          </button>
-        );
-      }
-      return (
-        <span tabIndex={0} aria-expanded={isOpen} aria-controls={contentId}>
-          {content}
-        </span>
-      );
-    };
-
-    const renderTrigger = () => {
-      if (isValidElement(trigger)) {
-        // Fragments can't receive DOM props — wrap their children
-        if (trigger.type === Fragment) {
-          return wrapInFocusable((trigger.props as { children?: ReactNode }).children);
-        }
-
-        const triggerEl = trigger as ReactElement<Record<string, unknown>>;
-        const props: Record<string, unknown> = {
-          'aria-expanded': isOpen,
-          'aria-controls': contentId,
-        };
-
-        // Ensure non-focusable intrinsic elements get tabIndex
-        if (!isFocusableElement(triggerEl)) {
-          props.tabIndex = 0;
-        }
-
-        // In controlled click mode the consumer owns open state and presumably toggles it
-        // in their own onClick. Layering the library's toggle on top would double-fire
-        // onOpenChange with a stale `isOpen` closure — see #37.
-        if (triggerMode === 'click' && !isControlled) {
-          const origClick = triggerEl.props.onClick as ((...a: unknown[]) => void) | undefined;
-          const origKeyDown = triggerEl.props.onKeyDown as ((...a: unknown[]) => void) | undefined;
-          props.onClick = (...args: unknown[]) => {
-            origClick?.(...args);
-            if (!(args[0] as Event)?.defaultPrevented) handleClick();
-          };
-          props.onKeyDown = (e: KeyboardEvent) => {
-            origKeyDown?.(e);
-            if (!e.defaultPrevented) handleKeyDown(e);
-          };
-        }
-
-        return cloneElement(triggerEl, props);
-      }
-
-      // Fallback: non-element trigger (string, etc.)
-      if (triggerMode === 'click') {
-        // In controlled click mode the consumer owns open state — skip library toggle
-        // handlers to avoid double-firing onOpenChange (#37). Non-element triggers
-        // (string, number, etc.) in controlled mode rely on the consumer to drive open
-        // state through external means since they have no DOM hook for onClick.
-        const clickHandlers = isControlled
-          ? {}
-          : { onClick: handleClick, onKeyDown: handleKeyDown };
-        return (
-          <button type="button" aria-expanded={isOpen} aria-controls={contentId} {...clickHandlers}>
-            {trigger}
-          </button>
-        );
-      }
-
-      return (
-        <span tabIndex={0} aria-expanded={isOpen} aria-controls={contentId}>
-          {trigger}
-        </span>
-      );
+    const triggerProps = {
+      ...(api.getTriggerProps() as Record<string, unknown>),
+      className: classes.trigger,
     };
 
     return (
-      <div
-        ref={setRefs}
-        className={cn('dropdown', positionMap[position], isOpen && 'dropdown-open', className)}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        {...rest}
-      >
-        {renderTrigger()}
-        <div
-          id={contentId}
-          className="dropdown-content z-[1] rounded-box border border-base-300 bg-base-100 p-4 shadow-lg"
-          aria-hidden={!isOpen}
-          style={!isOpen ? { visibility: 'hidden', opacity: 0 } : undefined}
-        >
-          {children}
-        </div>
-      </div>
+      <>
+        {ownTrigger ? (
+          cloneTrigger(ownTrigger, triggerProps)
+        ) : hasContent(trigger) ? (
+          <Button {...triggerProps} variant="outline" color="neutral">
+            {trigger}
+          </Button>
+        ) : null}
+        <Portal enabled={portal}>
+          <div {...api.getPositionerProps()} className={classes.positioner}>
+            <div
+              {...mergePartProps(rest, api.getContentProps())}
+              ref={ref}
+              className={cx('apui-popover', classes.root, className)}
+            >
+              {arrow ? (
+                <span {...api.getArrowProps()} className={classes.arrow} aria-hidden="true" />
+              ) : null}
+              {hasContent(title) ? (
+                <h3 {...api.getTitleProps()} className={classes.title}>
+                  {title}
+                </h3>
+              ) : null}
+              {hasContent(children) ? (
+                <div className={classes.body} data-scope="popover" data-part="body">
+                  {children}
+                </div>
+              ) : null}
+              {hasContent(actions) ? (
+                <div className={classes.actions} data-scope="popover" data-part="actions">
+                  {actions}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </Portal>
+      </>
     );
   },
 );

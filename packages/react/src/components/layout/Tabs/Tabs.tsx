@@ -1,320 +1,225 @@
 /**
  * @module Tabs
  *
- * A tabbed interface component with accessible keyboard navigation
- * (Arrow keys, Home, End), vertical layout support, DaisyUI styling
- * variants, and controlled/uncontrolled active tab management.
+ * The design-system Tabs (#56): a tablist of triggers and one panel per tab,
+ * on the behavior engine's tabs machine (`useTabs`). Renders the
+ * `.apui-tabs` markup contract styled by `@artisanpack-ui/css`; every part is
+ * scoped `tabs`, and the spec's panel is Zag's `content` part (D-019).
+ *
+ * Compose it from {@link Tab} children, each holding its panel, or pass the
+ * same structure as `tabs`. The arrow keys follow the orientation and the
+ * text direction; activation is automatic or manual.
  *
  * @packageDocumentation
  */
 
+import { type TabsApi, useTabs } from '@artisanpack-ui/behavior/react';
 import {
+  Children,
   forwardRef,
-  useEffect,
-  useState,
-  useId,
+  Fragment,
+  isValidElement,
   type HTMLAttributes,
+  type ReactElement,
   type ReactNode,
-  type KeyboardEvent,
-  useRef,
 } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor, Size } from '@artisanpack-ui/tokens';
 
-/**
- * Describes a single tab within the {@link Tabs} component.
- */
-export interface TabItem {
-  /** Unique identifier for this tab, used as the key for `activeTab` / `onChange`. */
-  name: string;
-  /** Label content displayed in the tab button. */
+import { IconPart } from '../../../internal/icon';
+import { mergePartProps } from '../../../internal/merge';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** The tabs' visual treatment. */
+export type TabsVariant = 'segmented' | 'underline';
+
+/** The triggers' size. */
+export type TabsSize = 'sm' | 'md';
+
+/** Lays the tablist out in a row or a column. */
+export type TabsOrientation = 'horizontal' | 'vertical';
+
+/** How a tab is selected from the keyboard. */
+export type TabsActivationMode = 'automatic' | 'manual';
+
+/** The parts a {@link Tabs} accepts extra classes for. */
+export type TabsPart = 'root' | 'list' | 'trigger' | 'icon' | 'count' | 'content';
+
+/** One tab in {@link TabsProps.tabs}. */
+export interface TabData {
+  value: string;
   label: ReactNode;
-  /** Content rendered in the tab panel when this tab is active. */
-  content: ReactNode;
-  /** Whether this tab is disabled and cannot be selected. */
-  disabled?: boolean;
-  /** Optional icon displayed before the label in the tab button. */
+  /** An icon name from the registry, or a node. */
   icon?: ReactNode;
+  count?: ReactNode;
+  disabled?: boolean;
+  /** The panel's content. */
+  content?: ReactNode;
+}
+
+/** Props for the {@link Tabs} component. Native `<div>` attributes go to the root. */
+export interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'defaultValue'> {
+  /** The selected tab's value (controlled). Pair it with `onValueChange`. */
+  value?: string;
+  /** The initially selected tab when uncontrolled. Defaults to the first enabled tab. */
+  defaultValue?: string;
+  /** Called when another tab is selected, by click or the keyboard. Setting `value` doesn't call it. */
+  onValueChange?: (value: string) => void;
+  /** The tabs as data, rendering the same children as composition. Rendered before `children`. */
+  tabs?: TabData[];
+  /** Emitted as `data-variant`. @defaultValue `'segmented'` */
+  variant?: TabsVariant;
+  /** Emitted as `data-size`. @defaultValue `'md'` */
+  size?: TabsSize;
+  /** Emitted as `data-orientation`; picks the arrow keys. @defaultValue `'horizontal'` */
+  orientation?: TabsOrientation;
+  /** `manual` only moves focus with the arrow keys; Enter or Space selects. @defaultValue `'automatic'` */
+  activationMode?: TabsActivationMode;
+  /** Names the tablist. Needed when a page has more than one set of tabs. */
+  label?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<TabsPart>;
+}
+
+/** Props for the {@link Tab} component. Native `<div>` attributes go to its panel. */
+export interface TabProps extends HTMLAttributes<HTMLDivElement> {
+  /** The tab's value, unique in the tabs. */
+  value: string;
+  /** The trigger's label. */
+  label: ReactNode;
+  /** An icon name from the registry, or a node, before the label. */
+  icon?: ReactNode;
+  /** A count at the end of the trigger, such as unread items. */
+  count?: ReactNode;
+  /** Disables the tab; the arrow keys skip it. */
+  disabled?: boolean;
+  /** The panel's content. */
+  children?: ReactNode;
 }
 
 /**
- * Props for the {@link Tabs} component.
+ * One tab of a {@link Tabs}: its trigger and its panel. Rendered by the
+ * parent, so it must be a direct child (or inside a fragment).
  */
-export interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  /** Array of tab definitions to render. Should be memoized (e.g. `useMemo`) to avoid unnecessary re-syncs of internal state. */
-  tabs: TabItem[];
-  /** Currently active tab name (controlled mode). */
-  activeTab?: string;
-  /** Tab name that is active on first render (uncontrolled mode). */
-  defaultTab?: string;
-  /** Callback fired when the active tab changes, receiving the new tab's `name`. */
-  onChange?: (tabName: string) => void;
-  /** DaisyUI visual variant for the tab list. @defaultValue `'bordered'` */
-  variant?: 'bordered' | 'lifted' | 'boxed';
-  /** Size of the tab buttons. */
-  size?: Size;
-  /** Render tabs vertically with the tab list on the left and content on the right. */
-  vertical?: boolean;
-  /** Render tabs vertically with the tab list on the right and content on the left. */
-  verticalRight?: boolean;
-  /** DaisyUI color applied to the active tab indicator. */
-  color?: DaisyColor;
-  /** Additional CSS class for the tab list container (`role="tablist"`). */
-  tabListClassName?: string;
-  /** Additional CSS class for the active tab panel. */
-  panelClassName?: string;
-  /** Additional CSS class applied to the active tab button. */
-  activeTabClassName?: string;
+export function Tab(_props: TabProps): ReactElement | null {
+  throw new Error('<Tab> must be used inside <Tabs>.');
 }
 
-const sizeMap: Record<Size, string> = {
-  xs: 'tabs-xs',
-  sm: 'tabs-sm',
-  md: 'tabs-md',
-  lg: 'tabs-lg',
-};
+Tab.displayName = 'Tab';
 
-type Variant = NonNullable<TabsProps['variant']>;
+/** The Tab elements among `children`, fragments flattened. */
+function tabElements(children: ReactNode): ReactElement<TabProps>[] {
+  const found: ReactElement<TabProps>[] = [];
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return;
+    if (child.type === Fragment) {
+      found.push(...tabElements((child.props as { children?: ReactNode }).children));
+    } else if (child.type === Tab) {
+      found.push(child as ReactElement<TabProps>);
+    }
+  });
+  return found;
+}
 
-const variantMap: Record<Variant, string> = {
-  bordered: 'tabs-border',
-  lifted: 'tabs-lift',
-  boxed: 'tabs-box',
-};
-
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'tab-primary',
-  secondary: 'tab-secondary',
-  accent: 'tab-accent',
-  success: 'tab-success',
-  warning: 'tab-warning',
-  error: 'tab-error',
-  info: 'tab-info',
-  neutral: 'tab-neutral',
-};
-
-/**
- * Returns the name of the first non-disabled tab, or an empty string
- * if all tabs are disabled.
- */
-function firstSelectableTab(tabs: TabItem[]): string {
-  return tabs.find((t) => !t.disabled)?.name ?? '';
+/** `tabs` data as Tab props. */
+function dataTabs(tabs: TabData[] | undefined): TabProps[] {
+  return (tabs ?? []).map(({ content, ...rest }) => ({ ...rest, children: content }));
 }
 
 /**
- * Checks whether a tab with the given `name` exists in the list and is
- * not disabled.
- */
-function isSelectableTab(tabs: TabItem[], name: string | undefined): boolean {
-  if (!name) return false;
-  const tab = tabs.find((t) => t.name === name);
-  return !!tab && !tab.disabled;
-}
-
-/**
- * Tabbed interface with accessible keyboard navigation, vertical layout,
- * and DaisyUI styling options.
- *
- * Implements WAI-ARIA Tabs pattern with `role="tablist"`, `role="tab"`,
- * and `role="tabpanel"`. Keyboard navigation uses Arrow keys for
- * adjacent tabs and Home/End for first/last. Automatically falls back
- * to the first selectable tab when the active tab becomes invalid.
+ * Switches between views of the same content.
  *
  * @example
  * ```tsx
- * const tabs = [
- *   { name: 'overview', label: 'Overview', content: <Overview /> },
- *   { name: 'details', label: 'Details', content: <Details /> },
- *   { name: 'settings', label: 'Settings', content: <Settings /> },
- * ];
- *
- * <Tabs tabs={tabs} defaultTab="overview" variant="lifted" />
- * ```
- *
- * @example
- * ```tsx
- * // Controlled vertical tabs
- * const [active, setActive] = useState('tab1');
- *
- * <Tabs
- *   tabs={myTabs}
- *   activeTab={active}
- *   onChange={setActive}
- *   vertical
- *   color="primary"
- * />
+ * <Tabs value={section} onValueChange={setSection} label="Account">
+ *   <Tab value="profile" label="Profile" icon="user">…</Tab>
+ *   <Tab value="security" label="Security" icon="lock">…</Tab>
+ * </Tabs>
  * ```
  */
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   (
     {
-      tabs,
-      activeTab,
-      defaultTab,
-      onChange,
-      variant = 'bordered',
-      size,
-      vertical = false,
-      verticalRight = false,
-      color,
-      tabListClassName,
-      panelClassName,
-      activeTabClassName,
+      value,
+      defaultValue,
+      onValueChange,
+      tabs: data,
+      variant = 'segmented',
+      size = 'md',
+      orientation = 'horizontal',
+      activationMode = 'automatic',
+      label,
+      classes = {},
       className,
+      children,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const tabListRef = useRef<HTMLDivElement>(null);
+    const all: TabProps[] = [
+      ...dataTabs(data),
+      ...tabElements(children).map((element) => element.props),
+    ];
+    const firstEnabled = all.find((tab) => !tab.disabled)?.value;
 
-    const defaultActive = isSelectableTab(tabs, defaultTab)
-      ? defaultTab!
-      : firstSelectableTab(tabs);
-    const [internalTab, setInternalTab] = useState(defaultActive);
-    const isControlled = activeTab !== undefined;
-
-    const current = isControlled
-      ? isSelectableTab(tabs, activeTab)
-        ? activeTab
-        : firstSelectableTab(tabs)
-      : isSelectableTab(tabs, internalTab)
-        ? internalTab
-        : firstSelectableTab(tabs);
-
-    // Sync internalTab when tabs change and current selection becomes invalid
-    /* eslint-disable react-hooks/set-state-in-effect -- intentional sync when tabs list changes */
-    useEffect(() => {
-      if (isControlled) return;
-      if (!isSelectableTab(tabs, internalTab)) {
-        setInternalTab(firstSelectableTab(tabs));
-      }
-    }, [tabs, isControlled, internalTab]);
-    /* eslint-enable react-hooks/set-state-in-effect */
-
-    const isVertical = vertical || verticalRight;
-
-    const handleSelect = (name: string) => {
-      const validName = isSelectableTab(tabs, name) ? name : firstSelectableTab(tabs);
-      if (!isControlled) {
-        setInternalTab(validName);
-      }
-      onChange?.(validName);
-    };
-
-    const enabledTabs = tabs.filter((t) => !t.disabled);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (enabledTabs.length === 0) return;
-
-      const currentIndex = enabledTabs.findIndex((t) => t.name === current);
-      let nextIndex: number | null = null;
-
-      const nextKey = isVertical ? 'ArrowDown' : 'ArrowRight';
-      const prevKey = isVertical ? 'ArrowUp' : 'ArrowLeft';
-
-      if (e.key === nextKey) {
-        e.preventDefault();
-        nextIndex = (currentIndex + 1) % enabledTabs.length;
-      } else if (e.key === prevKey) {
-        e.preventDefault();
-        nextIndex = (currentIndex - 1 + enabledTabs.length) % enabledTabs.length;
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        nextIndex = 0;
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        nextIndex = enabledTabs.length - 1;
-      }
-
-      if (nextIndex !== null) {
-        const targetTab = enabledTabs[nextIndex];
-        handleSelect(targetTab.name);
-        const originalIndex = tabs.indexOf(targetTab);
-        const btn = tabListRef.current?.querySelector<HTMLButtonElement>(
-          `[data-tab-index="${originalIndex}"]`,
-        );
-        btn?.focus();
-      }
-    };
-
-    const activeIndex = tabs.findIndex((t) => t.name === current);
-    const activeTabItem = activeIndex >= 0 ? tabs[activeIndex] : undefined;
-
-    const tabList = (
-      <div
-        ref={tabListRef}
-        role="tablist"
-        aria-orientation={isVertical ? 'vertical' : 'horizontal'}
-        className={cn(
-          'tabs',
-          variant && variantMap[variant],
-          size && sizeMap[size],
-          isVertical && 'tabs-vertical min-w-48',
-          tabListClassName,
-        )}
-        onKeyDown={handleKeyDown}
-      >
-        {tabs.map((tab, index) => (
-          <button
-            key={tab.name}
-            role="tab"
-            type="button"
-            data-tab-index={index}
-            id={`tab-${autoId}-${index}`}
-            aria-selected={current === tab.name}
-            aria-controls={`tabpanel-${autoId}-${index}`}
-            tabIndex={current === tab.name ? 0 : -1}
-            disabled={tab.disabled}
-            className={cn(
-              'tab',
-              isVertical && 'w-full justify-start',
-              current === tab.name && 'tab-active',
-              current === tab.name && color && colorMap[color],
-              current === tab.name && activeTabClassName,
-              tab.disabled && 'tab-disabled',
-            )}
-            onClick={() => handleSelect(tab.name)}
-          >
-            {tab.icon && (
-              <span className="mr-1" aria-hidden="true">
-                {tab.icon}
-              </span>
-            )}
-            {tab.label}
-          </button>
-        ))}
-      </div>
-    );
-
-    const panel =
-      activeTabItem && activeIndex >= 0 ? (
-        <div
-          role="tabpanel"
-          id={`tabpanel-${autoId}-${activeIndex}`}
-          aria-labelledby={`tab-${autoId}-${activeIndex}`}
-          tabIndex={0}
-          className={cn(
-            isVertical ? (verticalRight ? 'flex-1 pr-4' : 'flex-1 pl-4') : 'p-4',
-            panelClassName,
-          )}
-        >
-          {activeTabItem.content}
-        </div>
-      ) : null;
+    const api: TabsApi = useTabs({
+      ...(value !== undefined ? { value } : { defaultValue: defaultValue ?? firstEnabled }),
+      orientation,
+      activationMode,
+      label,
+      onValueChange: ({ value: next }) => onValueChange?.(next),
+    });
 
     return (
-      <div ref={ref} className={cn(isVertical && 'flex', className)} {...rest}>
-        {verticalRight ? (
-          <>
-            {panel}
-            {tabList}
-          </>
-        ) : (
-          <>
-            {tabList}
-            {panel}
-          </>
+      <div
+        {...mergePartProps(rest, api.getRootProps())}
+        ref={ref}
+        className={cx('apui-tabs', classes.root, className)}
+        data-variant={variant}
+        data-size={size}
+        data-activation-mode={activationMode}
+      >
+        <div {...api.getListProps()} className={classes.list}>
+          {all.map((tab) => (
+            <button
+              key={tab.value}
+              {...api.getTriggerProps({ value: tab.value, disabled: tab.disabled })}
+              className={classes.trigger}
+            >
+              <IconPart
+                scope="tabs"
+                part="icon"
+                name={typeof tab.icon === 'string' ? tab.icon : undefined}
+                node={typeof tab.icon === 'string' ? undefined : tab.icon}
+                mirror
+                className={classes.icon}
+              />
+              {tab.label}
+              {hasContent(tab.count) ? (
+                <span data-scope="tabs" data-part="count" className={classes.count}>
+                  {tab.count}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+        {all.map(
+          ({
+            value: tabValue,
+            label: _label,
+            icon: _icon,
+            count: _count,
+            disabled: _disabled,
+            className: panelClass,
+            children: panel,
+            ...panelRest
+          }) => (
+            <div
+              key={tabValue}
+              {...mergePartProps(panelRest, api.getContentProps({ value: tabValue }))}
+              className={cx(classes.content, panelClass)}
+            >
+              {panel}
+            </div>
+          ),
         )}
       </div>
     );

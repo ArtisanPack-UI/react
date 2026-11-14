@@ -1,75 +1,56 @@
 /**
  * @module Sidebar
  *
- * Collapsible side navigation component built on the DaisyUI drawer pattern.
- * Supports left/right placement, overlay or push mode, configurable width,
- * and keyboard dismissal via the Escape key.
- */
-
-import {
-  forwardRef,
-  useId,
-  useRef,
-  useEffect,
-  useCallback,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
-
-/**
- * Stable callback ref hook. Always calls the latest version of the provided
- * function without re-triggering effects that depend on it.
+ * Deprecated alias of {@link AppShell}, kept for 1.x code. It maps the old
+ * props onto AppShell: `sidebarContent` → `sidebar`, `children` → the main
+ * content, `open` → `collapsed={!open}` with the collapse button on
+ * (`collapsible`), `onOpenChange` → `onCollapsedChange`, and a Tailwind
+ * `width` class (`w-64`, `w-[18rem]`) → `sidebarWidth`. `side` and `overlay`
+ * have no AppShell equivalent and are ignored: the sidebar sits at the
+ * start edge, beside the content.
  *
- * @param fn - The callback function to stabilize.
- * @returns A stable reference that always invokes the latest `fn`.
+ * @deprecated Use `AppShell` with a `Menu` in its `sidebar` slot.
+ * @packageDocumentation
  */
-function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
-  const fnRef = useRef(fn);
-  /* eslint-disable react-hooks/refs -- standard stable-callback pattern */
-  fnRef.current = fn;
-  return useCallback((...args: A) => fnRef.current(...args), []);
-  /* eslint-enable react-hooks/refs */
-}
-import { cn } from '@artisanpack-ui/tokens';
+
+import { forwardRef, type ReactNode } from 'react';
+
+import { devWarnOnce } from '../../../internal/parts';
+import { AppShell, type AppShellProps } from '../../layout/AppShell/AppShell';
 
 /**
- * Props for the {@link Sidebar} component.
+ * Props for the deprecated {@link Sidebar}.
+ *
+ * @deprecated Use `AppShellProps`.
  */
-export interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
-  /** Whether the sidebar is currently open (controlled). */
+export interface SidebarProps extends Omit<AppShellProps, 'collapsed' | 'onCollapsedChange'> {
+  /** Whether the sidebar is expanded. Use AppShell's `collapsed`. */
   open: boolean;
-  /** Callback fired when the sidebar open state should change. */
+  /** Called when the collapse button expands or collapses it. Use AppShell's `onCollapsedChange`. */
   onOpenChange: (open: boolean) => void;
-  /** The navigation content rendered inside the sidebar panel. */
+  /** The sidebar's navigation. Use AppShell's `sidebar`. */
   sidebarContent: ReactNode;
-  /** Which side of the viewport the sidebar appears on. @defaultValue 'left' */
+  /** Ignored: AppShell's sidebar sits at the start edge. */
   side?: 'left' | 'right';
-  /** Tailwind CSS width class for the sidebar panel. @defaultValue 'w-80' */
+  /** A Tailwind width class, such as `w-64` or `w-[18rem]`. Use AppShell's `sidebarWidth` (a CSS length). */
   width?: string;
-  /** Whether to overlay the main content (fixed position) instead of pushing it aside. */
+  /** Ignored: AppShell lays the sidebar beside the content. */
   overlay?: boolean;
 }
 
+/** A Tailwind width class as a CSS length: `w-64` → `16rem`, `w-[18rem]` → `18rem`. */
+export function sidebarWidthFromClass(width: string | undefined): string | undefined {
+  if (!width) return undefined;
+  const scale = /^w-(\d+(?:\.\d+)?)$/.exec(width);
+  if (scale) return `${Number(scale[1]) / 4}rem`;
+  const arbitrary = /^w-\[(.+)\]$/.exec(width);
+  return arbitrary ? arbitrary[1] : undefined;
+}
+
 /**
- * Collapsible side navigation using the DaisyUI drawer pattern.
+ * Deprecated: renders an {@link AppShell}.
  *
- * Renders a drawer with a toggle checkbox, overlay backdrop, and a `<nav>` panel.
- * Pressing Escape while focus is within the sidebar panel closes it.
- *
- * @example
- * ```tsx
- * const [open, setOpen] = useState(false);
- *
- * <Sidebar
- *   open={open}
- *   onOpenChange={setOpen}
- *   sidebarContent={<ul><li>Dashboard</li><li>Settings</li></ul>}
- *   side="left"
- *   width="w-64"
- * >
- *   <main>Page content here</main>
- * </Sidebar>
- * ```
+ * @deprecated Use `AppShell`.
  */
 export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
   (
@@ -77,78 +58,26 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(
       open,
       onOpenChange,
       sidebarContent,
-      side = 'left',
-      width = 'w-80',
-      overlay = false,
-      className,
-      children,
+      side: _side,
+      width,
+      overlay: _overlay,
+      sidebarWidth,
+      collapsible = true,
       ...rest
     },
     ref,
   ) => {
-    const stableOnOpenChange = useStableCallback(onOpenChange);
-    const drawerId = useId();
-    const inputId = `sidebar-toggle-${drawerId}`;
-    const drawerRef = useRef<HTMLDivElement | null>(null);
-
-    const setRefs = useCallback(
-      (node: HTMLDivElement | null) => {
-        drawerRef.current = node;
-        if (typeof ref === 'function') {
-          ref(node);
-        } else if (ref) {
-          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-        }
-      },
-      [ref],
-    );
-
-    useEffect(() => {
-      if (!open) return;
-
-      const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          if (e.defaultPrevented) return;
-          // Only close if focus is within the drawer-side panel (not main content)
-          const active = document.activeElement;
-          const drawerSide = drawerRef.current?.querySelector('.drawer-side');
-          const inDrawerSide = drawerSide?.contains(active);
-          const inBody = document.body === active || active === null;
-          if (inDrawerSide || inBody) {
-            stableOnOpenChange(false);
-          }
-        }
-      };
-
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [open, stableOnOpenChange]);
-
+    devWarnOnce('Sidebar', 'Sidebar is deprecated; use AppShell.');
     return (
-      <div
-        ref={setRefs}
-        className={cn('drawer', side === 'right' && 'drawer-end', open && 'drawer-open', className)}
+      <AppShell
         {...rest}
-      >
-        <input
-          id={inputId}
-          type="checkbox"
-          className="drawer-toggle"
-          checked={open}
-          onChange={(e) => onOpenChange(e.target.checked)}
-          aria-label="Toggle sidebar"
-        />
-        <div className="drawer-content">{children}</div>
-        <div
-          className="drawer-side"
-          style={overlay ? { position: 'fixed', zIndex: 50 } : undefined}
-        >
-          <label htmlFor={inputId} className="drawer-overlay" aria-label="Close sidebar" />
-          <nav className={cn('menu bg-base-200 min-h-full p-4', width)} aria-label="Sidebar">
-            {sidebarContent}
-          </nav>
-        </div>
-      </div>
+        ref={ref}
+        sidebar={sidebarContent}
+        collapsed={!open}
+        onCollapsedChange={(collapsed) => onOpenChange(!collapsed)}
+        collapsible={collapsible}
+        sidebarWidth={sidebarWidth ?? sidebarWidthFromClass(width)}
+      />
     );
   },
 );

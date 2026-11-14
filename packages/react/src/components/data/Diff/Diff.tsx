@@ -1,175 +1,140 @@
 /**
  * @module Diff
  *
- * Text diff viewer component that compares two strings line-by-line using an
- * LCS (Longest Common Subsequence) algorithm. Supports inline and side-by-side
- * display modes with colored highlighting for added, removed, and unchanged lines.
+ * The design-system Diff (#61): the changes between two versions of a text,
+ * rendering the `.apui-diff` markup contract styled by `@artisanpack-ui/css`.
+ * The rows come from the behavior package's `diffText`, the same ones Blade
+ * and Vue render: no diff library. The table stays LTR (D-004).
+ *
+ * @packageDocumentation
  */
 
-import { forwardRef, useMemo, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import {
+  DIFF_COUNTS_LABEL,
+  DIFF_EMPTY_LABEL,
+  diffCountsLabel,
+  diffText,
+  splitRows,
+  type DiffSegment,
+} from '@artisanpack-ui/behavior';
+import { forwardRef, useMemo, type HTMLAttributes, type ReactNode } from 'react';
 
-/**
- * Props for the {@link Diff} component.
- */
+import { IconSvg } from '../../../internal/icon';
+import { cx, hasContent, type PartClasses } from '../../../internal/parts';
+
+/** One column or the two versions side by side. Emitted as `data-view`. */
+export type DiffView = 'unified' | 'split';
+
+/** The parts a {@link Diff} accepts extra classes for. */
+export type DiffPart =
+  | 'root'
+  | 'header'
+  | 'icon'
+  | 'file'
+  | 'counts'
+  | 'actions'
+  | 'table'
+  | 'hunk'
+  | 'line'
+  | 'lineNumber'
+  | 'sign'
+  | 'code'
+  | 'ins'
+  | 'del';
+
+/** Props for the {@link Diff} component. Native `<div>` attributes go to the root. */
 export interface DiffProps extends HTMLAttributes<HTMLDivElement> {
-  /** The original text content to compare. */
-  oldContent: string;
-  /** The modified text content to compare against the original. */
-  newContent: string;
-  /** Label for the original content column. @defaultValue 'Original' */
-  oldLabel?: string;
-  /** Label for the modified content column. @defaultValue 'Modified' */
-  newLabel?: string;
-  /** Display mode: 'inline' shows a single unified view, 'side-by-side' shows two columns. @defaultValue 'inline' */
-  mode?: 'side-by-side' | 'inline';
+  /** The earlier version. */
+  oldContent?: string;
+  /** The later version. */
+  newContent?: string;
+  /** What changed, at the start of the header. */
+  fileName?: ReactNode;
+  /** One column, or the versions side by side. @defaultValue `'unified'` */
+  view?: DiffView;
+  /** Marks the changed words inside a changed line. @defaultValue `true` */
+  wordLevel?: boolean;
+  /** Unchanged lines kept around each change. @defaultValue `3` */
+  context?: number;
+  /**
+   * The counts' text for assistive technology; `{additions}` and
+   * `{deletions}` are filled in. Translate it.
+   * @defaultValue `'{additions} additions, {deletions} deletions'`
+   */
+  countsLabel?: string;
+  /** Shown when the versions are the same; translate it. @defaultValue `'No changes'` */
+  emptyLabel?: string;
+  /** Header controls, such as a copy button or a view switch. */
+  actions?: ReactNode;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<DiffPart>;
+}
+
+const SIGNS: Record<string, string> = { add: '+', del: '−', ctx: ' ', empty: '' };
+
+function Code({
+  segments,
+  type,
+  classes,
+}: {
+  segments: DiffSegment[];
+  type: string;
+  classes: PartClasses<DiffPart>;
+}) {
+  const tag = type === 'del' ? 'del' : 'ins';
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.changed && (type === 'add' || type === 'del') ? (
+          tag === 'del' ? (
+            <del key={index} className={classes.del} data-scope="diff" data-part="del">
+              {segment.text}
+            </del>
+          ) : (
+            <ins key={index} className={classes.ins} data-scope="diff" data-part="ins">
+              {segment.text}
+            </ins>
+          )
+        ) : (
+          segment.text
+        ),
+      )}
+    </>
+  );
+}
+
+function Cells({
+  number,
+  type,
+  segments,
+  classes,
+}: {
+  number: number | null;
+  type: string;
+  segments: DiffSegment[];
+  classes: PartClasses<DiffPart>;
+}) {
+  return (
+    <>
+      <td className={classes.lineNumber} data-scope="diff" data-part="lineNumber" data-type={type}>
+        {number}
+      </td>
+      <td className={classes.sign} data-scope="diff" data-part="sign" data-type={type}>
+        {SIGNS[type]}
+      </td>
+      <td className={classes.code} data-scope="diff" data-part="code" data-type={type}>
+        <Code segments={segments} type={type} classes={classes} />
+      </td>
+    </>
+  );
 }
 
 /**
- * Represents a single line in the computed diff output.
- * @internal
- */
-interface DiffLine {
-  /** Whether this line was added, removed, or unchanged. */
-  type: 'same' | 'added' | 'removed';
-  /** The text content of this line. */
-  content: string;
-  /** Line number in the original content (undefined for added lines). */
-  oldLineNum?: number;
-  /** Line number in the modified content (undefined for removed lines). */
-  newLineNum?: number;
-}
-
-/**
- * Computes a line-by-line diff between two text strings using an LCS approach.
- *
- * @param oldText - The original text.
- * @param newText - The modified text.
- * @returns Array of diff lines with type indicators and line numbers.
- */
-function computeDiff(oldText: string, newText: string): DiffLine[] {
-  const normalizedOld = oldText.replace(/\r\n?/g, '\n');
-  const normalizedNew = newText.replace(/\r\n?/g, '\n');
-  const oldLines = normalizedOld === '' ? [] : normalizedOld.split('\n');
-  const newLines = normalizedNew === '' ? [] : normalizedNew.split('\n');
-  const result: DiffLine[] = [];
-
-  let oldIdx = 0;
-  let newIdx = 0;
-
-  // Simple line-by-line diff using LCS approach
-  const lcs = computeLCS(oldLines, newLines);
-  let lcsIdx = 0;
-
-  while (oldIdx < oldLines.length || newIdx < newLines.length) {
-    if (lcsIdx < lcs.length && oldIdx < oldLines.length && oldLines[oldIdx] === lcs[lcsIdx]) {
-      if (newIdx < newLines.length && newLines[newIdx] === lcs[lcsIdx]) {
-        result.push({
-          type: 'same',
-          content: oldLines[oldIdx],
-          oldLineNum: oldIdx + 1,
-          newLineNum: newIdx + 1,
-        });
-        oldIdx++;
-        newIdx++;
-        lcsIdx++;
-      } else if (newIdx < newLines.length) {
-        result.push({
-          type: 'added',
-          content: newLines[newIdx],
-          newLineNum: newIdx + 1,
-        });
-        newIdx++;
-      }
-    } else if (oldIdx < oldLines.length) {
-      result.push({
-        type: 'removed',
-        content: oldLines[oldIdx],
-        oldLineNum: oldIdx + 1,
-      });
-      oldIdx++;
-    } else if (newIdx < newLines.length) {
-      result.push({
-        type: 'added',
-        content: newLines[newIdx],
-        newLineNum: newIdx + 1,
-      });
-      newIdx++;
-    }
-  }
-
-  return result;
-}
-
-/**
- * Computes the Longest Common Subsequence of two string arrays using dynamic programming.
- *
- * @param a - First array of strings.
- * @param b - Second array of strings.
- * @returns The longest common subsequence as an array of strings.
- */
-function computeLCS(a: string[], b: string[]): string[] {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (a[i - 1] === b[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1;
-      } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-      }
-    }
-  }
-
-  const result: string[] = [];
-  let i = m;
-  let j = n;
-  while (i > 0 && j > 0) {
-    if (a[i - 1] === b[j - 1]) {
-      result.push(a[i - 1]);
-      i--;
-      j--;
-    } else if (dp[i - 1][j] > dp[i][j - 1]) {
-      i--;
-    } else {
-      j--;
-    }
-  }
-
-  result.reverse();
-  return result;
-}
-
-const lineTypeClasses: Record<DiffLine['type'], string> = {
-  added: 'bg-success/20 text-success-content',
-  removed: 'bg-error/20 text-error-content',
-  same: '',
-};
-
-const linePrefix: Record<DiffLine['type'], string> = {
-  added: '+',
-  removed: '-',
-  same: ' ',
-};
-
-/**
- * Text diff viewer with inline or side-by-side display modes.
- *
- * Computes a line-by-line diff using LCS and renders added lines in green,
- * removed lines in red, and unchanged lines without highlighting.
- * Both modes show line numbers and +/- prefix indicators.
+ * The changes between two versions of a text. The ref points at the root `<div>`.
  *
  * @example
  * ```tsx
- * <Diff
- *   oldContent="Hello\nWorld"
- *   newContent="Hello\nReact\nWorld"
- *   mode="side-by-side"
- *   oldLabel="Before"
- *   newLabel="After"
- * />
+ * <Diff oldContent={before} newContent={after} fileName="listings/grove.json" />
  * ```
  */
 export const Diff = forwardRef<HTMLDivElement, DiffProps>(
@@ -177,93 +142,120 @@ export const Diff = forwardRef<HTMLDivElement, DiffProps>(
     {
       oldContent,
       newContent,
-      oldLabel = 'Original',
-      newLabel = 'Modified',
-      mode = 'inline',
+      fileName,
+      view = 'unified',
+      wordLevel = true,
+      context = 3,
+      countsLabel = DIFF_COUNTS_LABEL,
+      emptyLabel = DIFF_EMPTY_LABEL,
+      actions,
+      classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
-    const diffLines = useMemo(() => computeDiff(oldContent, newContent), [oldContent, newContent]);
-
-    if (mode === 'side-by-side') {
-      return (
-        <div ref={ref} className={cn('overflow-auto font-mono text-sm', className)} {...rest}>
-          <div className="grid grid-cols-2 divide-x divide-base-300">
-            <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{oldLabel}</div>
-            <div className="bg-base-300 px-4 py-2 font-semibold text-sm">{newLabel}</div>
-          </div>
-          {diffLines.map((line, i) => (
-            <div key={i} className="grid grid-cols-2 divide-x divide-base-300">
-              {/* Left pane */}
-              <div className={cn('flex', line.type === 'removed' && 'bg-error/20')}>
-                {line.type !== 'added' ? (
-                  <>
-                    <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-                      {line.oldLineNum ?? ''}
-                    </span>
-                    <span className="select-none w-6 text-center opacity-40 shrink-0">
-                      {linePrefix[line.type]}
-                    </span>
-                    <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                      <code>{line.content}</code>
-                    </pre>
-                  </>
-                ) : (
-                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                    <code>&nbsp;</code>
-                  </pre>
-                )}
-              </div>
-              {/* Right pane */}
-              <div className={cn('flex', line.type === 'added' && 'bg-success/20')}>
-                {line.type !== 'removed' ? (
-                  <>
-                    <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-                      {line.newLineNum ?? ''}
-                    </span>
-                    <span className="select-none w-6 text-center opacity-40 shrink-0">
-                      {linePrefix[line.type]}
-                    </span>
-                    <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                      <code>{line.content}</code>
-                    </pre>
-                  </>
-                ) : (
-                  <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-                    <code>&nbsp;</code>
-                  </pre>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
+    const result = useMemo(
+      () => diffText(oldContent, newContent, { context, wordLevel }),
+      [oldContent, newContent, context, wordLevel],
+    );
+    const shown: DiffView = view === 'split' ? 'split' : 'unified';
+    const columns = shown === 'split' ? 6 : 4;
 
     return (
-      <div ref={ref} className={cn('overflow-auto font-mono text-sm', className)} {...rest}>
-        <div className="grid grid-cols-2 gap-4 bg-base-300 px-4 py-2 font-semibold text-sm">
-          <span>{oldLabel}</span>
-          <span>{newLabel}</span>
+      <div
+        {...rest}
+        ref={ref}
+        className={cx('apui-diff', classes.root, className)}
+        data-view={shown}
+      >
+        <div className={classes.header} data-scope="diff" data-part="header">
+          <span className={classes.icon} data-scope="diff" data-part="icon" aria-hidden="true">
+            <IconSvg name="git-compare" />
+          </span>
+          {hasContent(fileName) ? (
+            <span className={classes.file} data-scope="diff" data-part="file">
+              {fileName}
+            </span>
+          ) : null}
+          <span className={classes.counts} data-scope="diff" data-part="counts">
+            <span className="apui-sr-only">
+              {diffCountsLabel(countsLabel, result.additions, result.deletions)}
+            </span>
+            <span data-type="add" aria-hidden="true">{`+${result.additions}`}</span>
+            <span data-type="del" aria-hidden="true">{`−${result.deletions}`}</span>
+          </span>
+          {hasContent(actions) ? (
+            <div className={classes.actions} data-scope="diff" data-part="actions">
+              {actions}
+            </div>
+          ) : null}
         </div>
-        {diffLines.map((line, i) => (
-          <div key={i} className={cn('flex', lineTypeClasses[line.type])}>
-            <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-              {line.oldLineNum ?? ''}
-            </span>
-            <span className="select-none w-12 text-right pr-3 opacity-40 shrink-0">
-              {line.newLineNum ?? ''}
-            </span>
-            <span className="select-none w-6 text-center opacity-40 shrink-0">
-              {linePrefix[line.type]}
-            </span>
-            <pre className="whitespace-pre-wrap flex-1 px-2 py-0.5">
-              <code>{line.content}</code>
-            </pre>
-          </div>
-        ))}
+        <table className={classes.table} data-scope="diff" data-part="table">
+          <tbody>
+            {result.hunks.length === 0 ? (
+              <tr className={classes.hunk} data-scope="diff" data-part="hunk">
+                <td colSpan={columns}>{emptyLabel}</td>
+              </tr>
+            ) : null}
+            {result.hunks.map((hunk, hunkIndex) => [
+              <tr
+                key={`hunk-${hunkIndex}`}
+                className={classes.hunk}
+                data-scope="diff"
+                data-part="hunk"
+              >
+                <td colSpan={columns}>{hunk.header}</td>
+              </tr>,
+              ...(shown === 'split'
+                ? splitRows(hunk.lines).map((row, index) => (
+                    <tr
+                      key={`${hunkIndex}-${index}`}
+                      className={classes.line}
+                      data-scope="diff"
+                      data-part="line"
+                    >
+                      <Cells
+                        number={row.old.number}
+                        type={row.old.type}
+                        segments={row.old.segments}
+                        classes={classes}
+                      />
+                      <Cells
+                        number={row.new.number}
+                        type={row.new.type}
+                        segments={row.new.segments}
+                        classes={classes}
+                      />
+                    </tr>
+                  ))
+                : hunk.lines.map((line, index) => (
+                    <tr
+                      key={`${hunkIndex}-${index}`}
+                      className={classes.line}
+                      data-scope="diff"
+                      data-part="line"
+                      data-type={line.type}
+                    >
+                      <td
+                        className={classes.lineNumber}
+                        data-scope="diff"
+                        data-part="lineNumber"
+                        data-type={line.type}
+                      >
+                        {line.oldNumber}
+                      </td>
+                      <Cells
+                        number={line.newNumber}
+                        type={line.type}
+                        segments={line.segments}
+                        classes={classes}
+                      />
+                    </tr>
+                  ))),
+            ])}
+          </tbody>
+        </table>
       </div>
     );
   },

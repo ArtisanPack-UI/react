@@ -1,0 +1,68 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../form/Button/Button';
+import { Stack } from '../../layout/Stack/Stack';
+import { ToastProvider, useToast } from './ToastProvider';
+
+const meta: Meta<typeof ToastProvider> = {
+  title: 'Feedback/ToastProvider (deprecated)',
+  component: ToastProvider,
+  tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Deprecated: renders a Toaster for the default toast, and useToast() calls toast.create(). Render one Toaster and call toast.create() instead.',
+      },
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof ToastProvider>;
+
+function ToastDemo() {
+  const toast = useToast();
+  return (
+    <Stack orientation="horizontal" gap="2" wrap>
+      <Button size="sm" color="success" onClick={() => toast.success('Operation completed!')}>
+        Success
+      </Button>
+      <Button size="sm" color="error" onClick={() => toast.error('Something went wrong!')}>
+        Error
+      </Button>
+      <Button size="sm" color="warning" onClick={() => toast.warning('Please check your input.')}>
+        Warning
+      </Button>
+      <Button size="sm" color="info" onClick={() => toast.info('Here is some information.')}>
+        Info
+      </Button>
+    </Stack>
+  );
+}
+
+export const Default: Story = {
+  render: () => (
+    <ToastProvider>
+      <ToastDemo />
+    </ToastProvider>
+  ),
+};
+
+export const Positions: Story = {
+  render: () => (
+    <ToastProvider position={['toast-top', 'toast-center']}>
+      <ToastDemo />
+    </ToastProvider>
+  ),
+};
+
+export const CustomDuration: Story = {
+  render: () => (
+    <ToastProvider defaultDuration={10000}>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm opacity-60">Toasts will stay for 10 seconds.</p>
+        <ToastDemo />
+      </div>
+    </ToastProvider>
+  ),
+};

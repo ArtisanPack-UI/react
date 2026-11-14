@@ -1,22 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Card } from '../Card/Card';
 import { Grid } from './Grid';
-
-const toneMap = {
-  primary: 'bg-primary text-primary-content',
-  secondary: 'bg-secondary text-secondary-content',
-  accent: 'bg-accent text-accent-content',
-  neutral: 'bg-neutral text-neutral-content',
-} as const;
-
-type Tone = keyof typeof toneMap;
-
-function Box({ tone = 'primary', label }: { tone?: Tone; label: string }) {
-  return (
-    <div className={`rounded-lg p-4 text-center font-semibold ${toneMap[tone] ?? toneMap.primary}`}>
-      {label}
-    </div>
-  );
-}
 
 const meta: Meta<typeof Grid> = {
   title: 'Layout/Grid',
@@ -26,98 +10,26 @@ const meta: Meta<typeof Grid> = {
     docs: {
       description: {
         component:
-          'CSS Grid wrapper with responsive column counts and configurable row/column gap. Simplifies common grid layouts without manual Tailwind classes.',
+          'A layout primitive: its children in equal columns, with the gap from the space scale. With minItemWidth the columns drop as the grid narrows. No Tailwind needed.',
       },
     },
+  },
+  argTypes: {
+    gap: { control: 'select', options: ['0', '1', '2', '3', '4', '5', '6', '8', '10', '12', '16'] },
+    align: { control: 'select', options: ['start', 'center', 'end', 'stretch'] },
+    justify: { control: 'select', options: ['start', 'center', 'end', 'stretch'] },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof Grid>;
 
-export const Default: Story = {
-  args: {
-    cols: 3,
-  },
-  render: (args) => (
-    <Grid {...args}>
-      <Box label="1" tone="primary" />
-      <Box label="2" tone="secondary" />
-      <Box label="3" tone="accent" />
-      <Box label="4" tone="primary" />
-      <Box label="5" tone="secondary" />
-      <Box label="6" tone="accent" />
-    </Grid>
-  ),
-};
+const cards = ['Revenue', 'Orders', 'Customers', 'Refunds', 'Visitors', 'Conversion'].map(
+  (title) => <Card key={title} title={title} />,
+);
+
+export const Default: Story = { args: { columns: 3, children: cards } };
 
 export const Responsive: Story = {
-  args: {
-    cols: 1,
-    colsSm: 2,
-    colsMd: 3,
-    colsLg: 4,
-  },
-  render: (args) => (
-    <Grid {...args}>
-      <Box label="1" tone="primary" />
-      <Box label="2" tone="secondary" />
-      <Box label="3" tone="accent" />
-      <Box label="4" tone="neutral" />
-      <Box label="5" tone="primary" />
-      <Box label="6" tone="secondary" />
-      <Box label="7" tone="accent" />
-      <Box label="8" tone="neutral" />
-    </Grid>
-  ),
-};
-
-export const CustomGap: Story = {
-  args: {
-    cols: 3,
-    gap: 8,
-  },
-  render: (args) => (
-    <Grid {...args}>
-      <Box label="1" tone="primary" />
-      <Box label="2" tone="secondary" />
-      <Box label="3" tone="accent" />
-      <Box label="4" tone="primary" />
-      <Box label="5" tone="secondary" />
-      <Box label="6" tone="accent" />
-    </Grid>
-  ),
-};
-
-export const DifferentGaps: Story = {
-  name: 'Different X/Y Gaps',
-  args: {
-    cols: 3,
-    gapX: 4,
-    gapY: 8,
-  },
-  render: (args) => (
-    <Grid {...args}>
-      <Box label="1" tone="primary" />
-      <Box label="2" tone="secondary" />
-      <Box label="3" tone="accent" />
-      <Box label="4" tone="primary" />
-      <Box label="5" tone="secondary" />
-      <Box label="6" tone="accent" />
-    </Grid>
-  ),
-};
-
-export const TwoColumns: Story = {
-  args: {
-    cols: 2,
-  },
-  render: (args) => (
-    <Grid {...args}>
-      <Box label="Left" tone="primary" />
-      <Box label="Right" tone="secondary" />
-      <Box label="Left" tone="accent" />
-      <Box label="Right" tone="neutral" />
-    </Grid>
-  ),
+  args: { columns: 4, minItemWidth: '14rem', gap: '6', children: cards },
 };

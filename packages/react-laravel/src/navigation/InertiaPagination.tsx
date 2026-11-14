@@ -12,7 +12,7 @@ import type { LaravelPaginator } from '../types';
  */
 export interface InertiaPaginationProps extends Omit<
   PaginationProps,
-  'currentPage' | 'totalPages' | 'onChange'
+  'page' | 'pageCount' | 'onPageChange'
 > {
   /** Laravel paginator response object */
   paginator: Pick<LaravelPaginator, 'current_page' | 'last_page' | 'path'>;
@@ -102,9 +102,9 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
     return (
       <Pagination
         ref={ref}
-        currentPage={paginator.current_page}
-        totalPages={paginator.last_page}
-        onChange={handlePageChange}
+        page={paginator.current_page}
+        pageCount={paginator.last_page}
+        onPageChange={handlePageChange}
         {...rest}
       />
     );

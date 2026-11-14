@@ -1,190 +1,193 @@
 /**
  * @module Markdown
  *
- * Renders a markdown string as HTML inside a `prose`-styled container.
- * Ships with a minimal built-in parser that handles common constructs
- * (headings, bold, italic, inline code, links, lists, blockquotes,
- * horizontal rules, and paragraphs). For richer rendering, supply a
- * custom `renderMarkdown` function backed by a library such as `marked`
- * or `remark`.
+ * The design-system Markdown (#65): GitHub-flavored Markdown in the shared
+ * `.apui-prose` styles, rendering the `.apui-markdown` markup contract from
+ * `@artisanpack-ui/css`. The HTML comes from the behavior package's
+ * `renderMarkdown`, the same HTML Livewire writes with league/commonmark:
+ * raw HTML is escaped (or, with `sanitize={false}`, filtered to formatting
+ * tags) and unsafe link and image URLs are dropped. `mode="write"` or
+ * `"split"` adds Write, Preview and Split tabs over a Textarea.
  *
  * @packageDocumentation
  */
 
-import { forwardRef, useMemo, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import { MARKDOWN_LABELS, renderMarkdown, type MarkdownMode } from '@artisanpack-ui/behavior';
+import { forwardRef, useMemo, useState, type HTMLAttributes } from 'react';
 
-/**
- * Props for the {@link Markdown} component.
- */
+import { cx, type PartClasses } from '../../../internal/parts';
+import { Textarea } from '../../form/Textarea/Textarea';
+import { Tabs } from '../../layout/Tabs/Tabs';
+
+export type { MarkdownMode };
+
+/** The parts a {@link Markdown} accepts extra classes for. */
+export type MarkdownPart = 'root' | 'editor' | 'preview' | 'split';
+
+/** Props for the {@link Markdown} component. Native `<div>` attributes go to the root. */
 export interface MarkdownProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   'children' | 'dangerouslySetInnerHTML'
 > {
-  /** Raw markdown source text to render. */
-  source: string;
   /**
-   * Custom render function that receives the raw markdown source and
-   * returns an HTML string. When omitted a minimal built-in parser is used.
-   *
-   * **Security:** The returned string is injected via `dangerouslySetInnerHTML`.
-   * It must be produced by a trusted source or explicitly sanitized to prevent XSS.
+   * The Markdown. In write and split modes, the Textarea's value: with
+   * `onSourceChange` too it's controlled (an edit shows once the parent
+   * passes it back), else the editor starts from it and keeps its own draft.
    */
-  renderMarkdown?: (source: string) => string;
+  source?: string;
+  /** Called with the new source as it's edited. Without it the editor keeps its own draft. */
+  onSourceChange?: (source: string) => void;
+  /**
+   * `preview` renders the Markdown only; `write` and `split` add Write,
+   * Preview and Split tabs over the source, opening on that tab. Emitted as
+   * `data-mode`. @defaultValue `'preview'`
+   */
+  mode?: MarkdownMode;
+  /**
+   * Escape raw HTML (the default). `false` keeps the allowlisted formatting
+   * tags with safe attributes and escapes every other tag; script-capable
+   * markup never renders. @defaultValue `true`
+   */
+  sanitize?: boolean;
+  /** Names the mode tabs; translate it. @defaultValue `'Markdown mode'` */
+  tabsLabel?: string;
+  /** The Write tab; translate it. @defaultValue `'Write'` */
+  writeLabel?: string;
+  /** The Preview tab; translate it. @defaultValue `'Preview'` */
+  previewLabel?: string;
+  /** The Split tab; translate it. @defaultValue `'Split'` */
+  splitLabel?: string;
+  /** Names the source Textarea; translate it. @defaultValue `'Markdown source'` */
+  editorLabel?: string;
+  /** Names the preview region in write and split modes; translate it. @defaultValue `'Rendered preview'` */
+  outputLabel?: string;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<MarkdownPart>;
 }
 
 /**
- * Minimal built-in markdown-to-HTML converter.
- * Covers the most common markdown constructs — for richer rendering provide a
- * custom `renderMarkdown` function backed by a library like `marked` or `remark`.
- */
-function defaultRenderMarkdown(source: string): string {
-  const escapeHtml = (str: string): string =>
-    str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-
-  const decodeEntities = (str: string): string =>
-    str
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCharCode(parseInt(hex, 16)))
-      .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(parseInt(dec, 10)));
-
-  const isSafeUrl = (url: string): boolean => {
-    // Strip ASCII C0 control characters that can bypass scheme detection
-    /* eslint-disable no-control-regex */
-    const trimmed = url
-      .replace(/[\x00-\x1f\x7f]/g, '')
-      .trim()
-      .toLowerCase();
-    /* eslint-enable no-control-regex */
-    if (/^(https?:|mailto:|\/|#)/.test(trimmed)) {
-      return true;
-    }
-    // Reject anything with an explicit unsafe scheme
-    if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
-      return false;
-    }
-    // Relative URLs are safe
-    return true;
-  };
-
-  const inlineFormat = (line: string): string =>
-    escapeHtml(line)
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, url) => {
-        const decoded = decodeEntities(url);
-        return isSafeUrl(decoded) ? `<a href="${url}">${text}</a>` : text;
-      });
-
-  const lines = source.split('\n');
-  const html: string[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // Blank line
-    if (line.trim() === '') {
-      i++;
-      continue;
-    }
-
-    // Headings
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)/);
-    if (headingMatch) {
-      const level = headingMatch[1].length;
-      html.push(`<h${level}>${inlineFormat(headingMatch[2])}</h${level}>`);
-      i++;
-      continue;
-    }
-
-    // Horizontal rule
-    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      html.push('<hr />');
-      i++;
-      continue;
-    }
-
-    // Unordered list
-    if (/^[-*+]\s/.test(line.trim())) {
-      html.push('<ul>');
-      while (i < lines.length && /^[-*+]\s/.test(lines[i].trim())) {
-        html.push(`<li>${inlineFormat(lines[i].trim().replace(/^[-*+]\s/, ''))}</li>`);
-        i++;
-      }
-      html.push('</ul>');
-      continue;
-    }
-
-    // Ordered list
-    if (/^\d+\.\s/.test(line.trim())) {
-      html.push('<ol>');
-      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
-        html.push(`<li>${inlineFormat(lines[i].trim().replace(/^\d+\.\s/, ''))}</li>`);
-        i++;
-      }
-      html.push('</ol>');
-      continue;
-    }
-
-    // Blockquote
-    if (line.trim().startsWith('>')) {
-      const quoteLines: string[] = [];
-      while (i < lines.length && lines[i].trim().startsWith('>')) {
-        quoteLines.push(lines[i].trim().replace(/^>\s?/, ''));
-        i++;
-      }
-      html.push(`<blockquote>${inlineFormat(quoteLines.join(' '))}</blockquote>`);
-      continue;
-    }
-
-    // Paragraph
-    html.push(`<p>${inlineFormat(line)}</p>`);
-    i++;
-  }
-
-  return html.join('\n');
-}
-
-/**
- * Markdown renderer component.
- *
- * Uses a minimal built-in parser by default or accepts a custom
- * `renderMarkdown` function for full-featured rendering. Output is
- * wrapped in a `<div class="prose">` for Tailwind Typography styling.
+ * Renders Markdown, and optionally edits it.
  *
  * @example
  * ```tsx
- * // Built-in parser
- * <Markdown source="# Hello\n\nThis is **bold** and *italic*." />
- *
- * // Custom renderer (e.g. using `marked`)
- * import { marked } from 'marked';
- * <Markdown source={content} renderMarkdown={(src) => marked.parse(src)} />
+ * <Markdown source={notes} />
+ * <Markdown source={notes} onSourceChange={setNotes} mode="split" />
  * ```
  */
 export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
-  ({ source, renderMarkdown, className, ...rest }, ref) => {
-    const render = renderMarkdown ?? defaultRenderMarkdown;
-    const html = useMemo(() => render(source), [source, render]);
+  (
+    {
+      source: sourceProp,
+      onSourceChange,
+      mode = 'preview',
+      sanitize = true,
+      tabsLabel = MARKDOWN_LABELS.tabs,
+      writeLabel = MARKDOWN_LABELS.write,
+      previewLabel = MARKDOWN_LABELS.preview,
+      splitLabel = MARKDOWN_LABELS.split,
+      editorLabel = MARKDOWN_LABELS.editor,
+      outputLabel = MARKDOWN_LABELS.output,
+      classes = {},
+      className,
+      ...rest
+    },
+    ref,
+  ) => {
+    const source = sourceProp ?? '';
+    const editing = mode === 'write' || mode === 'split';
+    // A parent that passes source and onSourceChange owns the value, so an
+    // edit it rejects never shows; otherwise the editor keeps a draft.
+    const controlled = sourceProp !== undefined && onSourceChange !== undefined;
+    const [draft, setDraft] = useState(source);
+    const [view, setView] = useState<MarkdownMode>(mode);
+    // A new source or mode from the parent replaces the draft or the tab.
+    const [synced, setSynced] = useState({ source, mode });
+    if (synced.source !== source || synced.mode !== mode) {
+      setSynced({ source, mode });
+      if (synced.source !== source) setDraft(source);
+      if (synced.mode !== mode) setView(mode);
+    }
 
-    return (
+    // The draft follows a new source, so it's what every mode shows: an edit
+    // made in write mode still shows when the parent switches to preview.
+    const text = controlled ? source : draft;
+    // Nothing shows the HTML while only the Write tab does, so typing there doesn't render.
+    const rendering = !editing || view !== 'write';
+    const html = useMemo(
+      () => (rendering ? renderMarkdown(text, { sanitize }) : ''),
+      [rendering, text, sanitize],
+    );
+
+    if (!editing) {
+      return (
+        <div
+          {...rest}
+          ref={ref}
+          className={cx('apui-markdown', 'apui-prose', classes.root, className)}
+          data-mode="preview"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    }
+
+    const change = (next: string) => {
+      setDraft(next);
+      onSourceChange?.(next);
+    };
+
+    const editor = (
+      <div data-scope="markdown" data-part="editor" className={classes.editor}>
+        <Textarea
+          aria-label={editorLabel}
+          dir="auto"
+          value={text}
+          onValueChange={change}
+          rows={12}
+        />
+      </div>
+    );
+
+    const preview = (
       <div
-        ref={ref}
-        {...rest}
-        className={cn('prose', className)}
+        data-scope="markdown"
+        data-part="preview"
+        role="region"
+        aria-label={outputLabel}
+        className={cx('apui-prose', classes.preview)}
         dangerouslySetInnerHTML={{ __html: html }}
       />
+    );
+
+    // Only the selected tab's panel holds content, so the source has one Textarea.
+    return (
+      <div
+        {...rest}
+        ref={ref}
+        className={cx('apui-markdown', classes.root, className)}
+        data-mode={mode}
+      >
+        <Tabs
+          size="sm"
+          label={tabsLabel}
+          value={view}
+          onValueChange={(next) => setView(next as MarkdownMode)}
+          tabs={[
+            { value: 'write', label: writeLabel, content: view === 'write' ? editor : null },
+            { value: 'preview', label: previewLabel, content: view === 'preview' ? preview : null },
+            {
+              value: 'split',
+              label: splitLabel,
+              content:
+                view === 'split' ? (
+                  <div data-scope="markdown" data-part="split" className={classes.split}>
+                    {editor}
+                    {preview}
+                  </div>
+                ) : null,
+            },
+          ]}
+        />
+      </div>
     );
   },
 );

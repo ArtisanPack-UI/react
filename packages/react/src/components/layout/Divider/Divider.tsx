@@ -1,95 +1,117 @@
 /**
  * @module Divider
  *
- * A visual separator for content sections, supporting horizontal and vertical
- * orientations, DaisyUI color variants, and an optional inline label.
+ * The design-system Divider (#58): a muted rule, horizontal, vertical or
+ * with a label. Renders the `.apui-divider` markup contract styled by
+ * `@artisanpack-ui/css`: an `<hr>` for a plain horizontal rule, a
+ * `role="separator"` div for a vertical or labelled one (named by its label,
+ * since a separator's children are presentational).
  *
  * @packageDocumentation
  */
 
-import { forwardRef, type HTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
+import { forwardRef, useId, type HTMLAttributes, type ReactNode, type Ref } from 'react';
 
-/** Allowed positions for the divider label text. */
-export type LabelPosition = 'start' | 'center' | 'end';
+import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
-/**
- * Props for the {@link Divider} component.
- */
-export interface DividerProps extends HTMLAttributes<HTMLDivElement> {
-  /** Render as a vertical divider instead of horizontal. */
-  vertical?: boolean;
-  /** DaisyUI color variant applied to the divider line. */
-  color?: DaisyColor;
-  /** Text to display inline within the divider. */
-  label?: string;
-  /** Position of the label along the divider. @defaultValue `'center'` */
-  labelPosition?: LabelPosition;
+/** The rule's direction. */
+export type DividerOrientation = 'horizontal' | 'vertical';
+
+/** Where a label sits along the rule. */
+export type DividerAlign = 'start' | 'center' | 'end';
+
+/** The rule's weight. */
+export type DividerStrength = 'subtle' | 'strong';
+
+/** The parts a {@link Divider} accepts extra classes for. */
+export type DividerPart = 'root' | 'label';
+
+/** Props for the {@link Divider} component. Native attributes go to the root. */
+export interface DividerProps extends HTMLAttributes<HTMLElement> {
+  /** Emitted as `data-orientation`. @defaultValue `'horizontal'` */
+  orientation?: DividerOrientation;
+  /** Text in the middle of the rule. `children` work too. */
+  label?: ReactNode;
+  /** Where a label sits. Emitted as `data-align`. @defaultValue `'center'` */
+  align?: DividerAlign;
+  /** Emitted as `data-strength`. @defaultValue `'subtle'` */
+  strength?: DividerStrength;
+  /** Hides the divider from assistive technology. Emitted as `data-decorative`. */
+  decorative?: boolean;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<DividerPart>;
 }
 
-const colorMap: Record<DaisyColor, string> = {
-  primary: 'divider-primary',
-  secondary: 'divider-secondary',
-  accent: 'divider-accent',
-  success: 'divider-success',
-  warning: 'divider-warning',
-  error: 'divider-error',
-  info: 'divider-info',
-  neutral: 'divider-neutral',
-};
-
-const positionMap: Record<LabelPosition, string> = {
-  start: 'divider-start',
-  center: '',
-  end: 'divider-end',
-};
-
 /**
- * Visual separator for content sections with optional label.
- *
- * Renders a DaisyUI `divider` element with `role="separator"` and proper
- * `aria-orientation`. Pass `label` or `children` to display inline text.
+ * Separates content with a rule.
  *
  * @example
  * ```tsx
  * <Divider />
- * ```
- *
- * @example
- * ```tsx
- * <Divider label="OR" color="primary" />
- * ```
- *
- * @example
- * ```tsx
- * <Divider vertical />
+ * <Divider label="or continue with" />
+ * <Divider orientation="vertical" />
  * ```
  */
-export const Divider = forwardRef<HTMLDivElement, DividerProps>(
+export const Divider = forwardRef<HTMLElement, DividerProps>(
   (
-    { vertical = false, color, label, labelPosition = 'center', className, children, ...rest },
+    {
+      orientation = 'horizontal',
+      label,
+      align = 'center',
+      strength = 'subtle',
+      decorative = false,
+      classes = {},
+      className,
+      children,
+      ...rest
+    },
     ref,
   ) => {
-    const hasContent =
-      (label !== undefined && label !== '') ||
-      (children != null && children !== false && children !== '');
+    const labelId = useId();
+    const text = hasContent(label) ? label : children;
+    const labelled = hasContent(text);
+    const common = {
+      ...rest,
+      className: cx('apui-divider', classes.root, className),
+      'data-orientation': orientation,
+      'data-strength': strength,
+      'data-align': align,
+      'data-decorative': flag(decorative),
+    };
+
+    if (!labelled && orientation === 'horizontal') {
+      return (
+        <hr
+          {...common}
+          ref={ref as Ref<HTMLHRElement>}
+          aria-hidden={decorative ? 'true' : undefined}
+        />
+      );
+    }
+
+    if (!labelled) {
+      return (
+        <div
+          {...common}
+          ref={ref as Ref<HTMLDivElement>}
+          role="separator"
+          aria-orientation="vertical"
+          aria-hidden={decorative ? 'true' : undefined}
+        />
+      );
+    }
 
     return (
       <div
-        ref={ref}
-        role="separator"
-        aria-orientation={vertical ? 'vertical' : 'horizontal'}
-        className={cn(
-          'divider',
-          vertical && 'divider-vertical',
-          color && colorMap[color],
-          hasContent && positionMap[labelPosition],
-          className,
-        )}
-        {...rest}
+        {...common}
+        ref={ref as Ref<HTMLDivElement>}
+        role={decorative ? 'none' : 'separator'}
+        aria-orientation={decorative ? undefined : orientation}
+        aria-labelledby={decorative ? undefined : labelId}
       >
-        {label ?? children}
+        <span data-scope="divider" data-part="label" id={labelId} className={classes.label}>
+          {text}
+        </span>
       </div>
     );
   },

@@ -2,21 +2,22 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Progress } from './Progress';
 
 const meta: Meta<typeof Progress> = {
-  title: 'Data Display/Progress',
+  title: 'Data/Progress',
   component: Progress,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Determinate or indeterminate progress bar with optional label, percentage display, and step-based progression. Supports DaisyUI color variants.',
+          'Linear progress: determinate, indeterminate or segmented. The root is the progressbar, named by its label or aria-label.',
       },
     },
   },
   argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'secondary', 'accent', 'success', 'warning', 'error', 'info'],
+      options: ['primary', 'secondary', 'accent', 'neutral', 'success', 'warning', 'error', 'info'],
     },
   },
 };
@@ -24,52 +25,24 @@ const meta: Meta<typeof Progress> = {
 export default meta;
 type Story = StoryObj<typeof Progress>;
 
-export const Default: Story = {
-  args: {
-    value: 65,
-    max: 100,
-    color: 'primary',
-  },
-};
-
-export const WithLabel: Story = {
-  args: {
-    value: 75,
-    max: 100,
-    color: 'success',
-    label: 'Upload Progress',
-    showValue: true,
-  },
-};
-
-export const Colors: Story = {
-  render: () => (
-    <div className="flex flex-col gap-4 w-full max-w-md">
-      <Progress value={20} max={100} color="primary" />
-      <Progress value={40} max={100} color="secondary" />
-      <Progress value={60} max={100} color="accent" />
-      <Progress value={80} max={100} color="success" />
-      <Progress value={50} max={100} color="warning" />
-      <Progress value={30} max={100} color="error" />
-      <Progress value={70} max={100} color="info" />
-    </div>
-  ),
+export const Labeled: Story = {
+  args: { value: 64, label: 'Uploading 12 photos', valueText: '8 of 12' },
 };
 
 export const Indeterminate: Story = {
-  args: {
-    indeterminate: true,
-    color: 'primary',
-    label: 'Loading...',
-  },
+  args: { indeterminate: true, label: 'Preparing export', valueText: 'Estimating…' },
 };
 
-export const Steps: Story = {
+export const Segmented: Story = {
+  args: { segmented: true, value: 3, max: 5, label: 'Listing setup', valueText: '3 of 5' },
+};
+
+export const ColorsAndSizes: Story = {
   render: () => (
-    <div className="flex flex-col gap-2 w-full max-w-md">
-      <Progress value={1} max={5} color="primary" label="Step 1 of 5" showValue />
-      <Progress value={3} max={5} color="primary" label="Step 3 of 5" showValue />
-      <Progress value={5} max={5} color="success" label="Complete" showValue />
+    <div style={{ display: 'grid', gap: 16 }}>
+      <Progress value={40} size="sm" aria-label="Small" />
+      <Progress value={70} color="success" aria-label="Success" />
+      <Progress value={25} color="error" size="lg" aria-label="Error" />
     </div>
   ),
 };

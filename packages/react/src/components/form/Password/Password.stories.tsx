@@ -9,9 +9,13 @@ const meta: Meta<typeof Password> = {
     docs: {
       description: {
         component:
-          'Password input with visibility toggle button, clearable value, icon slot, error state, and option to hide the toggle entirely.',
+          'Password entry with a reveal toggle (aria-pressed), an optional strength meter and live requirements.',
       },
     },
+  },
+  argTypes: {
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    autocomplete: { control: 'select', options: ['current-password', 'new-password'] },
   },
 };
 
@@ -19,47 +23,23 @@ export default meta;
 type Story = StoryObj<typeof Password>;
 
 export const Default: Story = {
-  args: {},
+  args: { label: 'Password', leadingIcon: 'lock', required: true },
 };
 
-export const WithLabel: Story = {
+export const StrengthAndRequirements: Story = {
   args: {
-    label: 'Password',
-  },
-};
-
-export const WithIcon: Story = {
-  args: {
-    label: 'Password',
-    icon: <span aria-hidden="true">🔒</span>,
-  },
-};
-
-export const Clearable: Story = {
-  args: {
-    label: 'Password',
-    clearable: true,
+    label: 'New password',
+    autocomplete: 'new-password',
+    leadingIcon: 'lock',
+    strengthMeter: true,
+    requirements: [
+      { label: 'At least 12 characters', pattern: '.{12,}' },
+      { label: 'One number', pattern: '\\d' },
+      { label: 'One symbol', pattern: '[^A-Za-z0-9]' },
+    ],
   },
 };
 
 export const WithError: Story = {
-  args: {
-    label: 'Password',
-    error: 'Password must be at least 8 characters.',
-  },
-};
-
-export const HiddenToggle: Story = {
-  args: {
-    label: 'Secret Key',
-    hideToggle: true,
-    hint: 'The visibility toggle is hidden for this field.',
-  },
-};
-
-export const InlineLabel: Story = {
-  args: {
-    label: 'Password',
-    inline: true,
-  },
+  args: { label: 'Current password', error: 'That password is incorrect.' },
 };

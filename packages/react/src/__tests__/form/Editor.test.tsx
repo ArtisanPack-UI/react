@@ -1,54 +1,40 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { createRef } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Editor } from '../../components/form/Editor/Editor';
 
-describe('Editor', () => {
-  it('renders with label', () => {
-    render(<Editor label="Code" />);
-    expect(screen.getByText('Code')).toBeInTheDocument();
-  });
-
-  it('does not wrap a single textarea in a fieldset/legend', () => {
+describe('Editor (deprecated alias of CodeEditor)', () => {
+  it('renders a CodeEditor and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(<Editor label="Code" />);
-    expect(container.querySelector('fieldset')).not.toBeInTheDocument();
-    expect(container.querySelector('legend')).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('apui-code-editor');
+    expect(container.querySelector('.fieldset, .textarea, .font-mono')).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Code' })).toBeInTheDocument();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Editor is deprecated; use CodeEditor.'),
+    );
+    warn.mockRestore();
   });
 
-  it('associates the visible label with the textarea via htmlFor/id', () => {
-    render(<Editor id="snippet" label="Code" />);
-    const textarea = screen.getByLabelText('Code');
-    expect(textarea).toHaveAttribute('id', 'snippet');
-  });
-
-  it('renders textarea', () => {
-    render(<Editor label="Code" />);
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
-  });
-
-  it('applies monospace font', () => {
-    render(<Editor label="Code" />);
-    expect(screen.getByRole('textbox')).toHaveClass('font-mono');
-  });
-
-  it('renders error', () => {
-    render(<Editor label="Code" error="Required" />);
+  it('carries over the hint, error and required', () => {
+    render(<Editor label="Code" hint="Enter your code" error="Required" required />);
+    const textarea = screen.getByRole('textbox', { name: /Code/ });
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toBeRequired();
     expect(screen.getByText('Required')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('renders hint', () => {
-    render(<Editor label="Code" hint="Enter your code" />);
-    expect(screen.getByText('Enter your code')).toBeInTheDocument();
+  it('fires the native onChange and forwards the ref to the textarea', () => {
+    const onChange = vi.fn();
+    const ref = createRef<HTMLTextAreaElement>();
+    render(<Editor ref={ref} label="Code" defaultValue="" onChange={onChange} />);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Code' }), { target: { value: 'x' } });
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(ref.current).toBeInstanceOf(HTMLTextAreaElement);
   });
 
-  it('shows required indicator', () => {
-    render(<Editor label="Code" required />);
-    expect(screen.getByText('*')).toBeInTheDocument();
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(<Editor ref={ref} label="Test" />);
-    expect(ref).toHaveBeenCalled();
+  it('keeps the native readOnly', () => {
+    render(<Editor label="Code" readOnly />);
+    expect(screen.getByRole('textbox', { name: 'Code' })).toHaveAttribute('readonly');
   });
 });

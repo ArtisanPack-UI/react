@@ -1,198 +1,330 @@
-/** @module Password */
+/**
+ * @module Password
+ *
+ * The design-system Password (#53). Renders the `.apui-password` markup
+ * contract, styled by `@artisanpack-ui/css`: Input's field anatomy with a
+ * reveal toggle, an optional strength meter and live requirements.
+ */
 
-import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
+import {
+  forwardRef,
+  useState,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from 'react';
+
+import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
+import { IconPart, IconSvg } from '../../../internal/icon';
+import { cx, flag, type PartClasses } from '../../../internal/parts';
+
+/** Control height of a {@link Password}. */
+export type PasswordSize = 'sm' | 'md' | 'lg';
+
+/** The parts a {@link Password} accepts extra classes for. */
+export type PasswordPart =
+  | 'root'
+  | 'label'
+  | 'required'
+  | 'box'
+  | 'icon'
+  | 'control'
+  | 'reveal'
+  | 'strength'
+  | 'segment'
+  | 'strengthLabel'
+  | 'requirements'
+  | 'requirement'
+  | 'hint'
+  | 'error';
+
+/** A rule the value must match: `pattern` is a regular expression source. */
+export interface PasswordRequirement {
+  label: ReactNode;
+  pattern: string;
+}
+
+/** Built-in text for the strength meter and the requirement states. */
+export interface PasswordLabels {
+  strength: string;
+  weak: string;
+  fair: string;
+  good: string;
+  strong: string;
+  met: string;
+  unmet: string;
+}
+
+/** The English defaults for {@link PasswordLabels}. */
+export const PASSWORD_LABELS: PasswordLabels = {
+  strength: 'Strength',
+  weak: 'Weak',
+  fair: 'Fair',
+  good: 'Good',
+  strong: 'Strong',
+  met: 'Met',
+  unmet: 'Not met',
+};
+
+const LEVEL_NAMES = ['', 'weak', 'fair', 'good', 'strong'] as const;
+
+/**
+ * The strength level, 0 (empty) to 4, the same in every stack: a point each
+ * for 8+ and 12+ characters, mixed case, a digit and a symbol, minus one,
+ * kept between 1 and 4.
+ */
+export function passwordStrength(value: string): 0 | 1 | 2 | 3 | 4 {
+  if (value === '') return 0;
+  const points =
+    Number(value.length >= 8) +
+    Number(value.length >= 12) +
+    Number(/[a-z]/.test(value) && /[A-Z]/.test(value)) +
+    Number(/\d/.test(value)) +
+    Number(/[^A-Za-z0-9]/.test(value));
+  return Math.min(4, Math.max(1, points - 1)) as 1 | 2 | 3 | 4;
+}
+
+/** Whether `value` matches a requirement's pattern. An invalid pattern is unmet. */
+export function requirementMet(pattern: string, value: string): boolean {
+  try {
+    return new RegExp(pattern, 'u').test(value);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Props for the {@link Password} component.
  *
- * Extends native `<input>` HTML attributes (excluding `type`, `size`, and `prefix`).
- * Provides a password input with built-in visibility toggle, clearable action,
- * and customizable toggle icons.
+ * `className` goes to the root; every other native attribute (`name`,
+ * `aria-*`, `data-*`, `id`, …) goes to the native `<input>`.
  */
 export interface PasswordProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'type' | 'size' | 'prefix'
+  'size' | 'type' | 'value' | 'defaultValue' | 'prefix'
 > {
-  /** Text label displayed above the password input. Hidden when `inline` is true. */
-  label?: string;
-  /** Helper text displayed below the input. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the input. Replaces `hint` when present and adds `aria-invalid`. */
+  /** Control height. Emitted as `data-size`. @defaultValue `'md'` */
+  size?: PasswordSize;
+  /** The autocomplete hint; `new-password` on sign-up and reset forms. @defaultValue `'current-password'` */
+  autocomplete?: 'current-password' | 'new-password';
+  /** The visible label, linked to the control. Without it, pass an `aria-label`. */
+  label?: ReactNode;
+  /** Help text under the box, linked with `aria-describedby`. */
+  hint?: ReactNode;
+  /** Validation message. Marks the field invalid and is linked with `aria-describedby`. */
   error?: string;
-  /** Icon element rendered to the left of the input text. */
+  /** Marks the field invalid without a message. @defaultValue `false` */
+  invalid?: boolean;
+  /** Disables the control and the reveal button. @defaultValue `false` */
+  disabled?: boolean;
+  /** Makes the control read-only. It stays focusable. @defaultValue `false` */
+  readonly?: boolean;
+  /** Marks the field required and shows the required mark. @defaultValue `false` */
+  required?: boolean;
+  /** Placeholder text. Never a replacement for the label. */
+  placeholder?: string;
+  /** The value of a controlled password. */
+  value?: string;
+  /** The initial value of an uncontrolled password. */
+  defaultValue?: string;
+  /** Icon name before the value, such as `lock`. `icon` overrides it. */
+  leadingIcon?: string;
+  /** Shows the strength meter and its label under the box. @defaultValue `false` */
+  strengthMeter?: boolean;
+  /** Rules shown under the box and checked as people type. */
+  requirements?: PasswordRequirement[];
+  /** The reveal button's name; aria-pressed carries the state. @defaultValue `'Show password'` */
+  revealLabel?: string;
+  /** Built-in text for the meter and requirement states; missing keys keep their defaults. */
+  labels?: Partial<PasswordLabels>;
+  /** Extra classes per part; `classes.root` merges with `className`. */
+  classes?: PartClasses<PasswordPart>;
+  /** Leading icon node; overrides `leadingIcon`. */
   icon?: ReactNode;
-  /** When true, renders the label as a floating/inline label inside the input wrapper. @defaultValue `false` */
-  inline?: boolean;
-  /** When true, shows a clear (X) button inside the input. @defaultValue `false` */
-  clearable?: boolean;
-  /** Callback fired when the clear button is clicked. */
-  onClear?: () => void;
-  /** When true, hides the password visibility toggle button. @defaultValue `false` */
-  hideToggle?: boolean;
-  /** Custom icon shown when the password is hidden (masked). Defaults to an eye-slash SVG. */
-  hiddenIcon?: ReactNode;
-  /** Custom icon shown when the password is visible (unmasked). Defaults to an eye SVG. */
-  visibleIcon?: ReactNode;
+  /** Called with the new value whenever it changes. The native `onChange` still fires. */
+  onValueChange?: (value: string) => void;
 }
 
-const EyeIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-    />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-);
-
-const EyeSlashIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-    />
-  </svg>
-);
-
 /**
- * A password input with a built-in visibility toggle that switches between masked and
- * plain text display. Includes optional clear button, left icon, and customizable
- * toggle icons. The `type` attribute is managed internally and cannot be overridden.
+ * Password entry with a reveal toggle, an optional strength meter and live
+ * requirements. Controlled (`value` + `onValueChange`) or uncontrolled
+ * (`defaultValue`). The ref points at the native `<input>`.
  *
  * @example
  * ```tsx
- * <Password label="Password" placeholder="Enter password" required />
- * ```
- *
- * @example
- * ```tsx
- * <Password
- *   label="API Key"
- *   icon={<KeyIcon />}
- *   clearable
- *   onClear={() => setValue('')}
- *   hideToggle
- * />
+ * <Password label="New password" autocomplete="new-password" strengthMeter
+ *   requirements={[{ label: 'At least 12 characters', pattern: '.{12,}' }]} />
  * ```
  */
 export const Password = forwardRef<HTMLInputElement, PasswordProps>(
   (
     {
+      size = 'md',
+      autocomplete,
+      autoComplete,
       label,
       hint,
       error,
+      invalid = false,
+      disabled = false,
+      readonly,
+      readOnly,
+      required = false,
+      value,
+      defaultValue,
+      leadingIcon,
+      strengthMeter = false,
+      requirements,
+      revealLabel = 'Show password',
+      labels,
+      classes = {},
       icon,
-      inline = false,
-      clearable = false,
-      onClear,
-      hideToggle = false,
-      hiddenIcon,
-      visibleIcon,
       className,
-      id: providedId,
-      required,
+      id: explicitId,
+      onChange,
+      onValueChange,
+      'aria-describedby': callerDescribedBy,
+      'aria-invalid': callerInvalid,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-    const errorId = error ? `${id}-error` : undefined;
-    const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
-
-    const [visible, setVisible] = useState(false);
-
-    const passwordBox = (
-      <span className={cn('input w-full', error && 'input-error', className)}>
-        {icon && (
-          <span className="opacity-50" aria-hidden="true">
-            {icon}
-          </span>
-        )}
-        <input
-          ref={ref}
-          id={id}
-          type={visible ? 'text' : 'password'}
-          className="grow"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          aria-required={required || undefined}
-          required={required}
-          // In inline mode, a single-space placeholder triggers :placeholder-shown so daisyUI's
-          // floating-label CSS positions/animates the label correctly without showing visible text.
-          placeholder={rest.placeholder ?? (inline && label ? ' ' : undefined)}
-          {...rest}
-        />
-        {clearable && (
-          <button
-            type="button"
-            className="opacity-50 hover:opacity-100 cursor-pointer"
-            onClick={onClear}
-            aria-label="Clear password"
-          >
-            ✕
-          </button>
-        )}
-        {!hideToggle && (
-          <button
-            type="button"
-            className="opacity-50 hover:opacity-100 cursor-pointer"
-            onClick={() => setVisible((v) => !v)}
-            aria-label={visible ? 'Hide password' : 'Show password'}
-          >
-            {visible ? (visibleIcon ?? <EyeIcon />) : (hiddenIcon ?? <EyeSlashIcon />)}
-          </button>
-        )}
-      </span>
+    const isReadonly = readonly ?? readOnly ?? false;
+    const isInvalid = invalid || Boolean(error);
+    const text = { ...PASSWORD_LABELS, ...labels };
+    const [revealed, setRevealed] = useState(false);
+    const [uncontrolled, setUncontrolled] = useState(defaultValue ?? '');
+    const isControlled = value !== undefined;
+    const current = isControlled ? value : uncontrolled;
+    const hasRequirements = Boolean(requirements && requirements.length > 0);
+    const { id, helpId, errorId } = useFieldIds(
+      explicitId,
+      { suffix: 'hint', content: hint },
+      error,
+      undefined,
     );
+    const requirementsId = hasRequirements ? `${id}-requirements` : undefined;
+    const describedBy =
+      [helpId, requirementsId, errorId, callerDescribedBy].filter(Boolean).join(' ') || undefined;
+    const level = passwordStrength(current);
 
-    if (inline && label) {
-      return (
-        <div className="fieldset w-full">
-          <label htmlFor={id} className="floating-label w-full">
-            <span>
-              {label}
-              {required && <span className="text-error ml-1">*</span>}
-            </span>
-            {passwordBox}
-          </label>
-          {hint && !error && (
-            <p id={hintId} className="fieldset-label">
-              {hint}
-            </p>
-          )}
-          {error && (
-            <p id={errorId} className="fieldset-label text-error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-      );
-    }
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+      if (!isControlled) setUncontrolled(event.target.value);
+      onChange?.(event);
+      onValueChange?.(event.target.value);
+    };
 
     return (
-      <div className="fieldset w-full">
-        {label && (
-          <label htmlFor={id} className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
-        )}
-        {passwordBox}
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
+      <div
+        className={cx('apui-password', classes.root, className)}
+        data-size={size}
+        data-invalid={flag(isInvalid)}
+        data-disabled={flag(disabled)}
+        data-readonly={flag(isReadonly)}
+      >
+        <FieldLabel
+          scope="password"
+          htmlFor={id}
+          label={label}
+          required={required}
+          className={classes.label}
+          requiredClassName={classes.required}
+        />
+        <div className={classes.box} data-scope="password" data-part="box">
+          <IconPart
+            scope="password"
+            part="icon"
+            name={leadingIcon}
+            node={icon}
+            className={classes.icon}
+          />
+          <input
+            {...rest}
+            ref={ref}
+            className={classes.control}
+            data-scope="password"
+            data-part="control"
+            id={id}
+            type={revealed ? 'text' : 'password'}
+            autoComplete={autocomplete ?? autoComplete ?? 'current-password'}
+            value={isControlled ? value : undefined}
+            defaultValue={isControlled ? undefined : defaultValue}
+            disabled={disabled || undefined}
+            readOnly={isReadonly || undefined}
+            required={required || undefined}
+            aria-invalid={isInvalid ? true : callerInvalid}
+            aria-describedby={describedBy}
+            onChange={handleChange}
+          />
+          <button
+            type="button"
+            className={classes.reveal}
+            data-scope="password"
+            data-part="reveal"
+            aria-label={revealLabel}
+            aria-pressed={revealed}
+            aria-controls={id}
+            disabled={disabled || undefined}
+            onClick={() => setRevealed((shown) => !shown)}
+          >
+            <IconSvg name="eye" dataIcon="eye" />
+            <IconSvg name="eye-off" dataIcon="eye-off" />
+          </button>
+        </div>
+        {strengthMeter ? (
+          <>
+            <div
+              className={classes.strength}
+              data-scope="password"
+              data-part="strength"
+              data-level={level}
+              aria-hidden="true"
+            >
+              {[0, 1, 2, 3].map((index) => (
+                <span
+                  key={index}
+                  className={classes.segment}
+                  data-scope="password"
+                  data-part="segment"
+                />
+              ))}
+            </div>
+            <div className={classes.strengthLabel} data-scope="password" data-part="strengthLabel">
+              <span>{text.strength}</span>
+              <span aria-live="polite">{level === 0 ? '' : text[LEVEL_NAMES[level]]}</span>
+            </div>
+          </>
+        ) : null}
+        {hasRequirements ? (
+          <ul
+            className={classes.requirements}
+            data-scope="password"
+            data-part="requirements"
+            id={requirementsId}
+          >
+            {requirements!.map((requirement, index) => {
+              const met = requirementMet(requirement.pattern, current);
+              return (
+                <li
+                  key={index}
+                  className={classes.requirement}
+                  data-scope="password"
+                  data-part="requirement"
+                  data-met={flag(met)}
+                >
+                  <IconSvg name="check" dataIcon="check" />
+                  <IconSvg name="x" dataIcon="x" />
+                  {requirement.label}
+                  <span className="apui-sr-only">{` (${met ? text.met : text.unmet})`}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+        <FieldHelp scope="password" part="hint" id={helpId} className={classes.hint}>
+          {hint}
+        </FieldHelp>
+        <FieldError scope="password" id={errorId} message={error} className={classes.error} />
       </div>
     );
   },

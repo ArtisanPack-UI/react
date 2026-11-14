@@ -49,6 +49,17 @@ describe('InertiaBreadcrumbs', () => {
   it('has proper navigation aria label', () => {
     render(<InertiaBreadcrumbs items={[{ label: 'Home', href: '/' }]} />);
 
-    expect(screen.getByRole('navigation')).toHaveAttribute('aria-label', 'Breadcrumbs');
+    expect(screen.getByRole('navigation')).toHaveAttribute('aria-label', 'Breadcrumb');
+  });
+
+  it('renders the design-system Breadcrumbs markup, with the Inertia links as its link parts', () => {
+    const { container } = render(
+      <InertiaBreadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Users' }]} />,
+    );
+    expect(screen.getByRole('navigation')).toHaveClass('apui-breadcrumbs');
+    const link = screen.getByTestId('inertia-link-/');
+    expect(link).toHaveAttribute('data-scope', 'breadcrumbs');
+    expect(link).toHaveAttribute('data-part', 'link');
+    expect(container.querySelector('.breadcrumbs, .text-sm, ul')).toBeNull();
   });
 });

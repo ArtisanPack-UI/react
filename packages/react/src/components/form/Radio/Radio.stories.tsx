@@ -8,14 +8,14 @@ const defaultOptions = [
 ];
 
 const meta: Meta<typeof Radio> = {
-  title: 'Form/Radio',
+  title: 'Form/Radio (deprecated)',
   component: Radio,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Radio button group with vertical, inline, and card layout variants. Supports per-option hints, disabled options, and DaisyUI color theming.',
+          'Deprecated alias of RadioGroup: options are read through optionValue, optionLabel and optionHint; inline maps to a horizontal orientation, card to the cards variant and cardClass to classes.item. color is ignored.',
       },
     },
   },
