@@ -9,7 +9,7 @@ const meta: Meta<typeof ToastProvider> = {
     docs: {
       description: {
         component:
-          'Ephemeral notification system with success, error, warning, and info variants. Wrap your app in ToastProvider and call useToast() to trigger toasts from anywhere.',
+          'Deprecated: renders a Toaster for the default toast, and useToast() calls toast.create(). Render one Toaster and call toast.create() instead.',
       },
     },
   },

@@ -3,14 +3,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Sidebar } from './Sidebar';
 
 const meta: Meta<typeof Sidebar> = {
-  title: 'Navigation/Sidebar',
+  title: 'Navigation/Sidebar (deprecated)',
   component: Sidebar,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Collapsible sidebar panel for app navigation. Supports left/right positioning, overlay mode, custom width, and controlled open state.',
+          'Deprecated alias of AppShell: sidebarContent maps to sidebar, open to collapsed and a Tailwind width class to sidebarWidth; side and overlay are ignored.',
       },
     },
   },

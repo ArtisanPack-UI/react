@@ -1,41 +1,40 @@
 /**
- * @module Toast
+ * @module ToastProvider
  *
- * A toast notification system consisting of a context provider
- * ({@link ToastProvider}), an imperative hook ({@link useToast}), and
- * individual toast messages ({@link ToastMessage}). Toasts are
- * auto-dismissed after a configurable duration and announced to
- * assistive technologies via an ARIA live region.
+ * Deprecated aliases kept for 1.x code, on the design-system toasts:
  *
+ * - {@link ToastProvider} renders its children and a {@link Toaster} for the
+ *   default `toast`, mapping `defaultDuration` → `duration`, `max` and the
+ *   DaisyUI `position` classes → `placement`.
+ * - {@link useToast} returns the 1.x imperative API, each call a
+ *   `toast.create({ title, color, duration })`. A message that isn't text is
+ *   flattened to its text, because toast titles are strings.
+ * - {@link ToastMessage} renders a static {@link Toast}.
+ *
+ * Toasts beyond `max` now queue instead of evicting the oldest.
+ *
+ * @deprecated Render one `Toaster` and call `toast.create()`.
  * @packageDocumentation
  */
 
 import {
+  Children,
   createContext,
   forwardRef,
-  useCallback,
+  isValidElement,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
-  type HTMLAttributes,
   type ReactNode,
 } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
+import { devWarnOnce } from '../../../internal/parts';
+import { Toast, type ToastProps } from '../Toast/Toast';
+import { Toaster, toast, type ToastPlacement } from '../Toast/Toaster';
 
-/**
- * Color variants available for toast notifications.
- */
-type ToastColor = 'info' | 'success' | 'warning' | 'error';
+/** The colors a 1.x toast takes. */
+type ToastItemColor = 'info' | 'success' | 'warning' | 'error';
 
-/**
- * DaisyUI position classes for the toast container.
- */
+/** The 1.x DaisyUI position classes. */
 type ToastPosition =
   | 'toast-start'
   | 'toast-center'
@@ -45,65 +44,68 @@ type ToastPosition =
   | 'toast-bottom';
 
 /**
- * Represents a single toast notification in the queue.
+ * A 1.x toast.
+ *
+ * @deprecated Use `ToastOptions` with `toast.create()`.
  */
 export interface ToastItem {
-  /** Unique identifier for this toast instance. */
+  /** Identifies the toast. */
   id: string;
-  /** The content to display inside the toast. */
+  /** The message, shown as the toast's title. */
   message: ReactNode;
-  /** Color variant that determines the visual style. */
-  color?: ToastColor;
-  /** Auto-dismiss duration in milliseconds. Set to `0` to disable auto-dismiss. */
+  /** Tints the icon; `error` makes the toast an alert. */
+  color?: ToastItemColor;
+  /** Milliseconds before it dismisses itself. `0` keeps it. */
   duration?: number;
 }
 
 /**
- * Imperative API returned by {@link useToast} for showing and dismissing toasts.
+ * The imperative API {@link useToast} returns.
+ *
+ * @deprecated Use `toast` (`toast.create`, `toast.dismiss`).
  */
 export interface ToastAPI {
-  /** Show a toast with full options. Returns the generated toast ID. */
+  /** Shows a toast. Returns its id. */
   show: (options: Omit<ToastItem, 'id'>) => string;
-  /** Show a success toast. Returns the generated toast ID. */
+  /** Shows a success toast. Returns its id. */
   success: (message: ReactNode, duration?: number) => string;
-  /** Show an error toast. Returns the generated toast ID. */
+  /** Shows an error toast. Returns its id. */
   error: (message: ReactNode, duration?: number) => string;
-  /** Show a warning toast. Returns the generated toast ID. */
+  /** Shows a warning toast. Returns its id. */
   warning: (message: ReactNode, duration?: number) => string;
-  /** Show an info toast. Returns the generated toast ID. */
+  /** Shows an info toast. Returns its id. */
   info: (message: ReactNode, duration?: number) => string;
-  /** Dismiss a specific toast by its ID. */
+  /** Dismisses one toast. */
   dismiss: (id: string) => void;
-  /** Dismiss all currently visible toasts. */
+  /** Dismisses every toast. */
   dismissAll: () => void;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Context                                                            */
-/* ------------------------------------------------------------------ */
-
 const ToastContext = createContext<ToastAPI | null>(null);
 
+/** The text of a node, for a toast title. */
+export function toastText(node: ReactNode): string {
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(toastText).join('');
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return Children.toArray(node.props.children).map(toastText).join('');
+  }
+  return '';
+}
+
+/** The 1.x position classes as a placement. */
+export function toastPlacement(position: ToastPosition[]): ToastPlacement {
+  const vertical = position.includes('toast-top') ? 'top' : 'bottom';
+  if (position.includes('toast-start')) return `${vertical}-start`;
+  if (position.includes('toast-center')) return vertical;
+  return `${vertical}-end`;
+}
+
 /**
- * Hook that provides the imperative toast API for showing and dismissing
- * notifications. Must be called within a {@link ToastProvider}.
+ * The 1.x imperative toast API. Must be called inside a {@link ToastProvider}.
  *
- * @returns The {@link ToastAPI} object with `show`, `success`, `error`,
- *   `warning`, `info`, `dismiss`, and `dismissAll` methods.
- *
- * @throws Error if called outside a `ToastProvider`.
- *
- * @example
- * ```tsx
- * function SaveButton() {
- *   const toast = useToast();
- *   return (
- *     <button onClick={() => toast.success('Saved!')}>Save</button>
- *   );
- * }
- * ```
- *
- * @deprecated Use the design-system `toast` (`toast.create({ title })`) with a {@link Toaster}. Will be removed in a later major release.
+ * @deprecated Use `toast.create({ title, color })` with a `Toaster`.
  */
 export function useToast(): ToastAPI {
   const context = useContext(ToastContext);
@@ -113,37 +115,27 @@ export function useToast(): ToastAPI {
   return context;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Provider                                                           */
-/* ------------------------------------------------------------------ */
-
 /**
- * Props for the {@link ToastProvider} component.
+ * Props for the deprecated {@link ToastProvider}.
+ *
+ * @deprecated Use `ToasterProps`.
  */
 export interface ToastProviderProps {
-  /** Child elements that will have access to the toast context. */
+  /** The app, or the part of it that calls {@link useToast}. */
   children: ReactNode;
-  /** Default auto-dismiss duration in milliseconds. Defaults to `5000`. Set to `0` to disable auto-dismiss. */
+  /** Milliseconds before a toast dismisses itself. `0` keeps toasts. Use Toaster's `duration`. @defaultValue `5000` */
   defaultDuration?: number;
-  /** Maximum number of simultaneously visible toasts. Oldest toasts are evicted when exceeded. Defaults to `5`. */
+  /** At most this many show at once; the rest queue. Use Toaster's `max`. @defaultValue `5` */
   max?: number;
-  /** DaisyUI position classes applied to the toast container. Defaults to `['toast-end', 'toast-bottom']`. */
+  /** DaisyUI position classes. Use Toaster's `placement`. @defaultValue `['toast-end', 'toast-bottom']` */
   position?: ToastPosition[];
 }
 
 /**
- * Context provider that manages the toast notification queue and renders
- * the toast container. Wrap your application (or a subtree) with this
- * provider to enable the {@link useToast} hook.
+ * Deprecated: renders its children and a {@link Toaster}, and gives them
+ * {@link useToast}.
  *
- * @example
- * ```tsx
- * <ToastProvider defaultDuration={3000} max={3} position={['toast-center', 'toast-top']}>
- *   <App />
- * </ToastProvider>
- * ```
- *
- * @deprecated Use the design-system {@link Toaster} and `toast.create()`. ToastProvider will be removed in a later major release.
+ * @deprecated Render one `Toaster` and call `toast.create()`.
  */
 export function ToastProvider({
   children,
@@ -151,174 +143,61 @@ export function ToastProvider({
   max = 5,
   position = ['toast-end', 'toast-bottom'],
 }: ToastProviderProps) {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const counterRef = useRef(0);
-
-  const clearTimer = useCallback((id: string) => {
-    const timer = timersRef.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      timersRef.current.delete(id);
-    }
-  }, []);
-
-  const dismiss = useCallback(
-    (id: string) => {
-      clearTimer(id);
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    },
-    [clearTimer],
+  devWarnOnce(
+    'ToastProvider',
+    'ToastProvider is deprecated; render a Toaster and use toast.create().',
   );
 
-  const dismissAll = useCallback(() => {
-    timersRef.current.forEach((timer) => clearTimeout(timer));
-    timersRef.current.clear();
-    setToasts([]);
-  }, []);
-
-  const evictedIdsRef = useRef<string[]>([]);
-
-  const show = useCallback(
-    (options: Omit<ToastItem, 'id'>): string => {
-      const id = `toast-${++counterRef.current}`;
-      const duration = options.duration ?? defaultDuration;
-
-      evictedIdsRef.current = [];
-
-      setToasts((prev) => {
-        const next = [...prev, { ...options, id }];
-        if (next.length > max) {
-          const evictCount = next.length - max;
-          evictedIdsRef.current = next.slice(0, evictCount).map((t) => t.id);
-          return next.slice(evictCount);
-        }
-        return next;
-      });
-
-      evictedIdsRef.current.forEach((evictedId) => clearTimer(evictedId));
-
-      if (duration > 0) {
-        const timer = setTimeout(() => dismiss(id), duration);
-        timersRef.current.set(id, timer);
-      }
-
-      return id;
-    },
-    [defaultDuration, max, dismiss, clearTimer],
-  );
-
-  const success = useCallback(
-    (message: ReactNode, duration?: number) => show({ message, color: 'success', duration }),
-    [show],
-  );
-
-  const error = useCallback(
-    (message: ReactNode, duration?: number) => show({ message, color: 'error', duration }),
-    [show],
-  );
-
-  const warning = useCallback(
-    (message: ReactNode, duration?: number) => show({ message, color: 'warning', duration }),
-    [show],
-  );
-
-  const info = useCallback(
-    (message: ReactNode, duration?: number) => show({ message, color: 'info', duration }),
-    [show],
-  );
-
-  const api = useMemo<ToastAPI>(
-    () => ({ show, success, error, warning, info, dismiss, dismissAll }),
-    [show, success, error, warning, info, dismiss, dismissAll],
-  );
-
-  // Clean up all timers on unmount
-  useEffect(() => {
-    const timers = timersRef.current;
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-      timers.clear();
+  const api = useMemo<ToastAPI>(() => {
+    const show = ({ message, color, duration }: Omit<ToastItem, 'id'>) =>
+      toast.create({ title: toastText(message), color, duration: duration ?? defaultDuration });
+    return {
+      show,
+      success: (message, duration) => show({ message, color: 'success', duration }),
+      error: (message, duration) => show({ message, color: 'error', duration }),
+      warning: (message, duration) => show({ message, color: 'warning', duration }),
+      info: (message, duration) => show({ message, color: 'info', duration }),
+      dismiss: (id) => toast.dismiss(id),
+      dismissAll: () => toast.dismiss(),
     };
-  }, []);
+  }, [defaultDuration]);
 
   return (
     <ToastContext.Provider value={api}>
       {children}
-      {toasts.length > 0 && (
-        <div
-          className={cn('toast z-50', ...position)}
-          aria-live="polite"
-          aria-label="Notifications"
-          role="log"
-        >
-          {toasts.map((toast) => (
-            <ToastMessage key={toast.id} toast={toast} onDismiss={dismiss} />
-          ))}
-        </div>
-      )}
+      <Toaster duration={defaultDuration} max={max} placement={toastPlacement(position)} />
     </ToastContext.Provider>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Individual toast message                                           */
-/* ------------------------------------------------------------------ */
-
-const toastColorMap: Record<ToastColor, string> = {
-  info: 'alert-info',
-  success: 'alert-success',
-  warning: 'alert-warning',
-  error: 'alert-error',
-};
-
 /**
- * Props for the {@link ToastMessage} component.
+ * Props for the deprecated {@link ToastMessage}.
+ *
+ * @deprecated Use `ToastProps`.
  */
-interface ToastMessageProps extends HTMLAttributes<HTMLDivElement> {
-  /** The toast data object to render. */
+export interface ToastMessageProps extends Omit<ToastProps, 'title' | 'color' | 'onOpenChange'> {
+  /** The toast to show. Use Toast's `title` and `color`. */
   toast: ToastItem;
-  /** Callback to dismiss this toast by its ID. */
+  /** Called with the toast's id when its close button is pressed. */
   onDismiss: (id: string) => void;
 }
 
 /**
- * Individual toast notification message rendered inside the toast container.
+ * Deprecated: renders a static {@link Toast}.
  *
- * Uses `role="alert"` for error/warning toasts and `role="status"` for
- * info/success toasts to provide appropriate urgency to screen readers.
- *
- * @example
- * ```tsx
- * <ToastMessage
- *   toast={{ id: '1', message: 'Hello!', color: 'info' }}
- *   onDismiss={(id) => console.log('Dismissed', id)}
- * />
- * ```
- *
- * @deprecated Use the design-system {@link Toast}. ToastMessage will be removed in a later major release.
+ * @deprecated Use `Toast`.
  */
 export const ToastMessage = forwardRef<HTMLDivElement, ToastMessageProps>(
-  ({ toast, onDismiss, className, ...rest }, ref) => {
-    const isUrgent = toast.color === 'error' || toast.color === 'warning';
-
+  ({ toast: item, onDismiss, ...rest }, ref) => {
+    devWarnOnce('ToastMessage', 'ToastMessage is deprecated; use Toast.');
     return (
-      <div
-        ref={ref}
-        role={isUrgent ? 'alert' : 'status'}
-        className={cn('alert', toast.color && toastColorMap[toast.color], className)}
+      <Toast
         {...rest}
-      >
-        <span>{toast.message}</span>
-        <button
-          type="button"
-          aria-label="Dismiss notification"
-          className="btn btn-sm btn-ghost"
-          onClick={() => onDismiss(toast.id)}
-        >
-          &#x2715;
-        </button>
-      </div>
+        ref={ref}
+        title={item.message}
+        color={item.color ?? 'neutral'}
+        onOpenChange={() => onDismiss(item.id)}
+      />
     );
   },
 );

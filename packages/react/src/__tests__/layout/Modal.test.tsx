@@ -1,148 +1,94 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Modal } from '../../components/layout/Modal/Modal';
 
-describe('Modal', () => {
-  const originalShowModal = HTMLDialogElement.prototype.showModal;
-  const originalClose = HTMLDialogElement.prototype.close;
+const panel = () => document.querySelector('.apui-dialog') as HTMLElement;
+const part = (name: string) => panel().querySelector(`[data-scope="dialog"][data-part="${name}"]`);
 
-  beforeEach(() => {
-    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
-      Object.defineProperty(this, 'open', { value: true, writable: true, configurable: true });
-    });
-    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-      Object.defineProperty(this, 'open', { value: false, writable: true, configurable: true });
-    });
+/** Fires an event and lets the machine settle: Zag sends its updates in a microtask. */
+const interact = (fire: () => void) =>
+  act(async () => {
+    fire();
   });
 
-  afterEach(() => {
-    HTMLDialogElement.prototype.showModal = originalShowModal;
-    HTMLDialogElement.prototype.close = originalClose;
-  });
+/** Presses Escape once focus has moved into the panel, where the machine listens. */
+const pressEscape = async () => {
+  await waitFor(() => expect(panel()).toContainElement(document.activeElement as HTMLElement));
+  await interact(() => fireEvent.keyDown(document.activeElement!, { key: 'Escape' }));
+};
 
-  it('renders children when open', () => {
+describe('Modal (deprecated alias of Dialog)', () => {
+  it('renders a Dialog and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
-      <Modal open onClose={vi.fn()}>
-        Modal content
+      <Modal open onClose={vi.fn()} portal={false} title="Confirm">
+        Are you sure?
       </Modal>,
     );
-    expect(screen.getByText('Modal content')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: 'Confirm' });
+    expect(dialog).toBe(panel());
+    expect(dialog).toHaveClass('apui-dialog');
+    expect(dialog).not.toHaveClass('modal-box');
+    expect(document.querySelector('.modal, .modal-box, .btn')).toBeNull();
+    expect(part('body')).toHaveTextContent('Are you sure?');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Modal is deprecated; use Dialog.'));
+    warn.mockRestore();
   });
 
-  it('renders title', () => {
+  it('maps subtitle to the description and actions to the footer', () => {
     render(
-      <Modal open onClose={vi.fn()} title="My Modal">
-        Content
-      </Modal>,
+      <Modal
+        open
+        onClose={vi.fn()}
+        portal={false}
+        title="Confirm"
+        subtitle="This can't be undone."
+        actions={<button type="button">Save</button>}
+      />,
     );
-    expect(screen.getByText('My Modal')).toBeInTheDocument();
+    expect(part('description')).toHaveTextContent("This can't be undone.");
+    expect(screen.getByRole('dialog')).toHaveAccessibleDescription("This can't be undone.");
+    expect(part('footer')).toContainElement(screen.getByRole('button', { name: 'Save' }));
   });
 
-  it('renders subtitle', () => {
-    render(
-      <Modal open onClose={vi.fn()} title="Title" subtitle="Subtitle">
-        Content
-      </Modal>,
-    );
-    expect(screen.getByText('Subtitle')).toBeInTheDocument();
+  it('hides the panel when closed', () => {
+    render(<Modal open={false} onClose={vi.fn()} portal={false} title="T" />);
+    expect(panel()).toHaveAttribute('hidden');
   });
 
-  it('renders actions slot', () => {
-    render(
-      <Modal open onClose={vi.fn()} actions={<button>Save</button>}>
-        Content
-      </Modal>,
-    );
-    expect(screen.getByText('Save')).toBeInTheDocument();
-  });
-
-  it('renders close button by default', () => {
-    render(
-      <Modal open onClose={vi.fn()}>
-        Content
-      </Modal>,
-    );
-    expect(screen.getByLabelText('Close')).toBeInTheDocument();
-  });
-
-  it('hides close button when persistent', () => {
-    render(
-      <Modal open onClose={vi.fn()} persistent>
-        Content
-      </Modal>,
-    );
-    expect(screen.queryByLabelText('Close')).not.toBeInTheDocument();
-  });
-
-  it('calls onClose when close button clicked', () => {
+  it('calls onClose from the close button', async () => {
     const onClose = vi.fn();
-    render(
-      <Modal open onClose={onClose}>
-        Content
-      </Modal>,
-    );
-    fireEvent.click(screen.getByLabelText('Close'));
+    render(<Modal open onClose={onClose} portal={false} title="T" />);
+    await interact(() => fireEvent.click(screen.getByRole('button', { name: 'Close' })));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('calls showModal when open becomes true', () => {
-    render(
-      <Modal open onClose={vi.fn()}>
-        Content
-      </Modal>,
-    );
-    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
-  });
-
-  it('calls close when open becomes false', () => {
+  it('calls onClose on Escape', async () => {
     const onClose = vi.fn();
-    const { rerender } = render(
-      <Modal open onClose={onClose}>
-        Content
-      </Modal>,
-    );
-    rerender(
-      <Modal open={false} onClose={onClose}>
-        Content
-      </Modal>,
-    );
-    expect(HTMLDialogElement.prototype.close).toHaveBeenCalled();
+    render(<Modal open onClose={onClose} portal={false} title="T" />);
+    await pressEscape();
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('applies glass effect', () => {
-    render(
-      <Modal open onClose={vi.fn()} glass>
-        Content
-      </Modal>,
-    );
-    expect(document.querySelector('.modal-box')).toHaveClass('glass');
+  it('maps persistent to an alertdialog without a close button that ignores Escape', async () => {
+    const onClose = vi.fn();
+    render(<Modal open onClose={onClose} portal={false} persistent title="Delete?" />);
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete?' });
+    expect(screen.queryByRole('button', { name: 'Close' })).toBeNull();
+    await pressEscape();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(dialog).not.toHaveAttribute('hidden');
   });
 
-  it('applies bottom positioning', () => {
-    render(
-      <Modal open onClose={vi.fn()} bottom>
-        Content
-      </Modal>,
-    );
-    expect(document.querySelector('.modal')).toHaveClass('modal-bottom');
+  it('maps glass to the glass surface and ignores bottom', () => {
+    render(<Modal open onClose={vi.fn()} portal={false} glass bottom title="T" />);
+    expect(panel()).toHaveAttribute('data-surface', 'glass');
+    expect(panel()).not.toHaveAttribute('bottom');
   });
 
-  it('has aria-modal attribute', () => {
-    render(
-      <Modal open onClose={vi.fn()}>
-        Content
-      </Modal>,
-    );
-    expect(document.querySelector('dialog')).toHaveAttribute('aria-modal', 'true');
-  });
-
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(
-      <Modal ref={ref} open onClose={vi.fn()}>
-        Content
-      </Modal>,
-    );
-    expect(ref).toHaveBeenCalled();
+  it("passes Dialog's own props through", () => {
+    render(<Modal open onClose={vi.fn()} portal={false} size="lg" className="extra" title="T" />);
+    expect(panel()).toHaveAttribute('data-size', 'lg');
+    expect(panel()).toHaveClass('extra');
   });
 });

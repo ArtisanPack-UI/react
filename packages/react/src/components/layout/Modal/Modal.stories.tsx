@@ -4,14 +4,14 @@ import { Modal } from './Modal';
 import { Button } from '../../form/Button/Button';
 
 const meta: Meta<typeof Modal> = {
-  title: 'Layout/Modal',
+  title: 'Layout/Modal (deprecated)',
   component: Modal,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Dialog overlay with title, subtitle, action buttons, persistent mode, glass backdrop, and bottom-sheet variant.',
+          'Deprecated alias of Dialog: subtitle maps to description, actions to footer, glass to the glass surface and persistent to an alertdialog without a close button. bottom is ignored.',
       },
     },
   },

@@ -7,14 +7,14 @@ import type { SpotlightItem } from './SpotlightSearch';
 const onSelectAction = fn();
 
 const meta: Meta<typeof SpotlightSearch> = {
-  title: 'Navigation/SpotlightSearch',
+  title: 'Navigation/SpotlightSearch (deprecated)',
   component: SpotlightSearch,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Command-palette search overlay activated by a keyboard shortcut. Supports grouped items, custom placeholder text, and item selection callbacks.',
+          'Deprecated alias of Spotlight: items map to groups by their group, emptyMessage to emptyLabel and shortcut to mod+k; filterFn and maxResults still apply.',
       },
     },
   },
