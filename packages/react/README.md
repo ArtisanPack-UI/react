@@ -106,9 +106,9 @@ Supports both React 18 and React 19.
 
 ## Documentation
 
-- [Getting Started](https://github.com/ArtisanPack-UI/react/wiki/Getting-Started)
-- [Component API Reference](https://github.com/ArtisanPack-UI/react/wiki/Component-API-Reference)
-- [Theming Guide](https://github.com/ArtisanPack-UI/react/wiki/Theming)
+- [Getting Started](https://docs.artisanpackui.dev/documentation/react/getting-started)
+- [Components](https://docs.artisanpackui.dev/documentation/react/components)
+- [Theming](https://docs.artisanpackui.dev/documentation/react/theming)
 
 ## Part of ArtisanPack UI
 

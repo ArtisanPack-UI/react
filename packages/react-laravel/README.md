@@ -76,8 +76,8 @@ Supports both React 18 and React 19.
 
 ## Documentation
 
-- [Laravel / Inertia Integration](https://github.com/ArtisanPack-UI/react/wiki/Laravel-Inertia-Integration)
-- [Getting Started](https://github.com/ArtisanPack-UI/react/wiki/Getting-Started)
+- [Laravel and Inertia](https://docs.artisanpackui.dev/documentation/react/laravel-inertia)
+- [Getting Started](https://docs.artisanpackui.dev/documentation/react/getting-started)
 
 ## Part of ArtisanPack UI
 

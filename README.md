@@ -129,14 +129,15 @@ All packages support both React 18 and React 19.
 
 ## Documentation
 
-- [Getting Started](https://github.com/ArtisanPack-UI/react/wiki/Getting-Started)
-- [Component API Reference](https://github.com/ArtisanPack-UI/react/wiki/Component-API-Reference)
-- [Design Tokens Guide](https://github.com/ArtisanPack-UI/react/wiki/Design-Tokens)
-- [Theming Guide](https://github.com/ArtisanPack-UI/react/wiki/Theming)
-- [Laravel / Inertia Integration](https://github.com/ArtisanPack-UI/react/wiki/Laravel-Inertia-Integration)
-- [Migration from Livewire](https://github.com/ArtisanPack-UI/react/wiki/Migration-from-Livewire)
-- [React 18 vs 19 Compatibility](https://github.com/ArtisanPack-UI/react/wiki/React-18-vs-19-Compatibility)
-- [Releasing](https://github.com/ArtisanPack-UI/react/wiki/Releasing)
+- [Documentation home](https://docs.artisanpackui.dev/documentation/react/home)
+- [Getting Started](https://docs.artisanpackui.dev/documentation/react/getting-started)
+- [Components](https://docs.artisanpackui.dev/documentation/react/components)
+- [Theming](https://docs.artisanpackui.dev/documentation/react/theming)
+- [Laravel and Inertia](https://docs.artisanpackui.dev/documentation/react/laravel-inertia)
+- [React 18 and 19](https://docs.artisanpackui.dev/documentation/react/react-versions)
+- [Upgrading from 1.x](https://docs.artisanpackui.dev/documentation/react/upgrading)
+- [Design system documentation](https://docs.artisanpackui.dev/documentation/design-system/home)
+- [Releasing](./RELEASING.md)
 
 ## Development
 
