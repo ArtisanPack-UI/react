@@ -31,7 +31,7 @@ The props are the design system's shared API in React spelling (`leadingIcon`, `
 | Checked (Checkbox, Toggle)                             | `checked` and `onCheckedChange` | `defaultChecked` |
 | Open (Dialog, Drawer, Popover, DropdownMenu, …)        | `open` and `onOpenChange`       | `defaultOpen`    |
 
-The callbacks receive the new value itself (`onValueChange={setEmail}`), not an event. On form fields the native `onChange` still fires as well.
+The callbacks receive the new value itself (`onValueChange={setEmail}`), not an event. On form fields the native `onChange` still fires as well, except on Combobox, which has no `onChange`: use `onValueChange`, and `onSearchChange` for the typed text.
 
 ```tsx
 const [open, setOpen] = useState(false);
@@ -51,9 +51,9 @@ const [open, setOpen] = useState(false);
 <Input label="Email" className="max-w-sm" classes={{ label: 'sr-only' }} />
 ```
 
-On form fields, every other native attribute (`name`, `autoComplete`, `aria-*`, `data-*`, `id`) goes to the native control, not the root. Each component's [markup](https://docs.artisanpackui.dev/documentation/design-system/styling/component-markup) is documented, and your own CSS wins over the component styles without `!important` because of the [cascade layers](https://docs.artisanpackui.dev/documentation/design-system/styling/cascade-layers).
+On form fields, every other native attribute (`name`, `autoComplete`, `aria-*`, `data-*`, `id`) goes to the native control, not the root. Combobox is the exception: its native attributes go to the root `<div>`, so name the input with its `label` prop rather than `aria-label`, and `name` sets its hidden inputs (one per selected value). Each component's [markup](https://docs.artisanpackui.dev/documentation/design-system/styling/component-markup) is documented, and your own CSS wins over the component styles without `!important` because of the [cascade layers](https://docs.artisanpackui.dev/documentation/design-system/styling/cascade-layers).
 
-**Refs.** Components forward their ref. On form fields it points at the native control (`<input>`, `<select>`, `<textarea>`), on CheckboxGroup, RadioGroup and Fieldset at the `<fieldset>`, and elsewhere at the root element or the element its documentation names.
+**Refs.** Components forward their ref. On form fields it points at the native control (`<input>`, `<select>`, `<textarea>`), except Combobox, whose ref is its root `<div>` (calling `focus()` on it won't focus the input). On CheckboxGroup, RadioGroup and Fieldset it points at the `<fieldset>`, and elsewhere at the root element or the element its documentation names.
 
 **Icons.** Props such as `leadingIcon` take a name from the [icon registry](https://docs.artisanpackui.dev/documentation/design-system/foundations/icons). `registerIcons` is also exported from `@artisanpack-ui/react`. Most of these props have a node counterpart (`icon`, `iconEnd`) for your own SVG.
 

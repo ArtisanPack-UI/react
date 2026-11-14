@@ -76,7 +76,7 @@ export function SignIn() {
 }
 ```
 
-Every component is exported from the package root and from a category subpath, such as `@artisanpack-ui/react/form`. See [Components](Components) for the list, and for how props, `className`, `classes` and refs work.
+Every component is exported from the package root and from a category subpath, such as `@artisanpack-ui/react/form`. The AI components are the exception: they're only on `@artisanpack-ui/react/ai`. See [Components](Components) for the list, and for how props, `className`, `classes` and refs work.
 
 ## Next steps
 

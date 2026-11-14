@@ -11,15 +11,17 @@ Both packages are written in TypeScript and ship their own declarations. There's
 
 Each entry point has its own declarations, listed in the package's `exports`:
 
-| Import path                                                                                                | Types for                                            |
-| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `@artisanpack-ui/react`                                                                                    | Every component, `ThemeProvider` and `useTheme`      |
-| `@artisanpack-ui/react/form`, `/layout`, `/navigation`, `/data`, `/feedback`, `/utility`                   | That category's components                           |
-| `@artisanpack-ui/react/chart`                                                                              | `Chart` and its types                                |
-| `@artisanpack-ui/react/ai`                                                                                 | The [AI Components](Ai-Components) and the API types |
-| `@artisanpack-ui/react-laravel` and its subpaths (`/navigation`, `/form`, `/layout`, `/auth`, `/feedback`) | The [Laravel and Inertia](Laravel-Inertia) helpers   |
+| Import path                                                                                                | Types for                                                          |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `@artisanpack-ui/react`                                                                                    | Every component except the AI ones, `ThemeProvider` and `useTheme` |
+| `@artisanpack-ui/react/form`, `/layout`, `/navigation`, `/data`, `/feedback`, `/utility`                   | That category's components                                         |
+| `@artisanpack-ui/react/chart`                                                                              | `Chart` and its types                                              |
+| `@artisanpack-ui/react/ai`                                                                                 | The [AI Components](Ai-Components) and the API types               |
+| `@artisanpack-ui/react-laravel` and its subpaths (`/navigation`, `/form`, `/layout`, `/auth`, `/feedback`) | The [Laravel and Inertia](Laravel-Inertia) helpers                 |
 
 To resolve the subpaths, TypeScript needs a `moduleResolution` that reads `exports`: `bundler`, `node16` or `nodenext`.
+
+The declarations need **TypeScript 5.4 or later**. They use the `NoInfer` utility type (in `SelectProps`, for example), which TypeScript 5.3 and earlier don't have, so an older compiler reports an unresolved name inside the package's declarations unless `skipLibCheck` is on.
 
 ## Naming
 
