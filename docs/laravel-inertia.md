@@ -69,7 +69,25 @@ import { InertiaMenu } from '@artisanpack-ui/react-laravel';
 | `only`                            |          | A partial reload of these props.                                |
 | `onChange`                        |          | Handle the page change yourself instead of visiting.            |
 
-**InertiaLink** wraps Inertia's `Link` and takes all of its props (`method`, `preserveScroll`, `only`, …). Use it as a plain link. Its `asButton`, `color`, `size` and `loading` props output 1.x DaisyUI class names, which `@artisanpack-ui/css` doesn't style.
+**InertiaLink** wraps Inertia's `Link` and takes all of its props (`method`, `preserveScroll`, `only`, …). On its own it's a plain link. With `asButton` it renders the design system's [Button](https://docs.artisanpackui.dev/documentation/design-system/components/button) markup on the link, so it looks like a Button but still makes an Inertia visit:
+
+```tsx
+<InertiaLink href="/users/create" asButton color="primary" icon={<Icon name="plus" />}>
+  New user
+</InertiaLink>
+<InertiaLink href="/settings" asButton variant="outline" color="neutral" loading={isNavigating}>
+  Settings
+</InertiaLink>
+```
+
+| Prop                  | Default     | What it does                                                                                                |
+| --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `asButton`            | `false`     | Styles the link as a Button.                                                                                |
+| `color`               | `'primary'` | The Button color, with `asButton`. The 1.x `ghost` and `outline` still work: a neutral ghost or outline button. |
+| `variant`             | `'solid'`   | The Button treatment, with `asButton`. Overrides the variant `ghost` or `outline` imply.                    |
+| `size`                | `'md'`      | The Button height, with `asButton`.                                                                         |
+| `icon`, `iconRight`   |             | Icons before and after the label.                                                                           |
+| `loading`             | `false`     | Shows a spinner, sets `aria-busy` and `aria-disabled`, and ignores clicks. On a plain link the spinner takes the icon's place. |
 
 ## Forms
 
@@ -107,13 +125,15 @@ export default function CreateUser() {
 | Returns                           | What it is                                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------- |
 | `form`                            | Inertia's form object: `data`, `errors`, `processing`, `setData` and the rest.              |
-| `field(name)`                     | `name`, `value`, `error` and a native `onChange`, for Input, Password, Textarea and Select. |
+| `field(name)`                     | `name`, `value`, `error` and a native `onChange` (plus `onBlur` with Precognition), for Input, Password, Textarea and Select. |
 | `checkbox(name)`                  | `name`, `checked`, `error` and a native `onChange`, for Checkbox and Toggle.                |
 | `post`, `put`, `patch`, `destroy` | Submit to a URL, with Inertia's visit options.                                              |
 
 `useInertiaForm('key', data)` takes a remember key first, like `useForm`.
 
-`field()` stores `event.target.value` as it is, so a numeric field (a `Select` of ids, a number `Input`) ends up holding a string even when your form type says `number`. For those fields, bind `onValueChange` and convert the value yourself, as in the DatePicker example below, or convert on submit.
+`field()` keeps a number field a number: when the field's current value is a number, its `onChange` converts the control's text. An empty control stores `''`, so the field can be cleared, and text that isn't a number is stored as typed. The conversion follows the current value, so a field that starts as `''` or `null`, or has just been cleared, stores strings. Give number fields a numeric starting value, or convert on submit.
+
+Once the form uses [Laravel Precognition](https://laravel.com/docs/precognition) (`form.withPrecognition(method, url)`), `field()` also returns an `onBlur` that validates the field on the server with `form.validate(name)`. Without Precognition there's no `onBlur`.
 
 The `error` from a helper is Laravel's validation message for that field, so it shows under the field after a failed submit. `ValidationSummary` takes the same `form.errors` map and links each message to the field with that `name`.
 
@@ -170,37 +190,41 @@ Share the user from Laravel's `HandleInertiaRequests` middleware as `auth.user`.
 
 ## Flash messages
 
-`InertiaToastProvider` (and the `useFlashMessages` hook under it) shows Laravel's `success`, `error`, `warning` and `info` flash messages as toasts, once per visit. Both are built on the deprecated 1.x `ToastProvider`, whose toasts use DaisyUI class names that `@artisanpack-ui/css` doesn't style. They're being rebuilt on the design system's Toaster for 2.0.
-
-Until then, with the design system's [Toast](https://docs.artisanpackui.dev/documentation/design-system/components/toast), a small component in your layout does the same:
+`InertiaToastProvider` renders its children and a design-system [Toaster](https://docs.artisanpackui.dev/documentation/design-system/components/toast), and shows Laravel's `success`, `error`, `warning` and `info` flash messages in it as toasts, each in the toast color of the same name. Put it in your layout:
 
 ```tsx
-import { usePage } from '@inertiajs/react';
-import { useEffect, useRef } from 'react';
-import { Toaster, toast } from '@artisanpack-ui/react';
-import type { FlashMessages, SharedPageProps } from '@artisanpack-ui/react-laravel';
+import { InertiaToastProvider } from '@artisanpack-ui/react-laravel';
 
-const TYPES = ['success', 'error', 'warning', 'info'] as const;
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <InertiaToastProvider placement="top-end" duration={5000}>
+      <main>{children}</main>
+    </InertiaToastProvider>
+  );
+}
+```
+
+```php
+return redirect()->route('dashboard')->with('success', 'Profile updated.');
+```
+
+It takes the `Toaster`'s props (`placement`, `duration`, `max`, `toaster`, …). Toasts you create with `toast.create()` show in the same region. The 1.x `position` classes and `defaultDuration` still work, but they're deprecated: use `placement` and `duration`.
+
+Each message shows once per Inertia visit. A re-render with the same messages, React Strict Mode running effects twice, or a remount doesn't repeat it; the same message after another visit shows again.
+
+Without the provider, call `useFlashMessages()` in a component and render a `Toaster` yourself:
+
+```tsx
+import { Toaster } from '@artisanpack-ui/react';
+import { useFlashMessages } from '@artisanpack-ui/react-laravel';
 
 export function FlashToasts() {
-  const flash = usePage<SharedPageProps>().props.flash;
-  const shown = useRef<FlashMessages | undefined>(undefined);
-
-  useEffect(() => {
-    // Each visit brings a new flash object. Remembering the last one we showed means
-    // a re-render, or Strict Mode running the effect twice, doesn't toast it again.
-    if (!flash || shown.current === flash) return;
-    shown.current = flash;
-
-    for (const type of TYPES) {
-      const message = flash[type];
-      if (message) toast.create({ title: message, color: type });
-    }
-  }, [flash]);
-
+  useFlashMessages({ duration: 5000 });
   return <Toaster />;
 }
 ```
+
+`useFlashMessages` takes `duration` and a `toaster` from `createToaster()`, for apps that keep flash toasts in their own region. `FLASH_TYPES` lists the four keys it reads.
 
 Share the messages from `HandleInertiaRequests` as `flash`.
 

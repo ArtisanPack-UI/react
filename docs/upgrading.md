@@ -34,4 +34,4 @@ Upgrade the whole app at once, on a branch: 1.x and 2.0 can't be mixed in one ap
 
 ## Laravel apps
 
-Update `@artisanpack-ui/react-laravel` alongside `@artisanpack-ui/react`: its menu, breadcrumbs and pagination now wrap the design system components. Two of its helpers still render 1.x markup that the new CSS doesn't style: `InertiaToastProvider` and `InertiaLink` with `asButton`. [Laravel and Inertia](Laravel-Inertia) shows what to use instead.
+Update `@artisanpack-ui/react-laravel` alongside `@artisanpack-ui/react`: its menu, breadcrumbs and pagination now wrap the design system components, `InertiaToastProvider` shows flash messages with the design system's `Toaster`, and `InertiaLink` with `asButton` renders Button markup. `InertiaToastProvider`'s 1.x `position` and `defaultDuration` props still work but are deprecated: use `placement` and `duration`. See [Laravel and Inertia](Laravel-Inertia).
