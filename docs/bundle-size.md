@@ -14,7 +14,7 @@ menu_order: 10
 - **No CSS.** The styles come from `@artisanpack-ui/css`, loaded once for the whole app, whichever components you use. To leave out the visual layer, load the [headless](https://docs.artisanpackui.dev/documentation/design-system/theming/headless) build instead.
 - **No chart library.** Chart and Sparkline draw inline SVG.
 
-`react` and `react-dom` are peer dependencies and never bundled.
+`react` and `react-dom` are peer dependencies, so the package's own build leaves them out. Your app's bundle still includes them once, shared with the rest of your app, so count them in your app's total.
 
 ## Keeping it small
 

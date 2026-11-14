@@ -21,16 +21,24 @@ import {
   UsageDashboard,
 } from '@artisanpack-ui/react/ai';
 import { Stack } from '@artisanpack-ui/react/layout';
-
-const client = createAiApiClient({
-  baseUrl: '/api/artisanpack-ai',
-  headers: {
-    'X-CSRF-TOKEN':
-      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-  },
-});
+import { useMemo } from 'react';
 
 export function AiAdminPage() {
+  // Built during render, not at module scope, so the import is safe on the server.
+  const client = useMemo(
+    () =>
+      createAiApiClient({
+        baseUrl: '/api/artisanpack-ai',
+        headers: {
+          'X-CSRF-TOKEN':
+            typeof document === 'undefined'
+              ? ''
+              : (document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''),
+        },
+      }),
+    [],
+  );
+
   return (
     <Stack gap="8">
       <SettingsPage client={client} heading="AI settings" />
@@ -41,7 +49,7 @@ export function AiAdminPage() {
 }
 ```
 
-Create the client once, outside the component or in `useMemo`. Each component reloads its data when it receives a different `client`.
+Create the client once with `useMemo` (or in a module that only runs in the browser). Don't read `document` at module scope: in a server-rendered app that import throws `ReferenceError: document is not defined`. Each component reloads its data when it receives a different `client`.
 
 ## createAiApiClient
 
