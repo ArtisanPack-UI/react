@@ -185,7 +185,7 @@ This creates a file in `.changeset/` — commit it with your PR.
 
 ## Releasing
 
-See [docs/Releasing.md](./docs/Releasing.md) for the full release process, including stable releases, snapshots, and troubleshooting.
+See [RELEASING.md](./RELEASING.md) for the full release process, including stable releases, snapshots, and troubleshooting.
 
 ## Getting Help
 
