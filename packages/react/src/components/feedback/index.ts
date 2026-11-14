@@ -5,7 +5,7 @@
  * to users. Includes alerts, loading indicators, skeletons, empty
  * states, error displays, and toasts. Toast and Toaster render the
  * design-system markup contract (styled by `@artisanpack-ui/css`);
- * ToastProvider, ToastMessage and useToast are deprecated in their favor.
+ * ToastProvider, ToastMessage and useToast are deprecated aliases built on them.
  *
  * @packageDocumentation
  */
@@ -54,4 +54,9 @@ export type {
 } from './Toast/Toaster';
 
 export { ToastProvider, ToastMessage, useToast } from './ToastProvider/ToastProvider';
-export type { ToastProviderProps, ToastItem, ToastAPI } from './ToastProvider/ToastProvider';
+export type {
+  ToastProviderProps,
+  ToastItem,
+  ToastAPI,
+  ToastMessageProps,
+} from './ToastProvider/ToastProvider';

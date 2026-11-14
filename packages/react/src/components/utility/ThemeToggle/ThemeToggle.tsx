@@ -18,9 +18,10 @@
  * calls `onValueChange`; the toggle applies, stores and passes on a value
  * when the parent changes `value` to it, never the one it mounts with.
  *
- * Inside a 2.x `ThemeProvider` the toggle keeps driving it: it starts
- * from the provider's `colorScheme`, calls `setColorScheme` on every pick and
- * follows the provider when something else sets it. The provider only knows
+ * Inside a `ThemeProvider` (the color-scheme context from `useTheme`) the
+ * toggle keeps driving it: it starts from the provider's `colorScheme`,
+ * calls `setColorScheme` on every pick and follows the provider when
+ * something else sets it. The provider only knows
  * light, dark and system, so high contrast reaches it as `light` (the theme
  * high contrast is built on), and the provider's `light` leaves a high
  * contrast choice in place.
@@ -72,7 +73,7 @@ import {
 
 export type { Theme, ThemeChoice } from '@artisanpack-ui/behavior';
 
-/** What a 2.x ThemeProvider hears for a choice: high contrast is a light theme. */
+/** What a ThemeProvider hears for a choice: high contrast is a light theme. */
 function toColorScheme(choice: ThemeChoice): ColorScheme {
   return choice === 'high-contrast' ? 'light' : choice;
 }

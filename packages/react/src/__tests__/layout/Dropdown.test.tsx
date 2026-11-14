@@ -1,208 +1,120 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Dropdown, DropdownItem } from '../../components/layout/Dropdown/Dropdown';
 
-/** Helper to find the dropdown trigger (the element with aria-haspopup) */
-const getTrigger = () => screen.getByRole('button', { name: 'Options' });
+const panel = () => document.querySelector('.apui-dropdown-menu') as HTMLElement;
 
-describe('Dropdown', () => {
-  it('renders trigger with default label', () => {
+/** Fires an event and lets the machine settle: Zag sends its updates in a microtask. */
+const interact = (fire: () => void) =>
+  act(async () => {
+    fire();
+  });
+
+describe('Dropdown (deprecated alias of DropdownMenu)', () => {
+  it('renders a DropdownMenu with the old default label and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown open portal={false}>
+        <DropdownItem>Edit</DropdownItem>
       </Dropdown>,
     );
-    expect(screen.getByText('Options')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Options' })).toHaveAttribute('data-part', 'trigger');
+    expect(panel()).toHaveAttribute('role', 'menu');
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
+    expect(document.querySelector('.dropdown, .dropdown-content, .btn, .menu')).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Dropdown is deprecated; use DropdownMenu.'),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('DropdownItem is deprecated; use DropdownMenuItem.'),
+    );
+    warn.mockRestore();
   });
 
-  it('renders custom trigger', () => {
+  it('maps end to align="end" and ignores top and hover', () => {
     render(
-      <Dropdown trigger={<span>Click me</span>}>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown open portal={false} end top hover label="Actions">
+        <DropdownItem>Edit</DropdownItem>
       </Dropdown>,
     );
-    expect(screen.getByText('Click me')).toBeInTheDocument();
+    expect(panel()).toHaveAttribute('data-align', 'end');
+    expect(panel()).not.toHaveAttribute('top');
+    expect(panel()).not.toHaveAttribute('hover');
+    expect(screen.getByRole('button', { name: 'Actions' })).toBeInTheDocument();
   });
 
-  it('always renders menu content', () => {
+  it("uses a custom trigger element's content as the label", () => {
     render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown portal={false} trigger={<button type="button">Menu</button>}>
+        <DropdownItem>Edit</DropdownItem>
       </Dropdown>,
     );
-    expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    const trigger = screen.getByRole('button', { name: 'Menu' });
+    expect(trigger).toHaveAttribute('data-part', 'trigger');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
   });
 
-  it('adds dropdown-open class on trigger click', () => {
-    const { container } = render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-    fireEvent.click(getTrigger());
-    expect(container.firstChild).toHaveClass('dropdown-open');
-  });
-
-  it('removes dropdown-open class when clicking trigger again', () => {
-    const { container } = render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    const trigger = getTrigger();
-    fireEvent.click(trigger);
-    expect(container.firstChild).toHaveClass('dropdown-open');
-    fireEvent.click(trigger);
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-  });
-
-  it('closes on outside click', () => {
-    const { container } = render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    fireEvent.click(getTrigger());
-    expect(container.firstChild).toHaveClass('dropdown-open');
-    fireEvent.mouseDown(document.body);
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-  });
-
-  it('calls onOpenChange callback', () => {
+  it('opens from the trigger and reports open-change', async () => {
     const onOpenChange = vi.fn();
     render(
-      <Dropdown onOpenChange={onOpenChange}>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown portal={false} onOpenChange={onOpenChange}>
+        <DropdownItem>Edit</DropdownItem>
       </Dropdown>,
     );
-    fireEvent.click(getTrigger());
+    await interact(() => fireEvent.click(screen.getByRole('button', { name: 'Options' })));
     expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(panel()).toHaveAttribute('data-state', 'open');
   });
 
-  it('applies dropdown-end class', () => {
-    const { container } = render(
-      <Dropdown end>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    expect(container.firstChild).toHaveClass('dropdown-end');
-  });
-
-  it('applies dropdown-top class', () => {
-    const { container } = render(
-      <Dropdown top>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    expect(container.firstChild).toHaveClass('dropdown-top');
-  });
-
-  it('applies dropdown-hover class', () => {
-    const { container } = render(
-      <Dropdown hover>
-        <DropdownItem>Item 1</DropdownItem>
-      </Dropdown>,
-    );
-    expect(container.firstChild).toHaveClass('dropdown-hover');
-  });
-
-  it('sets aria-haspopup on trigger', () => {
+  it("calls an item's onClick when it's clicked", async () => {
+    const onClick = vi.fn();
     render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown open portal={false}>
+        <DropdownItem onClick={onClick}>Edit</DropdownItem>
       </Dropdown>,
     );
-    expect(getTrigger()).toHaveAttribute('aria-haspopup', 'true');
+    await interact(() => fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' })));
+    expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it('sets aria-expanded when open', () => {
+  it("calls an item's onClick when it's chosen with Enter", async () => {
+    const onClick = vi.fn();
     render(
-      <Dropdown>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown portal={false}>
+        <DropdownItem onClick={onClick}>Edit</DropdownItem>
       </Dropdown>,
     );
-    const trigger = getTrigger();
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(trigger);
-    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const trigger = screen.getByRole('button', { name: 'Options' });
+    trigger.focus();
+    await interact(() => fireEvent.keyDown(trigger, { key: 'ArrowDown' }));
+    await waitFor(() => expect(panel()).toHaveFocus());
+    await interact(() => fireEvent.keyDown(panel(), { key: 'Enter' }));
+    await waitFor(() => expect(onClick).toHaveBeenCalledOnce());
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
+  it("doesn't call a disabled item's onClick", async () => {
+    const onClick = vi.fn();
     render(
-      <Dropdown ref={ref}>
-        <DropdownItem>Item 1</DropdownItem>
+      <Dropdown open portal={false}>
+        <DropdownItem disabled onClick={onClick}>
+          Archive
+        </DropdownItem>
       </Dropdown>,
     );
-    expect(ref).toHaveBeenCalled();
+    const item = screen.getByRole('menuitem', { name: 'Archive' });
+    expect(item).toHaveAttribute('data-disabled');
+    await interact(() => fireEvent.click(item));
+    expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('does not call onOpenChange from a library-injected click handler in controlled mode (#37)', () => {
-    const onOpenChange = vi.fn();
+  it("reports an item's value through the menu's onSelect", async () => {
+    const onSelect = vi.fn();
     render(
-      <Dropdown open={false} onOpenChange={onOpenChange} trigger={<button>Menu</button>}>
-        <DropdownItem>Item</DropdownItem>
+      <Dropdown open portal={false} onSelect={onSelect}>
+        <DropdownItem value="edit">Edit</DropdownItem>
       </Dropdown>,
     );
-    fireEvent.click(screen.getByText('Menu'));
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
-  it('still forwards the original onClick on a controlled trigger', () => {
-    const consumerClick = vi.fn();
-    render(
-      <Dropdown
-        open={false}
-        onOpenChange={() => {}}
-        trigger={<button onClick={consumerClick}>Menu</button>}
-      >
-        <DropdownItem>Item</DropdownItem>
-      </Dropdown>,
-    );
-    fireEvent.click(screen.getByText('Menu'));
-    expect(consumerClick).toHaveBeenCalledOnce();
-  });
-
-  it('toggles via the library handler in uncontrolled mode with a custom trigger', () => {
-    const { container } = render(
-      <Dropdown trigger={<button>Menu</button>}>
-        <DropdownItem>Item</DropdownItem>
-      </Dropdown>,
-    );
-    fireEvent.click(screen.getByText('Menu'));
-    expect(container.firstChild).toHaveClass('dropdown-open');
-    fireEvent.click(screen.getByText('Menu'));
-    expect(container.firstChild).not.toHaveClass('dropdown-open');
-  });
-});
-
-describe('DropdownItem', () => {
-  it('renders children', () => {
-    render(
-      <Dropdown>
-        <DropdownItem>Menu Item</DropdownItem>
-      </Dropdown>,
-    );
-    expect(screen.getByText('Menu Item')).toBeInTheDocument();
-  });
-
-  it('has menuitem role', () => {
-    render(
-      <Dropdown>
-        <DropdownItem>Item</DropdownItem>
-      </Dropdown>,
-    );
-    expect(screen.getByRole('menuitem')).toBeInTheDocument();
-  });
-
-  it('applies disabled state', () => {
-    render(
-      <Dropdown>
-        <DropdownItem disabled>Disabled Item</DropdownItem>
-      </Dropdown>,
-    );
-    expect(screen.getByRole('menuitem')).toBeDisabled();
+    await interact(() => fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' })));
+    expect(onSelect).toHaveBeenCalledWith('edit');
   });
 });

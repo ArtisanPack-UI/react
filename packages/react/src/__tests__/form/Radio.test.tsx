@@ -1,81 +1,96 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Radio } from '../../components/form/Radio/Radio';
 
 const options = [
-  { id: '1', name: 'Option A' },
+  { id: '1', name: 'Option A', hint: 'The first' },
   { id: '2', name: 'Option B' },
   { id: '3', name: 'Option C', disabled: true },
 ];
 
-describe('Radio', () => {
-  it('renders group label', () => {
-    render(<Radio label="Select one" options={options} />);
-    expect(screen.getByText('Select one')).toBeInTheDocument();
+describe('Radio (deprecated alias of RadioGroup)', () => {
+  it('renders a RadioGroup and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { container } = render(<Radio label="Select one" options={options} />);
+    const root = container.firstElementChild!;
+    expect(root.tagName).toBe('FIELDSET');
+    expect(root).toHaveClass('apui-radio-group');
+    expect(root).toHaveAttribute('data-variant', 'default');
+    expect(root).toHaveAttribute('data-orientation', 'vertical');
+    expect(container.querySelector('.fieldset, .radio, .fieldset-legend')).toBeNull();
+    expect(screen.getByRole('group', { name: 'Select one' })).toBe(root);
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Radio is deprecated; use RadioGroup.'),
+    );
+    warn.mockRestore();
   });
 
-  it('renders all options', () => {
-    render(<Radio label="Select" options={options} />);
-    expect(screen.getByText('Option A')).toBeInTheDocument();
-    expect(screen.getByText('Option B')).toBeInTheDocument();
-    expect(screen.getByText('Option C')).toBeInTheDocument();
-  });
-
-  it('renders radio inputs', () => {
-    render(<Radio label="Select" options={options} />);
-    const radios = screen.getAllByRole('radio');
-    expect(radios).toHaveLength(3);
-  });
-
-  it('disables options with disabled flag', () => {
+  it('reads the options through the default keys, with the hint as the description', () => {
     render(<Radio label="Select" options={options} />);
     const radios = screen.getAllByRole('radio');
+    expect(radios.map((radio) => (radio as HTMLInputElement).value)).toEqual(['1', '2', '3']);
+    expect(screen.getByRole('radio', { name: /^Option A/ })).toHaveAccessibleDescription(
+      'The first',
+    );
     expect(radios[2]).toBeDisabled();
   });
 
-  it('applies color class', () => {
-    render(<Radio label="Select" options={options} color="primary" />);
-    const radios = screen.getAllByRole('radio');
-    radios.forEach((radio) => {
-      expect(radio).toHaveClass('radio-primary');
-    });
+  it('reads the options through optionValue, optionLabel and optionHint', () => {
+    render(
+      <Radio
+        label="Plan"
+        optionValue="slug"
+        optionLabel="title"
+        optionHint="about"
+        options={[{ slug: 'pro', title: 'Pro', about: 'For teams' }]}
+      />,
+    );
+    const radio = screen.getByRole('radio', { name: /^Pro/ }) as HTMLInputElement;
+    expect(radio.value).toBe('pro');
+    expect(radio).toHaveAccessibleDescription('For teams');
   });
 
-  it('renders hint', () => {
-    render(<Radio label="Select" options={options} hint="Choose wisely" />);
-    expect(screen.getByText('Choose wisely')).toBeInTheDocument();
+  it('maps inline, card and cardClass, and ignores color', () => {
+    const { container } = render(
+      <Radio label="Select" options={options} inline card cardClass="my-card" color="primary" />,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveAttribute('data-orientation', 'horizontal');
+    expect(root).toHaveAttribute('data-variant', 'cards');
+    expect(root).not.toHaveAttribute('color');
+    container
+      .querySelectorAll('[data-part="item"]')
+      .forEach((item) => expect(item).toHaveClass('my-card'));
   });
 
-  it('renders error', () => {
-    render(<Radio label="Select" options={options} error="Required" />);
+  it('fires a native onChange and onValueChange with the chosen value', () => {
+    const onChange = vi.fn();
+    const onValueChange = vi.fn();
+    render(
+      <Radio
+        label="Select"
+        options={[
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+        ]}
+        onChange={onChange}
+        onValueChange={onValueChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('radio', { name: 'Two' }));
+    expect(onValueChange).toHaveBeenCalledWith(2);
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(onChange.mock.calls[0][0].target.value).toBe('2');
+  });
+
+  it('shares the name, and shows the hint and error', () => {
+    render(
+      <Radio label="Select" name="choice" options={options} hint="Pick one" error="Required" />,
+    );
+    screen
+      .getAllByRole('radio')
+      .forEach((radio) => expect(radio).toHaveAttribute('name', 'choice'));
     expect(screen.getByText('Required')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-  });
-
-  it('renders card variant', () => {
-    render(<Radio label="Select" options={options} card />);
-    const labels = screen.getByText('Option A').closest('label');
-    expect(labels).toHaveClass('border', 'rounded-lg');
-  });
-
-  it('renders option hints', () => {
-    const optionsWithHints = [
-      { id: '1', name: 'Basic', hint: 'Free tier' },
-      { id: '2', name: 'Pro', hint: 'Paid tier' },
-    ];
-    render(<Radio label="Plan" options={optionsWithHints} />);
-    expect(screen.getByText('Free tier')).toBeInTheDocument();
-    expect(screen.getByText('Paid tier')).toBeInTheDocument();
-  });
-
-  it('uses radiogroup role', () => {
-    render(<Radio label="Select" options={options} />);
-    expect(screen.getByRole('radiogroup')).toBeInTheDocument();
-  });
-
-  it('forwards ref to first radio', () => {
-    const ref = vi.fn();
-    render(<Radio ref={ref} label="Test" options={options} />);
-    expect(ref).toHaveBeenCalled();
+    expect(screen.getAllByRole('radio')[0]).toHaveAttribute('aria-invalid', 'true');
   });
 });

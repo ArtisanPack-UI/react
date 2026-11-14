@@ -13,6 +13,11 @@ export default defineConfig({
     ai: 'src/components/ai/index.ts',
   },
   format: ['esm'],
+  // The components use hooks and browser APIs, so every module is a client
+  // module for React Server Components (Next.js App Router). esbuild adds the
+  // banner after bundling, as the first line of each entry and chunk, and keeps
+  // the source maps in step.
+  banner: { js: "'use client';" },
   dts: true,
   clean: true,
   sourcemap: true,

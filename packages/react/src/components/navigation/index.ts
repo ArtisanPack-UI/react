@@ -2,8 +2,9 @@
  * @module navigation
  *
  * Navigation component exports for the ArtisanPack UI React library.
- * Includes menus, breadcrumbs, pagination, steps, navbar, sidebar,
- * and spotlight search components.
+ * Includes menus, breadcrumbs, pagination, steps, navbar and the Spotlight
+ * command palette, all rendering the design-system markup contract. Sidebar
+ * and SpotlightSearch are deprecated aliases of AppShell and Spotlight.
  */
 
 // Navigation components
@@ -56,7 +57,7 @@ export type {
   NavbarPart,
 } from './Navbar/Navbar';
 
-// Deprecated: replaced by AppShell (layout, #58).
+// Deprecated alias of AppShell (layout, #58).
 export { Sidebar } from './Sidebar/Sidebar';
 export type { SidebarProps } from './Sidebar/Sidebar';
 
@@ -68,7 +69,7 @@ export type {
   SpotlightResult,
 } from './Spotlight/Spotlight';
 
-// Deprecated: replaced by Spotlight (#57). SpotlightItem stays the deprecated
+// Deprecated alias of Spotlight (#57). SpotlightItem stays the deprecated
 // component's item; Spotlight's is SpotlightResult.
 export { SpotlightSearch } from './SpotlightSearch/SpotlightSearch';
 export type { SpotlightSearchProps, SpotlightItem } from './SpotlightSearch/SpotlightSearch';

@@ -1,20 +1,21 @@
 import { useState, type ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
+import { Button } from '../../form/Button/Button';
 import { SpotlightSearch } from './SpotlightSearch';
 import type { SpotlightItem } from './SpotlightSearch';
 
 const onSelectAction = fn();
 
 const meta: Meta<typeof SpotlightSearch> = {
-  title: 'Navigation/SpotlightSearch',
+  title: 'Navigation/SpotlightSearch (deprecated)',
   component: SpotlightSearch,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Command-palette search overlay activated by a keyboard shortcut. Supports grouped items, custom placeholder text, and item selection callbacks.',
+          'Deprecated alias of Spotlight: items map to groups by their group, emptyMessage to emptyLabel and shortcut to mod+k; filterFn and maxResults still apply.',
       },
     },
   },
@@ -47,9 +48,7 @@ function SpotlightStoryWrapper({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className="btn btn-primary" onClick={() => setOpen(true)}>
-        {buttonLabel}
-      </button>
+      <Button onClick={() => setOpen(true)}>{buttonLabel}</Button>
       <SpotlightSearch open={open} onClose={() => setOpen(false)} {...props} />
     </>
   );

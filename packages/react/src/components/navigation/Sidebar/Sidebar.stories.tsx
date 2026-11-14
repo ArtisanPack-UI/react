@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../form/Button/Button';
+import { Menu } from '../Menu/Menu';
 import { Sidebar } from './Sidebar';
 
 const meta: Meta<typeof Sidebar> = {
-  title: 'Navigation/Sidebar',
+  title: 'Navigation/Sidebar (deprecated)',
   component: Sidebar,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Collapsible sidebar panel for app navigation. Supports left/right positioning, overlay mode, custom width, and controlled open state.',
+          'Deprecated alias of AppShell: sidebarContent maps to sidebar, open to collapsed and a Tailwind width class to sidebarWidth; side and overlay are ignored.',
       },
     },
   },
@@ -34,90 +36,36 @@ const meta: Meta<typeof Sidebar> = {
 export default meta;
 type Story = StoryObj<typeof Sidebar>;
 
-const handleLinkClick = (e: React.MouseEvent) => e.preventDefault();
-
-const sampleMenuItems = (
-  <>
-    <li>
-      <a href="/home" onClick={handleLinkClick}>
-        Home
-      </a>
-    </li>
-    <li>
-      <a href="/dashboard" onClick={handleLinkClick}>
-        Dashboard
-      </a>
-    </li>
-    <li>
-      <a href="/settings" onClick={handleLinkClick}>
-        Settings
-      </a>
-    </li>
-    <li>
-      <a href="/profile" onClick={handleLinkClick}>
-        Profile
-      </a>
-    </li>
-  </>
+const sampleMenu = (
+  <Menu
+    label="Main"
+    items={[
+      { key: 'home', label: 'Home', href: '#home', current: true },
+      { key: 'dashboard', label: 'Dashboard', href: '#dashboard' },
+      { key: 'settings', label: 'Settings', href: '#settings' },
+      { key: 'profile', label: 'Profile', href: '#profile' },
+    ]}
+  />
 );
 
 export const Default: Story = {
   render: () => {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     return (
-      <Sidebar
-        open={open}
-        onOpenChange={setOpen}
-        sidebarContent={<ul className="menu">{sampleMenuItems}</ul>}
-      >
-        <div className="p-4">
-          <button className="btn btn-primary" onClick={() => setOpen(true)}>
-            Open Sidebar
-          </button>
-          <p className="mt-4">Main content area. The sidebar slides in from the left.</p>
-        </div>
+      <Sidebar open={open} onOpenChange={setOpen} sidebarContent={sampleMenu}>
+        <Button onClick={() => setOpen(!open)}>{open ? 'Collapse' : 'Expand'} sidebar</Button>
+        <p>Main content area. Sidebar renders an AppShell; open maps to its collapsed state.</p>
       </Sidebar>
     );
   },
 };
 
-export const RightSide: Story = {
+export const Width: Story = {
   render: () => {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     return (
-      <Sidebar
-        open={open}
-        onOpenChange={setOpen}
-        side="right"
-        sidebarContent={<ul className="menu">{sampleMenuItems}</ul>}
-      >
-        <div className="p-4">
-          <button className="btn btn-secondary" onClick={() => setOpen(true)}>
-            Open Right Sidebar
-          </button>
-          <p className="mt-4">The sidebar opens from the right side.</p>
-        </div>
-      </Sidebar>
-    );
-  },
-};
-
-export const Overlay: Story = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <Sidebar
-        open={open}
-        onOpenChange={setOpen}
-        overlay
-        sidebarContent={<ul className="menu">{sampleMenuItems}</ul>}
-      >
-        <div className="p-4">
-          <button className="btn btn-accent" onClick={() => setOpen(true)}>
-            Open Overlay Sidebar
-          </button>
-          <p className="mt-4">The sidebar overlays the content instead of pushing it.</p>
-        </div>
+      <Sidebar open={open} onOpenChange={setOpen} width="w-64" sidebarContent={sampleMenu}>
+        <p>The 1.x Tailwind width class w-64 becomes a 16rem sidebar.</p>
       </Sidebar>
     );
   },

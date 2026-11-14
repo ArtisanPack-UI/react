@@ -1,220 +1,117 @@
-/** @module Radio */
+/**
+ * @module Radio
+ *
+ * Deprecated alias of {@link RadioGroup}, kept for 1.x code. It maps the old
+ * props onto RadioGroup: `options` read through `optionValue`, `optionLabel`
+ * and `optionHint` → `{ value, label, description, disabled }` options,
+ * `inline` → `orientation="horizontal"`, `card` → `variant="cards"` and
+ * `cardClass` → `classes.item`. A native `onChange` still fires, from the
+ * chosen radio. `color` has no RadioGroup equivalent and is ignored.
+ *
+ * @deprecated Use `RadioGroup`.
+ * @packageDocumentation
+ */
 
-import { forwardRef, useId, type InputHTMLAttributes } from 'react';
-import { cn } from '@artisanpack-ui/tokens';
-import type { DaisyColor } from '@artisanpack-ui/tokens';
+import { forwardRef, type ChangeEventHandler, type FormEventHandler } from 'react';
+
+import { cx, devWarnOnce } from '../../../internal/parts';
+import { RadioGroup, type RadioGroupOption, type RadioGroupProps } from '../RadioGroup/RadioGroup';
 
 /**
- * Represents a single option in a {@link Radio} group.
+ * One option of a deprecated {@link Radio}: any object, read through the
+ * `optionValue`, `optionLabel` and `optionHint` keys.
  *
- * Options are generic key-value objects where the keys used for `value`, `label`,
- * and `hint` are configured via `optionValue`, `optionLabel`, and `optionHint` props
- * on the Radio component.
+ * @deprecated Use `RadioGroupOption`.
  */
 export interface RadioOption {
   /** Allows any additional properties for flexible option data. */
   [key: string]: unknown;
-  /** When true, this option is rendered in a disabled state and cannot be selected. */
+  /** Makes the option unselectable. */
   disabled?: boolean;
 }
 
 /**
- * Props for the {@link Radio} component.
+ * Props for the deprecated {@link Radio}.
  *
- * Extends native `<input>` HTML attributes (excluding `size` and `type`).
- * Renders a group of radio buttons from an `options` array with support for
- * card layout, horizontal/vertical orientation, and DaisyUI color variants.
+ * @deprecated Use `RadioGroupProps`.
  */
-export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
-  /** Group label rendered as a `<legend>` element for the radio group fieldset. */
-  label?: string;
-  /** Helper text displayed below the radio group. Hidden when `error` is present. */
-  hint?: string;
-  /** Error message displayed below the group. Replaces `hint` when present and adds `aria-invalid` to the fieldset. */
-  error?: string;
-  /** DaisyUI color variant applied to each radio input and card highlight. */
-  color?: DaisyColor;
-  /** Property key on each option object to use as the radio input `value`. @defaultValue `'id'` */
-  optionValue?: string;
-  /** Property key on each option object to use as the displayed label text. @defaultValue `'name'` */
-  optionLabel?: string;
-  /** Property key on each option object to use as optional hint text below the label. @defaultValue `'hint'` */
-  optionHint?: string;
-  /** Array of option objects to render as radio buttons. */
+export interface RadioProps extends Omit<RadioGroupProps, 'options'> {
+  /** The options, read through `optionValue`, `optionLabel` and `optionHint`. */
   options?: RadioOption[];
-  /** When true, displays the options horizontally in a row. Only applies when `card` is false. @defaultValue `false` */
+  /** The option key holding the value. @defaultValue `'id'` */
+  optionValue?: string;
+  /** The option key holding the label. @defaultValue `'name'` */
+  optionLabel?: string;
+  /** The option key holding the hint, shown as the option's description. @defaultValue `'hint'` */
+  optionHint?: string;
+  /** Lays the options in a row. Use RadioGroup's `orientation="horizontal"`. */
   inline?: boolean;
-  /** When true, renders each option inside a bordered card with checked-state highlighting. @defaultValue `false` */
+  /** Renders each option as a card. Use RadioGroup's `variant="cards"`. */
   card?: boolean;
-  /** Additional CSS classes applied to each card container when `card` is true. */
+  /** Extra classes on each card. Use RadioGroup's `classes={{ item }}`. */
   cardClass?: string;
+  /** Ignored: RadioGroup has no color prop. */
+  color?: string;
+  /** Fires with the chosen radio's change event. Use RadioGroup's `onValueChange`. */
+  onChange?: ChangeEventHandler<HTMLInputElement>;
 }
 
-const colorMap: Record<string, string> = {
-  primary: 'radio-primary',
-  secondary: 'radio-secondary',
-  accent: 'radio-accent',
-  success: 'radio-success',
-  warning: 'radio-warning',
-  error: 'radio-error',
-  info: 'radio-info',
-  neutral: 'radio-neutral',
-};
-
-const cardColorMap: Record<string, string> = {
-  primary: 'has-[:checked]:border-primary has-[:checked]:bg-primary/5',
-  secondary: 'has-[:checked]:border-secondary has-[:checked]:bg-secondary/5',
-  accent: 'has-[:checked]:border-accent has-[:checked]:bg-accent/5',
-  success: 'has-[:checked]:border-success has-[:checked]:bg-success/5',
-  warning: 'has-[:checked]:border-warning has-[:checked]:bg-warning/5',
-  error: 'has-[:checked]:border-error has-[:checked]:bg-error/5',
-  info: 'has-[:checked]:border-info has-[:checked]:bg-info/5',
-  neutral: 'has-[:checked]:border-neutral has-[:checked]:bg-neutral/5',
-};
+/** Reads a 1.x option through its key props into a RadioGroup option. */
+function toOption(
+  option: RadioOption,
+  valueKey: string,
+  labelKey: string,
+  hintKey: string,
+): RadioGroupOption {
+  const raw = option[valueKey];
+  const value = typeof raw === 'number' || typeof raw === 'string' ? raw : String(raw ?? '');
+  const hint = option[hintKey];
+  return {
+    value,
+    label: String(option[labelKey] ?? ''),
+    description: hint ? String(hint) : undefined,
+    disabled: option.disabled === true,
+  };
+}
 
 /**
- * A radio button group that renders options from an array with support for standard
- * and card layouts, horizontal/vertical orientation, per-option hints, and DaisyUI
- * color variants. Uses a `<fieldset>` with `role="radiogroup"` for accessibility.
- * The forwarded ref points to the first enabled radio input.
+ * Deprecated: renders a {@link RadioGroup}. The ref points at the fieldset.
  *
- * @example
- * ```tsx
- * const options = [
- *   { id: 'sm', name: 'Small' },
- *   { id: 'md', name: 'Medium' },
- *   { id: 'lg', name: 'Large' },
- * ];
- * <Radio label="Size" options={options} color="primary" />
- * ```
- *
- * @example
- * ```tsx
- * <Radio label="Plan" options={plans} card optionValue="slug" optionLabel="title" optionHint="description" />
- * ```
+ * @deprecated Use `RadioGroup`.
  */
-export const Radio = forwardRef<HTMLInputElement, RadioProps>(
+export const Radio = forwardRef<HTMLFieldSetElement, RadioProps>(
   (
     {
-      label,
-      hint,
-      error,
-      color,
+      options = [],
       optionValue = 'id',
       optionLabel = 'name',
       optionHint = 'hint',
-      options = [],
       inline = false,
       card = false,
       cardClass,
-      className,
-      name: providedName,
-      id: providedId,
-      required,
+      color: _color,
+      onChange,
+      orientation,
+      variant,
+      classes,
       ...rest
     },
     ref,
   ) => {
-    const autoId = useId();
-    const id = providedId ?? autoId;
-    const groupName = providedName ?? id;
-    const errorId = error ? `${id}-error` : undefined;
-    const hintId = hint && !error ? `${id}-hint` : undefined;
-    const firstEnabledIndex = options.findIndex((opt) => !opt.disabled);
-
+    devWarnOnce('Radio', 'Radio is deprecated; use RadioGroup.');
     return (
-      <fieldset
-        className="fieldset"
-        role="radiogroup"
-        aria-labelledby={label ? `${id}-legend` : undefined}
-        aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
-        aria-invalid={error ? true : undefined}
-      >
-        {label && (
-          <legend id={`${id}-legend`} className="fieldset-legend">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </legend>
-        )}
-        <div className={cn(card ? 'grid gap-2' : 'flex gap-3', !card && !inline && 'flex-col')}>
-          {options.map((option, index) => {
-            const value = String(option[optionValue] ?? '');
-            const optLabel = String(option[optionLabel] ?? '');
-            const optHint = option[optionHint] ? String(option[optionHint]) : undefined;
-            const optionId = `${id}-${value || index}`;
-            const isDisabled = option.disabled === true;
-
-            if (card) {
-              return (
-                <label
-                  key={value || index}
-                  htmlFor={optionId}
-                  className={cn(
-                    'flex items-center gap-3 p-4 border rounded-lg cursor-pointer',
-                    'hover:bg-base-200 transition-colors',
-                    color && cardColorMap[color] ? cardColorMap[color] : cardColorMap.primary,
-                    isDisabled && 'opacity-50 cursor-not-allowed',
-                    cardClass,
-                  )}
-                >
-                  <input
-                    ref={index === firstEnabledIndex ? ref : undefined}
-                    id={optionId}
-                    type="radio"
-                    name={groupName}
-                    value={value}
-                    disabled={isDisabled}
-                    required={required && index === firstEnabledIndex}
-                    className={cn('radio', color && colorMap[color], className)}
-                    {...rest}
-                  />
-                  <div>
-                    <span>{optLabel}</span>
-                    {optHint && <p className="text-xs opacity-60">{optHint}</p>}
-                  </div>
-                </label>
-              );
-            }
-
-            return (
-              <label
-                key={value || index}
-                htmlFor={optionId}
-                className={cn(
-                  'flex items-center gap-2 cursor-pointer',
-                  isDisabled && 'opacity-50 cursor-not-allowed',
-                )}
-              >
-                <input
-                  ref={index === firstEnabledIndex ? ref : undefined}
-                  id={optionId}
-                  type="radio"
-                  name={groupName}
-                  value={value}
-                  disabled={isDisabled}
-                  required={required && index === firstEnabledIndex}
-                  className={cn('radio', color && colorMap[color], className)}
-                  {...rest}
-                />
-                <div>
-                  <span>{optLabel}</span>
-                  {optHint && <p className="text-xs opacity-60">{optHint}</p>}
-                </div>
-              </label>
-            );
-          })}
-        </div>
-        {hint && !error && (
-          <p id={hintId} className="fieldset-label">
-            {hint}
-          </p>
-        )}
-        {error && (
-          <p id={errorId} className="fieldset-label text-error" role="alert">
-            {error}
-          </p>
-        )}
-      </fieldset>
+      <RadioGroup
+        {...rest}
+        ref={ref}
+        options={options.map((option) => toOption(option, optionValue, optionLabel, optionHint))}
+        orientation={inline ? 'horizontal' : orientation}
+        variant={card ? 'cards' : variant}
+        classes={cardClass ? { ...classes, item: cx(classes?.item, cardClass) } : classes}
+        // The radios' change event bubbles to the fieldset.
+        {...(onChange
+          ? { onChange: onChange as unknown as FormEventHandler<HTMLFieldSetElement> }
+          : {})}
+      />
     );
   },
 );

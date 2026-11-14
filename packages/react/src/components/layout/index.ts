@@ -5,9 +5,9 @@
  * and organizing UI elements. Includes containers (Card, Grid, Stack),
  * interactive panels (Accordion, Collapse, Dialog, Drawer, Tabs), floating
  * surfaces (DropdownMenu, Popover), and visual separators (Divider).
- * Card, Dialog and DropdownMenu render the design-system markup contract
- * (styled by `@artisanpack-ui/css`); Modal and Dropdown are deprecated in
- * favor of Dialog and DropdownMenu.
+ * Every component renders the design-system markup contract (styled by
+ * `@artisanpack-ui/css`). Modal and Dropdown are deprecated aliases of
+ * Dialog and DropdownMenu.
  *
  * @packageDocumentation
  */

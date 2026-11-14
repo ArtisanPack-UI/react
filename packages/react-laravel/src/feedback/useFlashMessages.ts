@@ -1,48 +1,81 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { useToast, type ToastAPI } from '@artisanpack-ui/react/feedback';
+import { toast, type ToasterInstance } from '@artisanpack-ui/react/feedback';
 import type { FlashMessages, SharedPageProps } from '../types';
 
+/** The flash keys shown as toasts, in order, each with the toast color of the same name. */
+export const FLASH_TYPES = ['success', 'error', 'warning', 'info'] as const;
+
+/** A flash key shown as a toast. */
+export type FlashType = (typeof FLASH_TYPES)[number];
+
+/** Options for {@link useFlashMessages}. */
+export interface UseFlashMessagesOptions {
+  /**
+   * The toaster to create the toasts in, from `createToaster()`. Render it
+   * with a `Toaster`. @defaultValue the default `toast`
+   */
+  toaster?: ToasterInstance;
+  /**
+   * Milliseconds before each toast dismisses itself; 0 keeps them.
+   * @defaultValue the toaster's duration
+   */
+  duration?: number;
+}
+
+/*
+ * The messages already shown, per Inertia page. Each visit gives a new page
+ * object, so the same message after another visit shows again; within one
+ * visit it shows once, however often the effect runs: a re-render with a new
+ * `flash` object carrying the same messages, Strict Mode's second effect run,
+ * or a remount. Module-level, so a remount doesn't forget; weak, so pages
+ * left behind are collected.
+ */
+const shownByPage = new WeakMap<object, Set<string>>();
+
 /**
- * Hook that automatically displays Inertia flash messages as toasts.
- * Must be used within a `<ToastProvider>` from `@artisanpack-ui/react`.
+ * Shows Laravel's flash messages as design-system toasts, once per visit.
  *
- * Reads from `page.props.flash` and triggers toasts for `success`, `error`,
- * `warning`, and `info` keys.
+ * Reads `success`, `error`, `warning` and `info` from `page.props.flash`
+ * (share them from `HandleInertiaRequests` as `flash`) and creates a toast
+ * for each with `toast.create({ title, color })`, in the toaster a
+ * `Toaster` on the page renders. {@link InertiaToastProvider} does both.
  *
  * @example
  * ```tsx
- * function App({ children }) {
- *   return (
- *     <ToastProvider>
- *       <FlashListener />
- *       {children}
- *     </ToastProvider>
- *   );
- * }
+ * import { Toaster } from '@artisanpack-ui/react';
  *
- * function FlashListener() {
+ * function FlashToasts() {
  *   useFlashMessages();
- *   return null;
+ *   return <Toaster />;
  * }
  * ```
  */
-export function useFlashMessages(): void {
+export function useFlashMessages({
+  toaster = toast,
+  duration,
+}: UseFlashMessagesOptions = {}): void {
   const page = usePage<SharedPageProps>();
-  const flash: FlashMessages = useMemo(() => page.props.flash ?? {}, [page.props.flash]);
-  const toast: ToastAPI = useToast();
-  const shownRef = useRef<string | null>(null);
-
-  // Use the page URL + flash content as a dedup key so we only show each flash once
-  const flashKey = JSON.stringify(flash) + page.url;
+  const flash: FlashMessages | undefined = page.props.flash;
 
   useEffect(() => {
-    if (shownRef.current === flashKey) return;
-    shownRef.current = flashKey;
-
-    if (flash.success) toast.success(flash.success);
-    if (flash.error) toast.error(flash.error);
-    if (flash.warning) toast.warning(flash.warning);
-    if (flash.info) toast.info(flash.info);
-  }, [flashKey, flash, toast]);
+    if (!flash) return;
+    let shown = shownByPage.get(page);
+    if (!shown) {
+      shown = new Set();
+      shownByPage.set(page, shown);
+    }
+    for (const type of FLASH_TYPES) {
+      const message = flash[type];
+      if (typeof message !== 'string' || message === '') continue;
+      const key = `${type}:${message}`;
+      if (shown.has(key)) continue;
+      shown.add(key);
+      toaster.create(
+        duration === undefined
+          ? { title: message, color: type }
+          : { title: message, color: type, duration },
+      );
+    }
+  }, [page, flash, toaster, duration]);
 }

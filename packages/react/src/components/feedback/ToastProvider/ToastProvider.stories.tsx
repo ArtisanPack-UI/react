@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../../form/Button/Button';
+import { Stack } from '../../layout/Stack/Stack';
 import { ToastProvider, useToast } from './ToastProvider';
 
 const meta: Meta<typeof ToastProvider> = {
@@ -9,7 +11,7 @@ const meta: Meta<typeof ToastProvider> = {
     docs: {
       description: {
         component:
-          'Ephemeral notification system with success, error, warning, and info variants. Wrap your app in ToastProvider and call useToast() to trigger toasts from anywhere.',
+          'Deprecated: renders a Toaster for the default toast, and useToast() calls toast.create(). Render one Toaster and call toast.create() instead.',
       },
     },
   },
@@ -21,29 +23,20 @@ type Story = StoryObj<typeof ToastProvider>;
 function ToastDemo() {
   const toast = useToast();
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        className="btn btn-success btn-sm"
-        onClick={() => toast.success('Operation completed!')}
-      >
+    <Stack orientation="horizontal" gap="2" wrap>
+      <Button size="sm" color="success" onClick={() => toast.success('Operation completed!')}>
         Success
-      </button>
-      <button className="btn btn-error btn-sm" onClick={() => toast.error('Something went wrong!')}>
+      </Button>
+      <Button size="sm" color="error" onClick={() => toast.error('Something went wrong!')}>
         Error
-      </button>
-      <button
-        className="btn btn-warning btn-sm"
-        onClick={() => toast.warning('Please check your input.')}
-      >
+      </Button>
+      <Button size="sm" color="warning" onClick={() => toast.warning('Please check your input.')}>
         Warning
-      </button>
-      <button
-        className="btn btn-info btn-sm"
-        onClick={() => toast.info('Here is some information.')}
-      >
+      </Button>
+      <Button size="sm" color="info" onClick={() => toast.info('Here is some information.')}>
         Info
-      </button>
-    </div>
+      </Button>
+    </Stack>
   );
 }
 

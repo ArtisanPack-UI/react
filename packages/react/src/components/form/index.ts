@@ -2,9 +2,9 @@
  * @module form
  *
  * Form components for the ArtisanPack UI React component library.
- * Button, Input, Select, Checkbox, Textarea, Password, Pin, Range, Toggle,
- * Fieldset, Form and ValidationSummary render the design-system markup contract
- * (styled by `@artisanpack-ui/css`); the other controls are still built on DaisyUI.
+ * Every component renders the design-system markup contract (styled by
+ * `@artisanpack-ui/css`). Radio and Editor are deprecated aliases of
+ * RadioGroup and CodeEditor.
  *
  * @example
  * ```tsx
