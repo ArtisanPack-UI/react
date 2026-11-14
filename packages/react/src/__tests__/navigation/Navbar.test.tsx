@@ -98,9 +98,7 @@ describe('Navbar', () => {
   it('renders a javascript: href as a plain non-link, from data and children', () => {
     const onClick = vi.fn();
     const { container } = render(
-      // eslint-disable-next-line no-script-url
       <Navbar links={[{ label: 'A', href: 'javascript:alert(1)' }]}>
-        {/* eslint-disable-next-line no-script-url */}
         <NavbarItem href="javascript:alert(2)" onClick={onClick}>
           B
         </NavbarItem>

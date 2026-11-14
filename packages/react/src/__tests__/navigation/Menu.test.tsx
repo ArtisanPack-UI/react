@@ -204,7 +204,6 @@ describe('Menu', () => {
     const onClick = vi.fn();
     const { container } = render(
       <Menu>
-        {/* eslint-disable-next-line no-script-url */}
         <MenuItem href="javascript:alert(1)" onClick={onClick}>
           Bad
         </MenuItem>
@@ -223,7 +222,6 @@ describe('Menu', () => {
       <a href={props.href}>{props.children}</a>
     ));
     const html = renderToStaticMarkup(
-      // eslint-disable-next-line no-script-url
       <Menu items={[{ label: 'Bad', href: 'javascript:alert(1)', renderLink }]} />,
     );
     expect(html).not.toContain('javascript:');
