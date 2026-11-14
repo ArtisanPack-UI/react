@@ -54,14 +54,13 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@artisanpack-ui/behavior": "file:../../../design-system/packages/behavior",
-    "@artisanpack-ui/tokens": "^1.0.1",
+    "@artisanpack-ui/behavior": "^1.0.0",
     "@zag-js/react": "~1.47.0"
   },
   "devDependencies": {
-    "@artisanpack-ui/css": "file:../../../design-system/packages/css",
-    "@artisanpack-ui/manifest": "file:../../../design-system/packages/manifest",
-    "@artisanpack-ui/testing": "file:../../../design-system/packages/testing",
+    "@artisanpack-ui/css": "^1.0.0",
+    "@artisanpack-ui/manifest": "^1.0.0",
+    "@artisanpack-ui/testing": "^1.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",

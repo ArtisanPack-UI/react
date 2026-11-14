@@ -18,6 +18,6 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ['react', 'react-dom', '@inertiajs/react', '@artisanpack-ui/react', '@artisanpack-ui/tokens'],
+  external: ['react', 'react-dom', '@inertiajs/react', '@artisanpack-ui/react'],
   outExtension: () => ({ js: '.mjs' }),
 });
