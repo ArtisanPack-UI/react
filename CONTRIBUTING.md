@@ -15,11 +15,10 @@ Thank you for your interest in contributing! This guide covers the local develop
 ```bash
 git clone https://github.com/ArtisanPack-UI/react.git
 cd react
-scripts/checkout-design-system.sh --build
 npm ci
 ```
 
-The design-system packages (`@artisanpack-ui/behavior`, `@artisanpack-ui/css` and the test kit) are linked from a sibling checkout at `../design-system`; the script clones and builds it, as CI does.
+The design-system packages (`@artisanpack-ui/behavior`, `@artisanpack-ui/css` and the test kit) install from npm. To try unreleased design-system changes, build a local design-system checkout and `npm link` its packages.
 
 ### 2. Build all packages
 

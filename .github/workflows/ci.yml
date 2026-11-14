@@ -24,9 +24,6 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Check out the design system
-        run: scripts/checkout-design-system.sh --build
-
       - name: Install dependencies
         run: npm ci
 
@@ -49,9 +46,6 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Check out the design system
-        run: scripts/checkout-design-system.sh --build
-
       - name: Install dependencies
         run: npm ci
 
@@ -70,9 +64,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-
-      - name: Check out the design system
-        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -96,9 +87,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-
-      - name: Check out the design system
-        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci
@@ -127,10 +115,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-
-      - name: Check out the design system
-        if: env.CHROMATIC_PROJECT_TOKEN != ''
-        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         if: env.CHROMATIC_PROJECT_TOKEN != ''
@@ -165,9 +149,6 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
-
-      - name: Check out the design system
-        run: scripts/checkout-design-system.sh --build
 
       - name: Install dependencies
         run: npm ci

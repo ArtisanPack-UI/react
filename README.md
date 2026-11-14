@@ -51,12 +51,11 @@ React 18 and 19 are supported. The packages ship ES modules marked `'use client'
 
 ## Development
 
-The design-system packages are linked from a sibling checkout at `../design-system`:
+The design-system packages (`@artisanpack-ui/behavior`, `@artisanpack-ui/css` and the test kit) install from npm:
 
 ```bash
 git clone https://github.com/ArtisanPack-UI/react.git
 cd react
-scripts/checkout-design-system.sh --build
 npm ci
 npm run build
 npm test
