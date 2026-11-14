@@ -13,6 +13,7 @@
 export { InertiaLink, InertiaMenu, InertiaBreadcrumbs, InertiaPagination } from './navigation';
 export type {
   InertiaLinkProps,
+  InertiaLinkColor,
   InertiaMenuProps,
   InertiaMenuItemType,
   InertiaBreadcrumbsProps,
