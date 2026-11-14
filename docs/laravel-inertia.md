@@ -113,6 +113,8 @@ export default function CreateUser() {
 
 `useInertiaForm('key', data)` takes a remember key first, like `useForm`.
 
+`field()` stores `event.target.value` as it is, so a numeric field (a `Select` of ids, a number `Input`) ends up holding a string even when your form type says `number`. For those fields, bind `onValueChange` and convert the value yourself, as in the DatePicker example below, or convert on submit.
+
 The `error` from a helper is Laravel's validation message for that field, so it shows under the field after a failed submit. `ValidationSummary` takes the same `form.errors` map and links each message to the field with that `name`.
 
 For components without a native `onChange` to bind, such as Combobox, DatePicker or Range, set the value yourself:
@@ -149,32 +151,51 @@ For an application frame with a sidebar and a top bar, use [AppShell](https://do
 `useAuth()` reads `auth.user` from Inertia's shared props and returns `{ user, isAuthenticated, auth }`. `AuthGuard` renders its children only for a signed-in user, or only for a guest with `guest`, and `fallback` otherwise.
 
 ```tsx
+function AccountMenu() {
+  const { user } = useAuth();
+
+  if (!user) return null;
+
+  return <UserMenu user={{ name: user.name, email: user.email }} />;
+}
+
 <AuthGuard fallback={<InertiaLink href="/login">Log in</InertiaLink>}>
-  <UserMenu user={{ name: user.name, email: user.email }} />
-</AuthGuard>
+  <AccountMenu />
+</AuthGuard>;
 ```
+
+Read the user inside a child component, as above. `useAuth()` returns a `null` user for a guest, and the parent builds `AuthGuard`'s children before the guard decides what to render, so `user.name` in the parent would throw for guests.
 
 Share the user from Laravel's `HandleInertiaRequests` middleware as `auth.user`.
 
 ## Flash messages
 
-`InertiaToastProvider` (and the `useFlashMessages` hook under it) shows Laravel's `success`, `error`, `warning` and `info` flash messages as toasts, once per visit. Both are built on the deprecated 1.x `ToastProvider`, whose toasts use DaisyUI class names that `@artisanpack-ui/css` doesn't style.
+`InertiaToastProvider` (and the `useFlashMessages` hook under it) shows Laravel's `success`, `error`, `warning` and `info` flash messages as toasts, once per visit. Both are built on the deprecated 1.x `ToastProvider`, whose toasts use DaisyUI class names that `@artisanpack-ui/css` doesn't style. They're being rebuilt on the design system's Toaster for 2.0.
 
-With the design system's [Toast](https://docs.artisanpackui.dev/documentation/design-system/components/toast), a small component in your layout does the same:
+Until then, with the design system's [Toast](https://docs.artisanpackui.dev/documentation/design-system/components/toast), a small component in your layout does the same:
 
 ```tsx
 import { usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Toaster, toast } from '@artisanpack-ui/react';
-import type { SharedPageProps } from '@artisanpack-ui/react-laravel';
+import type { FlashMessages, SharedPageProps } from '@artisanpack-ui/react-laravel';
+
+const TYPES = ['success', 'error', 'warning', 'info'] as const;
 
 export function FlashToasts() {
-  const { props } = usePage<SharedPageProps>();
-  const flash = props.flash;
+  const flash = usePage<SharedPageProps>().props.flash;
+  const shown = useRef<FlashMessages | undefined>(undefined);
 
   useEffect(() => {
-    if (flash?.success) toast.create({ title: flash.success, color: 'success' });
-    if (flash?.error) toast.create({ title: flash.error, color: 'error' });
+    // Each visit brings a new flash object. Remembering the last one we showed means
+    // a re-render, or Strict Mode running the effect twice, doesn't toast it again.
+    if (!flash || shown.current === flash) return;
+    shown.current = flash;
+
+    for (const type of TYPES) {
+      const message = flash[type];
+      if (message) toast.create({ title: message, color: type });
+    }
   }, [flash]);
 
   return <Toaster />;
