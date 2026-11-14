@@ -1,5 +1,14 @@
 # @artisanpack-ui/react-laravel
 
+## 1.0.2
+
+### Patch Changes
+
+- [#61](https://github.com/ArtisanPack-UI/react/pull/61) [`457db5a`](https://github.com/ArtisanPack-UI/react/commit/457db5a4476463546e28445c1624abb61112f531) Thanks [@ViewFromTheBox](https://github.com/ViewFromTheBox)! - Depend on `@artisanpack-ui/tokens` `^1.0.1` instead of `*`. The tokens package moved to the design-system repo, and its next release is a breaking 2.0.0, so this keeps installs on 1.x.
+
+- Updated dependencies [[`457db5a`](https://github.com/ArtisanPack-UI/react/commit/457db5a4476463546e28445c1624abb61112f531)]:
+  - @artisanpack-ui/react@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

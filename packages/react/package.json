@@ -1,6 +1,6 @@
 {
   "name": "@artisanpack-ui/react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "React components for the ArtisanPack UI design system, styled by @artisanpack-ui/css",
   "type": "module",
   "sideEffects": false,
