@@ -15,8 +15,11 @@ Thank you for your interest in contributing! This guide covers the local develop
 ```bash
 git clone https://github.com/ArtisanPack-UI/react.git
 cd react
-npm install
+scripts/checkout-design-system.sh --build
+npm ci
 ```
+
+The design-system packages (`@artisanpack-ui/behavior`, `@artisanpack-ui/css` and the test kit) are linked from a sibling checkout at `../design-system`; the script clones and builds it, as CI does.
 
 ### 2. Build all packages
 
@@ -24,7 +27,7 @@ npm install
 npm run build
 ```
 
-This builds `react` → `react-laravel` in workspace order. `@artisanpack-ui/tokens` comes from npm; its source lives in [ArtisanPack-UI/design-system](https://github.com/ArtisanPack-UI/design-system/tree/main/packages/tokens).
+This builds `react` → `react-laravel` in workspace order.
 
 ### 3. Start Storybook
 
@@ -32,7 +35,7 @@ This builds `react` → `react-laravel` in workspace order. `@artisanpack-ui/tok
 npm run storybook
 ```
 
-Opens at [http://localhost:6006](http://localhost:6006) with all component stories and a DaisyUI theme switcher.
+Opens at [http://localhost:6006](http://localhost:6006) with all component stories and a design-system theme switcher (light, dark, high contrast).
 
 ### 4. Run tests
 
@@ -84,8 +87,8 @@ npm run lint
 - One component per file
 - Props interface named `{ComponentName}Props`
 - Export both the component and its props type from the component file
-- Use `cn()` from `@artisanpack-ui/tokens` for conditional class names
-- Style with DaisyUI classes and Tailwind utilities
+- Render the design-system markup contract (the `.apui-*` root class and `data-scope`/`data-part` attributes), styled by `@artisanpack-ui/css`; join classes with `cx()` from `internal/parts`
+- Don't use DaisyUI or Tailwind classes in components
 
 ### File Naming
 

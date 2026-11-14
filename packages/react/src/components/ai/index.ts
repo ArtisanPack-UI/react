@@ -16,14 +16,14 @@
  * ```
  */
 
-export { SettingsPage } from './SettingsPage/SettingsPage';
-export type { SettingsPageProps } from './SettingsPage/SettingsPage';
+export { SettingsPage, SETTINGS_PAGE_LABELS } from './SettingsPage/SettingsPage';
+export type { SettingsPageProps, SettingsPageLabels } from './SettingsPage/SettingsPage';
 
-export { UsageDashboard } from './UsageDashboard/UsageDashboard';
-export type { UsageDashboardProps } from './UsageDashboard/UsageDashboard';
+export { UsageDashboard, USAGE_DASHBOARD_LABELS } from './UsageDashboard/UsageDashboard';
+export type { UsageDashboardProps, UsageDashboardLabels } from './UsageDashboard/UsageDashboard';
 
-export { FeatureToggles } from './FeatureToggles/FeatureToggles';
-export type { FeatureTogglesProps } from './FeatureToggles/FeatureToggles';
+export { FeatureToggles, FEATURE_TOGGLES_LABELS } from './FeatureToggles/FeatureToggles';
+export type { FeatureTogglesProps, FeatureTogglesLabels } from './FeatureToggles/FeatureToggles';
 
 export { createAiApiClient, AiApiError } from './createAiApiClient';
 export type { CreateAiApiClientOptions } from './createAiApiClient';

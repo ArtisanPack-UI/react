@@ -13,6 +13,7 @@
 export { InertiaLink, InertiaMenu, InertiaBreadcrumbs, InertiaPagination } from './navigation';
 export type {
   InertiaLinkProps,
+  InertiaLinkColor,
   InertiaMenuProps,
   InertiaMenuItemType,
   InertiaBreadcrumbsProps,
@@ -37,8 +38,8 @@ export { useAuth, AuthGuard } from './auth';
 export type { UseAuthReturn, AuthGuardProps } from './auth';
 
 // Feedback
-export { InertiaToastProvider, useFlashMessages } from './feedback';
-export type { InertiaToastProviderProps } from './feedback';
+export { InertiaToastProvider, useFlashMessages, FLASH_TYPES } from './feedback';
+export type { InertiaToastProviderProps, UseFlashMessagesOptions, FlashType } from './feedback';
 
 // Types
 export type {

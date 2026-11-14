@@ -24,6 +24,77 @@ import type {
 import { AiApiError } from '../createAiApiClient';
 import { errorMessage } from '../errorMessage';
 
+/** The text a {@link SettingsPage} shows. Translate it through `labels`. */
+export interface SettingsPageLabels {
+  /** While the settings load. */
+  loading: string;
+  /** The alert's title when the settings can't be loaded. */
+  loadFailed: string;
+  /** The button that loads the settings again. */
+  retry: string;
+  /** When a request fails without a message. */
+  error: string;
+  /** The submit button. */
+  save: string;
+  /** The alert after a successful save. */
+  saved: string;
+  /** The credentials fieldset's title. */
+  credentials: string;
+  /** The provider select's label. */
+  provider: string;
+  /** The API key field's label. */
+  apiKey: string;
+  /** The API key field's hint while a key is stored. */
+  apiKeyStored: string;
+  /** The base URL field's label. */
+  baseUrl: string;
+  /** The base URL field's hint for Ollama. */
+  baseUrlRequired: string;
+  /** The base URL field's hint for the other providers. */
+  baseUrlOptional: string;
+  /** The default model field's label. */
+  defaultModel: string;
+  /** The test connection button. */
+  testConnection: string;
+  /** A successful test without a message from the server. */
+  testOk: string;
+  /** A failed test without a message from the server. */
+  testFailed: string;
+  /** The overrides fieldset's title. */
+  overrides: string;
+  /** An override's model field's label. */
+  model: string;
+  /** An override's model field's placeholder. */
+  modelPlaceholder: string;
+  /** An override's instructions field's label. */
+  instructions: string;
+}
+
+/** The English defaults for {@link SettingsPageLabels}. */
+export const SETTINGS_PAGE_LABELS: SettingsPageLabels = {
+  loading: 'Loading AI settings…',
+  loadFailed: "The AI settings couldn't be loaded.",
+  retry: 'Retry',
+  error: 'Something went wrong.',
+  save: 'Save settings',
+  saved: 'Settings saved.',
+  credentials: 'Credentials',
+  provider: 'Provider',
+  apiKey: 'API key',
+  apiKeyStored: 'Leave blank to keep the stored key.',
+  baseUrl: 'Base URL',
+  baseUrlRequired: 'Required for Ollama.',
+  baseUrlOptional: 'Optional.',
+  defaultModel: 'Default model',
+  testConnection: 'Test connection',
+  testOk: 'OK',
+  testFailed: 'Failed',
+  overrides: 'Per-feature overrides',
+  model: 'Model',
+  modelPlaceholder: 'inherit default',
+  instructions: 'Instructions',
+};
+
 /**
  * Props for {@link SettingsPage}.
  */
@@ -34,9 +105,20 @@ export interface SettingsPageProps {
   providers?: string[];
   /** Optional heading rendered above the form. */
   heading?: string;
+  /** The form's text, for translation; missing keys keep their English defaults. */
+  labels?: Partial<SettingsPageLabels>;
 }
 
 type FormErrors = Record<string, string[]>;
+
+/**
+ * The alert above the form. A failure keeps its reason, so its message is
+ * formatted with the current labels.
+ */
+type Status =
+  | { variant: 'success' }
+  | { variant: 'error'; message: string }
+  | { variant: 'error'; reason: unknown };
 
 /** Joins a field's validation messages into the single string the field components take. */
 function fieldError(errors: FormErrors, field: string): string | undefined {
@@ -102,16 +184,17 @@ export function SettingsPage({
   client,
   providers = ['openai', 'anthropic', 'ollama'],
   heading,
+  labels,
 }: SettingsPageProps) {
+  const text = { ...SETTINGS_PAGE_LABELS, ...labels };
   const [initial, setInitial] = useState<AiSettingsResponse | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadFailure, setLoadFailure] = useState<{ reason: unknown } | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [status, setStatus] = useState<string | null>(null);
-  const [statusVariant, setStatusVariant] = useState<'success' | 'error'>('success');
+  const [status, setStatus] = useState<Status | null>(null);
   const [testResult, setTestResult] = useState<AiConnectionTestResult | null>(null);
   // Bumped on every load, so a slower earlier load can't overwrite a newer one.
   const loadSeqRef = useRef(0);
@@ -130,7 +213,7 @@ export function SettingsPage({
     const seq = ++loadSeqRef.current;
     invalidateTest();
     setLoading(true);
-    setLoadError(null);
+    setLoadFailure(null);
     setInitial(null);
     try {
       const response = await client.getSettings();
@@ -140,7 +223,7 @@ export function SettingsPage({
       setForm(toFormState(response));
     } catch (err) {
       if (seq !== loadSeqRef.current) return;
-      setLoadError(errorMessage(err));
+      setLoadFailure({ reason: err });
     } finally {
       if (seq === loadSeqRef.current) setLoading(false);
     }
@@ -197,16 +280,14 @@ export function SettingsPage({
         invalidateTest();
         setInitial(response);
         setForm(toFormState(response));
-        setStatus('Settings saved.');
-        setStatusVariant('success');
+        setStatus({ variant: 'success' });
       } catch (err) {
-        setStatusVariant('error');
         if (err instanceof AiApiError && err.status === 422) {
           const body = err.body as { errors?: FormErrors; message?: string };
           setErrors(body?.errors ?? {});
-          setStatus(body?.message ?? err.message);
+          setStatus({ variant: 'error', message: body?.message ?? err.message });
         } else {
-          setStatus(errorMessage(err));
+          setStatus({ variant: 'error', reason: err });
         }
       } finally {
         setSaving(false);
@@ -227,7 +308,8 @@ export function SettingsPage({
         const body = err.body as AiConnectionTestResult | null;
         result = body ?? { result: 'error', message: err.message };
       } else {
-        result = { result: 'error', message: errorMessage(err) };
+        // Without a message, the result shows the testFailed label.
+        result = { result: 'error', message: errorMessage(err, '') || undefined };
       }
     }
     if (seq !== testSeqRef.current) return;
@@ -236,18 +318,18 @@ export function SettingsPage({
   }, [client, form]);
 
   if (loading) {
-    return <Loading size="sm">Loading AI settings…</Loading>;
+    return <Loading size="sm">{text.loading}</Loading>;
   }
 
-  if (loadError !== null || initial === null) {
+  if (loadFailure !== null || initial === null) {
     return (
       <Alert
         color="error"
-        title="The AI settings couldn't be loaded."
-        description={loadError ?? undefined}
+        title={text.loadFailed}
+        description={loadFailure ? errorMessage(loadFailure.reason, text.error) : undefined}
         actions={
           <Button variant="outline" color="neutral" size="sm" onClick={loadSettings}>
-            Retry
+            {text.retry}
           </Button>
         }
       />
@@ -261,19 +343,28 @@ export function SettingsPage({
       noValidate
       actions={
         <Button type="submit" color="primary" loading={saving}>
-          Save settings
+          {text.save}
         </Button>
       }
     >
       {heading ? <Heading level={2}>{heading}</Heading> : null}
 
       {status ? (
-        <Alert color={statusVariant === 'error' ? 'error' : 'success'} description={status} />
+        <Alert
+          color={status.variant}
+          description={
+            status.variant === 'success'
+              ? text.saved
+              : 'message' in status
+                ? status.message
+                : errorMessage(status.reason, text.error)
+          }
+        />
       ) : null}
 
-      <Fieldset title="Credentials" disabled={saving}>
+      <Fieldset title={text.credentials} disabled={saving}>
         <Select
-          label="Provider"
+          label={text.provider}
           options={providers}
           value={form.provider}
           onValueChange={(provider) => handleProviderChange(String(provider))}
@@ -282,8 +373,8 @@ export function SettingsPage({
 
         {!isOllama ? (
           <Password
-            label="API key"
-            hint={apiKeyPresent ? 'Leave blank to keep the stored key.' : undefined}
+            label={text.apiKey}
+            hint={apiKeyPresent ? text.apiKeyStored : undefined}
             autocomplete="new-password"
             value={form.api_key}
             onValueChange={(api_key) => updateCredentials({ api_key })}
@@ -294,8 +385,8 @@ export function SettingsPage({
 
         <Input
           type="url"
-          label="Base URL"
-          hint={isOllama ? 'Required for Ollama.' : 'Optional.'}
+          label={text.baseUrl}
+          hint={isOllama ? text.baseUrlRequired : text.baseUrlOptional}
           required={isOllama}
           value={form.base_url}
           onValueChange={(base_url) => updateCredentials({ base_url })}
@@ -304,7 +395,7 @@ export function SettingsPage({
         />
 
         <Input
-          label="Default model"
+          label={text.defaultModel}
           value={form.default_model}
           onValueChange={(default_model) => updateCredentials({ default_model })}
           placeholder="gpt-4o-mini"
@@ -319,7 +410,7 @@ export function SettingsPage({
             onClick={handleTest}
             loading={testing}
           >
-            Test connection
+            {text.testConnection}
           </Button>
           {testResult ? (
             <Text
@@ -328,14 +419,14 @@ export function SettingsPage({
               role="status"
               tone={testResult.result === 'ok' ? 'success' : 'error'}
             >
-              {testResult.message ?? (testResult.result === 'ok' ? 'OK' : 'Failed')}
+              {testResult.message ?? (testResult.result === 'ok' ? text.testOk : text.testFailed)}
             </Text>
           ) : null}
         </Stack>
       </Fieldset>
 
       {form.overrides.length > 0 ? (
-        <Fieldset title="Per-feature overrides" disabled={saving}>
+        <Fieldset title={text.overrides} disabled={saving}>
           {form.overrides.map((override) => (
             <Card
               key={override.feature_key}
@@ -344,15 +435,15 @@ export function SettingsPage({
               <Stack gap="3">
                 <Input
                   size="sm"
-                  label="Model"
+                  label={text.model}
                   value={override.model ?? ''}
                   onValueChange={(model) =>
                     updateOverride(override.feature_key, { model: model === '' ? null : model })
                   }
-                  placeholder="inherit default"
+                  placeholder={text.modelPlaceholder}
                 />
                 <Textarea
-                  label="Instructions"
+                  label={text.instructions}
                   rows={3}
                   value={override.instructions ?? ''}
                   onValueChange={(instructions) =>

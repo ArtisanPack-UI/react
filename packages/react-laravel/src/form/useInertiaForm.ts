@@ -20,6 +20,12 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
    * Get props to spread onto an ArtisanPack UI form field component.
    * Automatically binds value, onChange, and error from the Inertia form state.
    *
+   * `onChange` keeps a number field a number: when the field's current value
+   * is a number, the control's text is converted (an empty control stays
+   * `''`, so it can be cleared). `onBlur` is included once the form uses
+   * Laravel Precognition (`form.withPrecognition(method, url)`), and
+   * validates the field on the server, as Precognition's `form.validate(name)`.
+   *
    * @example
    * ```tsx
    * const { field } = useInertiaForm({ name: '', email: '' });
@@ -34,7 +40,7 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
     value: TForm[K];
     error: string | undefined;
     onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
-    onBlur: () => void;
+    onBlur?: () => void;
   };
 
   /**
@@ -61,6 +67,22 @@ export interface InertiaFormHelpers<TForm extends FormDataRecord> {
 
   /** Submit as DELETE to the given URL */
   destroy: (url: string, options?: UseFormSubmitOptions) => void;
+}
+
+/**
+ * A control's text as the type of the field's current value: a number field
+ * gets a number back, unless the control is empty or the text isn't a number.
+ */
+export function coerceFieldValue(current: unknown, raw: string): unknown {
+  if (typeof current !== 'number' || raw.trim() === '') return raw;
+  const parsed = Number(raw);
+  return Number.isNaN(parsed) ? raw : parsed;
+}
+
+/** Whether the form has been given Laravel Precognition with `withPrecognition()`. */
+function precognitiveValidate(form: object): ((field: string) => unknown) | undefined {
+  const validate = (form as { validate?: unknown }).validate;
+  return typeof validate === 'function' ? (validate as (field: string) => unknown) : undefined;
 }
 
 /**
@@ -114,18 +136,19 @@ export function useInertiaForm<TForm extends FormDataRecord>(
   const form = useForm<TForm>(...(args as [any]));
 
   const field = useCallback(
-    <K extends Extract<keyof TForm, string>>(name: K) => ({
-      name,
-      value: form.data[name],
-      error: (form.errors as Record<string, string | undefined>)[name],
-      onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.setData(name as any, e.target.value as any);
-      },
-      onBlur: () => {
-        // Placeholder for future field-level validation
-      },
-    }),
+    <K extends Extract<keyof TForm, string>>(name: K) => {
+      const validate = precognitiveValidate(form);
+      return {
+        name,
+        value: form.data[name],
+        error: (form.errors as Record<string, string | undefined>)[name],
+        onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          form.setData(name as any, coerceFieldValue(form.data[name], e.target.value) as any);
+        },
+        ...(validate ? { onBlur: () => validate.call(form, name) } : {}),
+      };
+    },
     [form],
   );
 

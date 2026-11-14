@@ -1,130 +1,64 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { Sidebar } from '../../components/navigation/Sidebar/Sidebar';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { Sidebar, sidebarWidthFromClass } from '../../components/navigation/Sidebar/Sidebar';
 
-describe('Sidebar', () => {
-  it('renders children content', () => {
-    render(
-      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
-        <span data-testid="content">Main</span>
-      </Sidebar>,
-    );
-    expect(screen.getByTestId('content')).toBeInTheDocument();
-  });
-
-  it('renders sidebar content', () => {
-    render(
-      <Sidebar
-        open={true}
-        onOpenChange={vi.fn()}
-        sidebarContent={<span data-testid="sidebar-nav">Nav links</span>}
-      >
-        Main
-      </Sidebar>,
-    );
-    expect(screen.getByTestId('sidebar-nav')).toBeInTheDocument();
-  });
-
-  it('applies drawer-open class when open', () => {
+describe('Sidebar (deprecated alias of AppShell)', () => {
+  it('renders an AppShell with the sidebar content and the page, and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(
-      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
-        Main
+      <Sidebar open onOpenChange={vi.fn()} sidebarContent={<a href="/dashboard">Dashboard</a>}>
+        <p>Page</p>
       </Sidebar>,
     );
-    expect(container.firstChild).toHaveClass('drawer-open');
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('apui-app-shell');
+    expect(root).not.toHaveAttribute('data-collapsed');
+    expect(container.querySelector('.drawer, .drawer-side, .menu')).toBeNull();
+    expect(screen.getByRole('complementary', { name: 'Sidebar' })).toContainElement(
+      screen.getByRole('link', { name: 'Dashboard' }),
+    );
+    expect(screen.getByRole('main')).toHaveTextContent('Page');
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Sidebar is deprecated; use AppShell.'),
+    );
+    warn.mockRestore();
   });
 
-  it('does not apply drawer-open when closed', () => {
+  it('maps open={false} to a collapsed sidebar', () => {
     const { container } = render(
-      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
+      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent="Nav" />,
     );
-    expect(container.firstChild).not.toHaveClass('drawer-open');
+    expect(container.firstElementChild).toHaveAttribute('data-collapsed');
   });
 
-  it('applies drawer-end for right side', () => {
-    const { container } = render(
-      <Sidebar open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>} side="right">
-        Main
-      </Sidebar>,
-    );
-    expect(container.firstChild).toHaveClass('drawer-end');
-  });
-
-  it('renders sidebar with navigation role', () => {
-    render(
-      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
-    );
-    expect(screen.getByRole('navigation', { name: 'Sidebar' })).toBeInTheDocument();
-  });
-
-  it('calls onOpenChange when toggle changes', () => {
+  it('reports the collapse button through onOpenChange', () => {
     const onOpenChange = vi.fn();
-    render(
-      <Sidebar open={false} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
-    );
-    const toggle = screen.getByLabelText('Toggle sidebar');
-    fireEvent.click(toggle);
-    expect(onOpenChange).toHaveBeenCalledWith(true);
-  });
-
-  it('closes on Escape key', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Sidebar open={true} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
-    );
-    fireEvent.keyDown(document, { key: 'Escape' });
+    render(<Sidebar open onOpenChange={onOpenChange} sidebarContent="Nav" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('does not close on Escape when already closed', () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Sidebar open={false} onOpenChange={onOpenChange} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
-    );
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onOpenChange).not.toHaveBeenCalled();
-  });
-
-  it('applies custom width class', () => {
-    render(
-      <Sidebar open={true} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>} width="w-64">
-        Main
-      </Sidebar>,
-    );
-    expect(screen.getByRole('navigation', { name: 'Sidebar' })).toHaveClass('w-64');
-  });
-
-  it('applies custom className', () => {
+  it('maps a Tailwind width class to sidebarWidth and ignores side and overlay', () => {
     const { container } = render(
       <Sidebar
-        open={false}
+        open
         onOpenChange={vi.fn()}
-        sidebarContent={<span>Nav</span>}
-        className="custom-class"
-      >
-        Main
-      </Sidebar>,
+        sidebarContent="Nav"
+        width="w-64"
+        side="right"
+        overlay
+      />,
     );
-    expect(container.firstChild).toHaveClass('custom-class');
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--apui-sidebar-width')).toBe('16rem');
+    expect(root).not.toHaveAttribute('side');
+    expect(root).not.toHaveAttribute('overlay');
   });
 
-  it('forwards ref', () => {
-    const ref = vi.fn();
-    render(
-      <Sidebar ref={ref} open={false} onOpenChange={vi.fn()} sidebarContent={<span>Nav</span>}>
-        Main
-      </Sidebar>,
-    );
-    expect(ref).toHaveBeenCalled();
+  it('converts width classes', () => {
+    expect(sidebarWidthFromClass('w-80')).toBe('20rem');
+    expect(sidebarWidthFromClass('w-[18rem]')).toBe('18rem');
+    expect(sidebarWidthFromClass('max-w-sm')).toBeUndefined();
+    expect(sidebarWidthFromClass(undefined)).toBeUndefined();
   });
 });
