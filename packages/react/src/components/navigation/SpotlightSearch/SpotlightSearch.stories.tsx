@@ -1,6 +1,7 @@
 import { useState, type ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
+import { Button } from '../../form/Button/Button';
 import { SpotlightSearch } from './SpotlightSearch';
 import type { SpotlightItem } from './SpotlightSearch';
 
@@ -47,9 +48,7 @@ function SpotlightStoryWrapper({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className="btn btn-primary" onClick={() => setOpen(true)}>
-        {buttonLabel}
-      </button>
+      <Button onClick={() => setOpen(true)}>{buttonLabel}</Button>
       <SpotlightSearch open={open} onClose={() => setOpen(false)} {...props} />
     </>
   );

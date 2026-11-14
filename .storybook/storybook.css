@@ -4,4 +4,3 @@
 @layer theme, base, apui, components, utilities;
 @import 'tailwindcss';
 @import '@artisanpack-ui/css';
-@plugin "daisyui";
