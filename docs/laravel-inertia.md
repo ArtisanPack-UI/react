@@ -80,14 +80,14 @@ import { InertiaMenu } from '@artisanpack-ui/react-laravel';
 </InertiaLink>
 ```
 
-| Prop                  | Default     | What it does                                                                                                |
-| --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
-| `asButton`            | `false`     | Styles the link as a Button.                                                                                |
-| `color`               | `'primary'` | The Button color, with `asButton`. The 1.x `ghost` and `outline` still work: a neutral ghost or outline button. |
-| `variant`             | `'solid'`   | The Button treatment, with `asButton`. Overrides the variant `ghost` or `outline` imply.                    |
-| `size`                | `'md'`      | The Button height, with `asButton`.                                                                         |
-| `icon`, `iconRight`   |             | Icons before and after the label.                                                                           |
-| `loading`             | `false`     | Shows a spinner, sets `aria-busy` and `aria-disabled`, and ignores clicks. On a plain link the spinner takes the icon's place. |
+| Prop                | Default     | What it does                                                                                                                   |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `asButton`          | `false`     | Styles the link as a Button.                                                                                                   |
+| `color`             | `'primary'` | The Button color, with `asButton`. The 1.x `ghost` and `outline` still work: a neutral ghost or outline button.                |
+| `variant`           | `'solid'`   | The Button treatment, with `asButton`. Overrides the variant `ghost` or `outline` imply.                                       |
+| `size`              | `'md'`      | The Button height, with `asButton`.                                                                                            |
+| `icon`, `iconRight` |             | Icons before and after the label.                                                                                              |
+| `loading`           | `false`     | Shows a spinner, sets `aria-busy` and `aria-disabled`, and ignores clicks. On a plain link the spinner takes the icon's place. |
 
 ## Forms
 
@@ -122,12 +122,12 @@ export default function CreateUser() {
 }
 ```
 
-| Returns                           | What it is                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------- |
-| `form`                            | Inertia's form object: `data`, `errors`, `processing`, `setData` and the rest.              |
+| Returns                           | What it is                                                                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `form`                            | Inertia's form object: `data`, `errors`, `processing`, `setData` and the rest.                                                |
 | `field(name)`                     | `name`, `value`, `error` and a native `onChange` (plus `onBlur` with Precognition), for Input, Password, Textarea and Select. |
-| `checkbox(name)`                  | `name`, `checked`, `error` and a native `onChange`, for Checkbox and Toggle.                |
-| `post`, `put`, `patch`, `destroy` | Submit to a URL, with Inertia's visit options.                                              |
+| `checkbox(name)`                  | `name`, `checked`, `error` and a native `onChange`, for Checkbox and Toggle.                                                  |
+| `post`, `put`, `patch`, `destroy` | Submit to a URL, with Inertia's visit options.                                                                                |
 
 `useInertiaForm('key', data)` takes a remember key first, like `useForm`.
 
