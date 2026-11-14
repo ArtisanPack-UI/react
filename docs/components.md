@@ -203,7 +203,7 @@ All in `/data`.
 
 ## Deprecated components
 
-These 1.x components are still exported so an app keeps building while it migrates. They're marked `@deprecated` and will be removed in a later major release. Except `ErrorDisplay`, which renders an `ErrorState`, they still render their 1.x DaisyUI and Tailwind class names, which `@artisanpack-ui/css` doesn't style.
+These 1.x components are still exported so an app keeps building while it migrates. They're marked `@deprecated` and will be removed in a later major release. Each one is an alias: it renders its replacement, maps its 1.x props onto it, and warns once in development.
 
 | Deprecated                                  | Use instead                                                  |
 | ------------------------------------------- | ------------------------------------------------------------ |
@@ -215,5 +215,12 @@ These 1.x components are still exported so an app keeps building while it migrat
 | `Editor`                                    | `CodeEditor`                                                 |
 | `ErrorDisplay`                              | `ErrorState`                                                 |
 | `ToastProvider`, `ToastMessage`, `useToast` | `Toaster` and `toast` (see [Hooks and Utilities](Utilities)) |
+
+What changes when you keep a deprecated import:
+
+- **Refs** point at the replacement's element: the dialog panel for `Modal`, the menu panel for `Dropdown`, the Spotlight panel, the fieldset for `Radio` and the textarea for `Editor`.
+- **Props with no equivalent are ignored:** `Modal`'s `bottom` (use a `Drawer` with `side="bottom"`), `Dropdown`'s `top` and `hover`, `SpotlightSearch`'s `renderLink` (give items an `href`), `Sidebar`'s `side` and `overlay`, and `Radio`'s `color`.
+- **`Sidebar`** maps `open` to AppShell's `collapsed`, with the collapse button on, and a Tailwind width class such as `w-64` to `sidebarWidth`.
+- **`ToastProvider`** renders a `Toaster` for the shared `toast`, and `useToast()` calls `toast.create()`. Toast titles are strings, so a message that isn't text is reduced to its text. Toasts beyond `max` now queue instead of replacing the oldest, and `dismissAll()` also clears toasts created with `toast.create()`.
 
 The [upgrade codemod](Upgrading) rewrites most of these for you.

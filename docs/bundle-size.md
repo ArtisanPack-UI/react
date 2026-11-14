@@ -18,10 +18,10 @@ menu_order: 10
 
 ## Keeping it small
 
-- **Import from the category subpaths** (`@artisanpack-ui/react/form`, `/layout`, …) when bundle size matters. The root re-exports every category, and the package doesn't declare `sideEffects: false`, so how much of a root import a bundler can drop depends on the bundler.
+- **Import from the category subpaths** (`@artisanpack-ui/react/form`, `/layout`, …) when bundle size matters. Both packages declare `"sideEffects": false`, so a bundler can drop the components you don't use from a root import too; the subpaths just leave it less to work out.
 - **`/chart`** holds only `Chart`, for a page that needs a chart and nothing else from `/data`.
 - **The AI components** are only on `@artisanpack-ui/react/ai`, never in the root.
-- **Deprecated 1.x components** (`Modal`, `Dropdown`, `SpotlightSearch`, `Sidebar`, `Radio`, `Editor`, `ToastProvider`) also bring in `@artisanpack-ui/tokens`. Migrating off them removes it. See [Components](Components).
+- **Deprecated 1.x components** (`Modal`, `Dropdown`, `SpotlightSearch`, `Sidebar`, `Radio`, `Editor`, `ToastProvider`) are thin aliases of their replacements, so they add little beyond the component they render. See [Components](Components).
 
 ## Measuring
 

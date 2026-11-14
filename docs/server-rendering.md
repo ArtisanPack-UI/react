@@ -15,21 +15,14 @@ The components render on the server (Next.js, Remix, Astro, Inertia's server-sid
 
 ## Next.js App Router
 
-The package's modules don't carry a `'use client'` directive, and the components use hooks, so React Server Components can't render them directly. Render them from your own client components.
+Every module in `@artisanpack-ui/react` and `@artisanpack-ui/react-laravel` starts with a `'use client'` directive, so you can import the components straight into Server Components, layouts and pages included. They render as client components inside the server tree. Props you pass from a Server Component have to be serializable, so pass callbacks such as `onValueChange` from a client component of your own.
 
-For `ThemeScript`, which belongs in the root layout (a Server Component), re-export it from a client module:
-
-```tsx
-// app/theme-script.tsx
-'use client';
-
-export { ThemeScript } from '@artisanpack-ui/react/utility';
-```
+`ThemeScript` goes in the root layout:
 
 ```tsx
 // app/layout.tsx
 import '@artisanpack-ui/css';
-import { ThemeScript } from './theme-script';
+import { ThemeScript } from '@artisanpack-ui/react/utility';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
