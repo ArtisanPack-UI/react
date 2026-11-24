@@ -99,6 +99,11 @@ export interface TableProps<Row = Record<string, unknown>> extends Omit<
   rows: Row[];
   /** Dot path to each row's unique key. @defaultValue `'id'` */
   keyBy?: string;
+  /**
+   * Names a row for the `{row}` in `selectRowLabel` and `expandLabel`, such
+   * as `(order) => 'order #' + order.number`. @defaultValue the first column's text, or the key
+   */
+  rowLabel?: (row: Row) => string;
   /** The toolbar title; it names the table unless `label` is set. */
   title?: ReactNode;
   /** The table's accessible name, instead of the title. Translate it. */
@@ -215,6 +220,7 @@ function TableInner<Row>(
     headers,
     rows,
     keyBy = 'id',
+    rowLabel,
     title,
     label,
     density,
@@ -321,6 +327,8 @@ function TableInner<Row>(
     ];
   const columnName = (column: TableColumn<Row>) => text(column.label) || column.key;
   const rowName = (row: Row) => {
+    const named = rowLabel ? text(rowLabel(row)).trim() : '';
+    if (named) return named;
     const first = columns[0];
     const shown = first ? text(tableValue(row, first.key)).trim() : '';
     return shown || text(rowKey(row));

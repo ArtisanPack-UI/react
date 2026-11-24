@@ -80,6 +80,60 @@ export interface PaginatorLink {
   label: string;
   /** Whether this link represents the currently active page */
   active: boolean;
+  /**
+   * The page number this link goes to, or null for an ellipsis or a disabled
+   * previous/next link. Sent by Laravel 12 and later.
+   */
+  page?: number | null;
+}
+
+/**
+ * Laravel simple paginator response shape returned by `->simplePaginate()`.
+ * It has no total, last page or numbered links.
+ */
+export interface LaravelSimplePaginator<T = unknown> {
+  data: T[];
+  current_page: number;
+  current_page_url: string;
+  per_page: number;
+  from: number | null;
+  to: number | null;
+  first_page_url: string;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  path: string;
+}
+
+/**
+ * Laravel cursor paginator response shape returned by `->cursorPaginate()`.
+ */
+export interface LaravelCursorPaginator<T = unknown> {
+  data: T[];
+  per_page: number;
+  next_cursor: string | null;
+  next_page_url: string | null;
+  prev_cursor: string | null;
+  prev_page_url: string | null;
+  path: string;
+}
+
+/**
+ * The shape of a paginated API resource collection, such as
+ * `UserResource::collection( $users->paginate() )` passed as an Inertia prop.
+ * The rows are in `data`, the page URLs in `links` and the rest in `meta`.
+ */
+export interface LaravelResourcePaginator<T = unknown> {
+  data: T[];
+  links: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: Omit<
+    LaravelPaginator<T>,
+    'data' | 'first_page_url' | 'last_page_url' | 'next_page_url' | 'prev_page_url'
+  >;
 }
 
 /**
