@@ -56,6 +56,7 @@ describe('AI component labels', () => {
           provider: 'Fournisseur',
           apiKey: 'Clé API',
           apiKeyStored: 'Laissez vide pour garder la clé.',
+          apiKeyReveal: 'Afficher la clé',
           baseUrl: 'URL de base',
           baseUrlOptional: 'Facultatif.',
           defaultModel: 'Modèle par défaut',
@@ -73,6 +74,10 @@ describe('AI component labels', () => {
     expect(screen.getByRole('combobox', { name: 'Fournisseur' })).toBeInTheDocument();
     expect(screen.getByLabelText('Clé API')).toBeInTheDocument();
     expect(screen.getByText('Laissez vide pour garder la clé.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Afficher la clé' })).toHaveAttribute(
+      'aria-label',
+      'Afficher la clé',
+    );
     expect(screen.getByRole('textbox', { name: 'URL de base' })).toBeInTheDocument();
     expect(screen.getByText('Facultatif.')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Modèle par défaut' })).toBeInTheDocument();
