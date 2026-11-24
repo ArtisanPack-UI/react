@@ -1,6 +1,6 @@
 ---
 title: AI Components
-menu_order: 7
+menu_order: 57
 ---
 
 # AI Components

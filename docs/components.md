@@ -1,6 +1,6 @@
 ---
 title: Components
-menu_order: 3
+menu_order: 40
 ---
 
 # Components
@@ -17,7 +17,7 @@ import { Button } from '@artisanpack-ui/react/form';
 import { Dialog } from '@artisanpack-ui/react/layout';
 ```
 
-The subpaths are `/form`, `/layout`, `/navigation`, `/data`, `/feedback` and `/utility`. `/chart` exports only `Chart`, and `/ai` holds the [AI Components](Ai-Components), which the root doesn't export. See [Bundle Size](Bundle-Size) for when the subpaths matter.
+The subpaths are `/form`, `/layout`, `/navigation`, `/data`, `/feedback` and `/utility`. `/chart` exports only `Chart`, and `/ai` holds the [AI Components](ai-components.md), which the root doesn't export. See [Bundle Size](bundle-size.md) for when the subpaths matter.
 
 ## React conventions
 
@@ -57,7 +57,7 @@ On form fields, every other native attribute (`name`, `autoComplete`, `aria-*`, 
 
 **Icons.** Props such as `leadingIcon` take a name from the [icon registry](https://docs.artisanpackui.dev/documentation/design-system/foundations/icons). `registerIcons` is also exported from `@artisanpack-ui/react`. Most of these props have a node counterpart (`icon`, `iconEnd`) for your own SVG.
 
-**Theme script.** `ThemeScript` isn't a component on the design system pages; see [Theming](Theming).
+**Theme script.** `ThemeScript` isn't a component on the design system pages; see [Theming](theming.md).
 
 ## Actions
 
@@ -205,16 +205,16 @@ All in `/data`.
 
 These 1.x components are still exported so an app keeps building while it migrates. They're marked `@deprecated` and will be removed in a later major release. Each one is an alias: it renders its replacement, maps its 1.x props onto it, and warns once in development.
 
-| Deprecated                                  | Use instead                                                  |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| `Modal`                                     | `Dialog`                                                     |
-| `Dropdown`, `DropdownItem`                  | `DropdownMenu`, `DropdownMenuItem`                           |
-| `SpotlightSearch`                           | `Spotlight`                                                  |
-| `Sidebar`                                   | `AppShell`                                                   |
-| `Radio`                                     | `RadioGroup`                                                 |
-| `Editor`                                    | `CodeEditor`                                                 |
-| `ErrorDisplay`                              | `ErrorState`                                                 |
-| `ToastProvider`, `ToastMessage`, `useToast` | `Toaster` and `toast` (see [Hooks and Utilities](Utilities)) |
+| Deprecated                                  | Use instead                                                     |
+| ------------------------------------------- | --------------------------------------------------------------- |
+| `Modal`                                     | `Dialog`                                                        |
+| `Dropdown`, `DropdownItem`                  | `DropdownMenu`, `DropdownMenuItem`                              |
+| `SpotlightSearch`                           | `Spotlight`                                                     |
+| `Sidebar`                                   | `AppShell`                                                      |
+| `Radio`                                     | `RadioGroup`                                                    |
+| `Editor`                                    | `CodeEditor`                                                    |
+| `ErrorDisplay`                              | `ErrorState`                                                    |
+| `ToastProvider`, `ToastMessage`, `useToast` | `Toaster` and `toast` (see [Hooks and Utilities](utilities.md)) |
 
 What changes when you keep a deprecated import:
 
@@ -223,4 +223,4 @@ What changes when you keep a deprecated import:
 - **`Sidebar`** maps `open` to AppShell's `collapsed`, with the collapse button on, and a Tailwind width class such as `w-64` to `sidebarWidth`.
 - **`ToastProvider`** renders a `Toaster` for the shared `toast`, and `useToast()` calls `toast.create()`. Toast titles are strings, so a message that isn't text is reduced to its text. Toasts beyond `max` now queue instead of replacing the oldest, and `dismissAll()` also clears toasts created with `toast.create()`.
 
-The [upgrade codemod](Upgrading) rewrites most of these for you.
+The [upgrade codemod](upgrading.md) rewrites most of these for you.

@@ -1,6 +1,6 @@
 ---
 title: TypeScript
-menu_order: 9
+menu_order: 65
 ---
 
 # TypeScript
@@ -16,8 +16,8 @@ Each entry point has its own declarations, listed in the package's `exports`:
 | `@artisanpack-ui/react`                                                                                    | Every component except the AI ones, `ThemeProvider` and `useTheme` |
 | `@artisanpack-ui/react/form`, `/layout`, `/navigation`, `/data`, `/feedback`, `/utility`                   | That category's components                                         |
 | `@artisanpack-ui/react/chart`                                                                              | `Chart` and its types                                              |
-| `@artisanpack-ui/react/ai`                                                                                 | The [AI Components](Ai-Components) and the API types               |
-| `@artisanpack-ui/react-laravel` and its subpaths (`/navigation`, `/form`, `/layout`, `/auth`, `/feedback`) | The [Laravel and Inertia](Laravel-Inertia) helpers                 |
+| `@artisanpack-ui/react/ai`                                                                                 | The [AI Components](ai-components.md) and the API types            |
+| `@artisanpack-ui/react-laravel` and its subpaths (`/navigation`, `/form`, `/layout`, `/auth`, `/feedback`) | The [Laravel and Inertia](laravel-inertia.md) helpers              |
 
 To resolve the subpaths, TypeScript needs a `moduleResolution` that reads `exports`: `bundler`, `node16` or `nodenext`.
 
@@ -78,4 +78,4 @@ const columns: TableColumn<User>[] = [
 
 ## Shared Inertia props
 
-`SharedPageProps` in `@artisanpack-ui/react-laravel` types Inertia's shared props. Add your own with module augmentation; see [Laravel and Inertia](Laravel-Inertia).
+`SharedPageProps` in `@artisanpack-ui/react-laravel` types Inertia's shared props. Add your own with module augmentation; see [Laravel and Inertia](laravel-inertia.md).

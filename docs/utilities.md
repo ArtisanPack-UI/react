@@ -1,6 +1,6 @@
 ---
 title: Hooks and Utilities
-menu_order: 4
+menu_order: 45
 ---
 
 # Hooks and Utilities
@@ -61,7 +61,7 @@ Constants such as `PASSWORD_LABELS`, `SELECT_DEFAULT_PLACEHOLDER` and `FILE_DEFA
 
 ## Theme
 
-`ThemeScript` is covered in [Theming](Theming), with `ThemeProvider` and `useTheme`.
+`ThemeScript` is covered in [Theming](theming.md), with `ThemeProvider` and `useTheme`.
 
 ## Behavior hooks
 

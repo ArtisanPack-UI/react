@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-menu_order: 2
+menu_order: 10
 ---
 
 # Getting Started
@@ -15,7 +15,7 @@ npm install @artisanpack-ui/react @artisanpack-ui/css
 
 `@artisanpack-ui/behavior` and `@zag-js/react` come as dependencies. `react` and `react-dom` (18 or 19) are peer dependencies.
 
-Building a Laravel app with Inertia? Also see [Laravel and Inertia](Laravel-Inertia).
+For the requirements and the other ways to set up the CSS and the theme script, see [Installation](installation.md). Building a Laravel app with Inertia? Also see [Laravel and Inertia](laravel-inertia.md).
 
 ## Load the CSS
 
@@ -53,7 +53,7 @@ import { ThemeScript } from '@artisanpack-ui/react';
 
 The inline script only runs when the browser parses it from server-rendered HTML. In a client-rendered app (a Vite single-page app), `ThemeScript` falls back to applying the stored choice when it mounts, after the first paint. For no flash there, inline the output of `themeScript()` from `@artisanpack-ui/behavior` in `index.html`'s `<head>` instead. See [Themes](https://docs.artisanpackui.dev/documentation/design-system/theming/themes).
 
-In the Next.js App Router, `ThemeScript` has to be rendered from a client component. See [Server Rendering](Server-Rendering).
+In the Next.js App Router, `ThemeScript` has to be rendered from a client component. See [Server Rendering](server-rendering.md).
 
 ## Your first component
 
@@ -76,10 +76,11 @@ export function SignIn() {
 }
 ```
 
-Every component is exported from the package root and from a category subpath, such as `@artisanpack-ui/react/form`. The AI components are the exception: they're only on `@artisanpack-ui/react/ai`. See [Components](Components) for the list, and for how props, `className`, `classes` and refs work.
+Every component is exported from the package root and from a category subpath, such as `@artisanpack-ui/react/form`. The AI components are the exception: they're only on `@artisanpack-ui/react/ai`. See [Components](components.md) for the list, and for how props, `className`, `classes` and refs work.
 
 ## Next steps
 
-- [Components](Components): every component, linked to its page.
-- [Theming](Theming): `ThemeToggle`, presets and your own brand.
-- [TypeScript](Typescript): the exported types.
+- [Installation](installation.md): requirements, Tailwind and the theme script in every kind of app.
+- [Components](components.md): every component, linked to its page.
+- [Theming](theming.md): `ThemeToggle`, presets and your own brand.
+- [TypeScript](typescript.md): the exported types.

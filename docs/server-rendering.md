@@ -1,6 +1,6 @@
 ---
 title: Server Rendering
-menu_order: 8
+menu_order: 61
 ---
 
 # Server Rendering
@@ -11,7 +11,7 @@ The components render on the server (Next.js, Remix, Astro, Inertia's server-sid
 
 - **IDs** come from React's `useId()`, so the IDs that link labels, hints, errors and ARIA attributes match between the server and the client.
 - **Overlay parts rendered in a portal** render nothing on the server and during hydration, and appear once the component has mounted on the client. That covers the panels of Dialog, Drawer, Popover, Tooltip, DropdownMenu, UserMenu, Spotlight, Combobox, DatePicker, ColorPicker and ImageGallery, the menu of a ThemeToggle with `variant="menu"`, and the Toaster region. The components that take a `portal` prop render in place on both when it's off.
-- **The theme** is an attribute on `<html>`, so it's applied by the [theme script](Theming) before the first paint, not by React. Nothing in the server output depends on the visitor's theme.
+- **The theme** is an attribute on `<html>`, so it's applied by the [theme script](theming.md) before the first paint, not by React. Nothing in the server output depends on the visitor's theme.
 
 ## Next.js App Router
 
@@ -40,4 +40,4 @@ The script sets `data-theme` on `<html>` before React hydrates, so `suppressHydr
 
 ## Inertia
 
-With Inertia's server-side rendering, the components need nothing extra. The `<head>` is your Blade root view; see [Laravel and Inertia](Laravel-Inertia) for the theme script there.
+With Inertia's server-side rendering, the components need nothing extra. The `<head>` is your Blade root view; see [Laravel and Inertia](laravel-inertia.md) for the theme script there.
