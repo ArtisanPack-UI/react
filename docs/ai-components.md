@@ -128,8 +128,6 @@ import { SettingsPage, UsageDashboard } from '@artisanpack-ui/react/ai';
 
 `UsageDashboard`'s `live` label takes a `:seconds` placeholder for the refresh interval.
 
-`labels` covers the components' own text, not the built-in strings of the components they render. The API key field in `SettingsPage` is a `Password`, and its reveal button keeps `Password`'s default name, `Show password`.
-
 ## useStreamingText
 
 Reads a `fetch` response body as a stream of UTF-8 text, for output generated over time:

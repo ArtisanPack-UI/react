@@ -47,6 +47,8 @@ export interface SettingsPageLabels {
   apiKey: string;
   /** The API key field's hint while a key is stored. */
   apiKeyStored: string;
+  /** The API key field's reveal button's name. */
+  apiKeyReveal: string;
   /** The base URL field's label. */
   baseUrl: string;
   /** The base URL field's hint for Ollama. */
@@ -84,6 +86,7 @@ export function settingsPageLabels(t: TranslateFunction): SettingsPageLabels {
     provider: t('Provider'),
     apiKey: t('API key'),
     apiKeyStored: t('Leave blank to keep the stored key.'),
+    apiKeyReveal: t('Show password'),
     baseUrl: t('Base URL'),
     baseUrlRequired: t('Required for Ollama.'),
     baseUrlOptional: t('Optional.'),
@@ -382,6 +385,7 @@ export function SettingsPage({
           <Password
             label={text.apiKey}
             hint={apiKeyPresent ? text.apiKeyStored : undefined}
+            revealLabel={text.apiKeyReveal}
             autocomplete="new-password"
             value={form.api_key}
             onValueChange={(api_key) => updateCredentials({ api_key })}
