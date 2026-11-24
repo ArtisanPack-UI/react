@@ -48,7 +48,7 @@ Yes. Load the [headless](https://docs.artisanpackui.dev/documentation/design-sys
 
 ## How do I translate the components' text?
 
-Every built-in string has a prop: the `…Label` props on components such as `ThemeToggle`, and the `labels` prop on the AI components. Constants such as `PASSWORD_LABELS` hold the English defaults for reference. See [Hooks and Utilities](utilities.md#helpers) and [Translating the AI components](ai-components.md#translating).
+Most built-in strings have a prop: the `…Label` props on components such as `ThemeToggle`, and the `labels` prop on the AI components. The AI components' `labels` prop covers their own text, not every string in the components they render: the API key field in `SettingsPage` keeps `Password`'s default reveal button name (`Show password`). Constants such as `PASSWORD_LABELS` hold the English defaults for reference. See [Hooks and Utilities](utilities.md#helpers) and [Translating the AI components](ai-components.md#translating).
 
 ## Does it look the same as the Livewire and Vue libraries?
 
