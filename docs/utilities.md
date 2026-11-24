@@ -57,7 +57,7 @@ These are re-exported from `@artisanpack-ui/behavior/icons`. See [Icons](https:/
 | `passwordStrength(value)`                | `/form`       | The strength level Password shows, from 0 (empty) to 4.                       |
 | `formatFileSize(bytes)`                  | `/form`       | A size as text, such as `2.4 MB`.                                             |
 
-Constants such as `PASSWORD_LABELS`, `SELECT_DEFAULT_PLACEHOLDER` and `FILE_DEFAULT_REMOVE_LABEL` hold the default English strings, for reference when you translate the matching props.
+Constants such as `PASSWORD_LABELS`, `SELECT_DEFAULT_PLACEHOLDER` and `FILE_DEFAULT_REMOVE_LABEL` hold the default English strings, for reference when you translate the matching props. To translate the built-in text across every component at once, use a `TranslationProvider`; see [Translations](translations.md).
 
 ## Theme
 

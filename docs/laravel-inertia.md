@@ -54,20 +54,27 @@ import { InertiaMenu } from '@artisanpack-ui/react-laravel';
 />
 ```
 
-**InertiaPagination** is a [Pagination](https://docs.artisanpackui.dev/documentation/design-system/components/pagination) driven by a Laravel paginator (`->paginate()`). It visits the new page with `router.get()`, keeping scroll position and component state by default.
+**InertiaPagination** is a [Pagination](https://docs.artisanpackui.dev/documentation/design-system/components/pagination) driven by a Laravel paginator (`->paginate()`), or by a paginated API resource collection (`UserResource::collection($users->paginate())`), whose page details are under `meta`. It visits the new page with `router.get()`, keeping scroll position and component state by default.
 
 ```tsx
 <InertiaPagination paginator={users} only={['users']} preserveParams={{ search }} />
 ```
 
-| Prop                              | Default  | What it does                                                    |
-| --------------------------------- | -------- | --------------------------------------------------------------- |
-| `paginator`                       |          | The paginator: `current_page`, `last_page` and `path` are read. |
-| `pageParam`                       | `'page'` | The query parameter for the page.                               |
-| `preserveParams`                  |          | Other query parameters to keep on the URL.                      |
-| `preserveScroll`, `preserveState` | `true`   | Passed to the Inertia visit.                                    |
-| `only`                            |          | A partial reload of these props.                                |
-| `onChange`                        |          | Handle the page change yourself instead of visiting.            |
+On a filtered list, `preserveQuery` keeps the current URL's search, filter and sort parameters when changing page, so they don't need listing in `preserveParams`:
+
+```tsx
+<InertiaPagination paginator={orders} only={['orders']} preserveQuery />
+```
+
+| Prop                              | Default  | What it does                                                                              |
+| --------------------------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `paginator`                       |          | The paginator, or a resource collection: `current_page`, `last_page` and `path` are read. |
+| `pageParam`                       | `'page'` | The query parameter for the page.                                                         |
+| `preserveParams`                  |          | Other query parameters to keep on the URL.                                                |
+| `preserveQuery`                   | `false`  | Keeps the current URL's query parameters. `preserveParams` wins over them. Since 2.1.     |
+| `preserveScroll`, `preserveState` | `true`   | Passed to the Inertia visit.                                                              |
+| `only`                            |          | A partial reload of these props.                                                          |
+| `onChange`                        |          | Handle the page change yourself instead of visiting.                                      |
 
 **InertiaLink** wraps Inertia's `Link` and takes all of its props (`method`, `preserveScroll`, `only`, …). On its own it's a plain link. With `asButton` it renders the design system's [Button](https://docs.artisanpackui.dev/documentation/design-system/components/button) markup on the link, so it looks like a Button but still makes an Inertia visit:
 
@@ -230,12 +237,15 @@ Share the messages from `HandleInertiaRequests` as `flash`.
 
 ## Types
 
-| Type                                   | Shape                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `SharedPageProps`                      | `auth`, `flash` and `errors`. Extend it with module augmentation for your own shared props. |
-| `AuthProps`, `AuthUser`                | `{ user }`, and a user with `id`, `name` and `email`.                                       |
-| `FlashMessages`                        | `success`, `error`, `warning` and `info`.                                                   |
-| `LaravelPaginator<T>`, `PaginatorLink` | The JSON of a `->paginate()` result.                                                        |
+| Type                                   | Shape                                                                                                                                                           |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SharedPageProps`                      | `auth`, `flash` and `errors`. Extend it with module augmentation for your own shared props.                                                                     |
+| `AuthProps`, `AuthUser`                | `{ user }`, and a user with `id`, `name` and `email`.                                                                                                           |
+| `FlashMessages`                        | `success`, `error`, `warning` and `info`.                                                                                                                       |
+| `LaravelPaginator<T>`, `PaginatorLink` | The JSON of a `->paginate()` result. `PaginatorLink` has the optional `page` number Laravel 12.23 and later sends.                                              |
+| `LaravelSimplePaginator<T>`            | The JSON of a `->simplePaginate()` result: no total, last page or numbered links. `current_page_url` is optional, since Laravel sends it from 12.15. Since 2.1. |
+| `LaravelCursorPaginator<T>`            | The JSON of a `->cursorPaginate()` result: `next_cursor`, `prev_cursor` and their URLs. Since 2.1.                                                              |
+| `LaravelResourcePaginator<T>`          | A paginated API resource collection: `data`, the page URLs in `links` and the rest in `meta`. Since 2.1.                                                        |
 
 ```ts
 declare module '@artisanpack-ui/react-laravel' {

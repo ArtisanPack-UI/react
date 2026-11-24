@@ -82,6 +82,7 @@ A form for the provider credentials and the per-feature overrides, backed by `GE
 - **Validation errors** from a `422` response show under their fields, with the response's message in an alert above the form. Other failures show in the alert.
 - **A failed load** shows an error alert with a **Retry** button. Only the latest load updates the form.
 - The fields are disabled while saving.
+- **The API key reveal button** is named by the `apiKeyReveal` label (default `Show password`). Since 2.1.
 
 ## UsageDashboard
 
@@ -127,6 +128,8 @@ import { SettingsPage, UsageDashboard } from '@artisanpack-ui/react/ai';
 ```
 
 `UsageDashboard`'s `live` label takes a `:seconds` placeholder for the refresh interval.
+
+Under a [`TranslationProvider`](translations.md), the components take their default text from its catalogue, and `labels` still wins string by string.
 
 ## useStreamingText
 

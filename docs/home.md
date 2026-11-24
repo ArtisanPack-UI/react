@@ -19,6 +19,7 @@ menu_order: 0
 - **Theming** is attributes and tokens: light, dark and high contrast themes, density and presets, with no props on the components.
 - **React conventions**: controlled and uncontrolled state, forwarded refs, slots as props, and `className` and `classes` for styling individual parts.
 - **Server rendering**: every module is marked `'use client'`, so the components work in Next.js Server Components and with Inertia's server-side rendering.
+- **Translations**: the built-in text ships in nine locales, through `TranslationProvider`.
 - **TypeScript** declarations for every entry point, and category subpaths for smaller bundles.
 - **Laravel and Inertia** helpers for navigation, forms, auth and flash messages, and AI admin screens for the `artisanpack-ui/ai` package.
 
@@ -39,7 +40,7 @@ Then load `@artisanpack-ui/css` once in your app's entry and render `ThemeScript
 - [Getting Started](getting-started.md): a working component in five minutes.
 - [Installation](installation.md): requirements, the CSS with or without Tailwind, and the theme script.
 - [Components](components.md): every component, linked to its page, and how props, refs and `classes` work in React.
-- [Hooks and Utilities](utilities.md), [Theming](theming.md) and [TypeScript](typescript.md).
+- [Hooks and Utilities](utilities.md), [Translations](translations.md), [Theming](theming.md) and [TypeScript](typescript.md).
 - [Laravel and Inertia](laravel-inertia.md), [AI Components](ai-components.md) and [Server Rendering](server-rendering.md).
 - [Upgrading from 1.x](upgrading.md), the [FAQ](faq.md) and [Troubleshooting](troubleshooting.md).
 

@@ -17,7 +17,7 @@ import { Button } from '@artisanpack-ui/react/form';
 import { Dialog } from '@artisanpack-ui/react/layout';
 ```
 
-The subpaths are `/form`, `/layout`, `/navigation`, `/data`, `/feedback` and `/utility`. `/chart` exports only `Chart`, and `/ai` holds the [AI Components](ai-components.md), which the root doesn't export. See [Bundle Size](bundle-size.md) for when the subpaths matter.
+The subpaths are `/form`, `/layout`, `/navigation`, `/data`, `/feedback` and `/utility`. `/chart` exports only `Chart`, `/i18n` the [translation](translations.md) provider and hook, and `/ai` holds the [AI Components](ai-components.md), which the root doesn't export. See [Bundle Size](bundle-size.md) for when the subpaths matter.
 
 ## React conventions
 
