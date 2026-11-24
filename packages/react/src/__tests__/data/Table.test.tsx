@@ -213,6 +213,11 @@ describe('Table', () => {
     expect(screen.getByRole('button', { name: 'Show details for order #2' })).toBeInTheDocument();
   });
 
+  it('inserts row labels literally, including $ patterns', () => {
+    render(<Table headers={headers} rows={rows} selectable rowLabel={() => 'A $& B'} />);
+    expect(screen.getAllByRole('checkbox', { name: 'Select A $& B' })).toHaveLength(3);
+  });
+
   it('falls back to the first column when rowLabel is blank', () => {
     render(<Table headers={headers} rows={rows} selectable rowLabel={() => '  '} />);
     expect(screen.getByRole('checkbox', { name: 'Select MTCH' })).toBeInTheDocument();

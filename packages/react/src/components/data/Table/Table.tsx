@@ -207,7 +207,7 @@ const sameKey = (a: unknown, b: unknown) => String(a) === String(b);
 const hasKey = (list: readonly unknown[], key: unknown) => list.some((item) => sameKey(item, key));
 const fill = (template: string, values: Record<string, string>) =>
   Object.entries(values).reduce(
-    (text, [name, value]) => text.replaceAll(`{${name}}`, value),
+    (text, [name, value]) => text.replaceAll(`{${name}}`, () => value),
     template,
   );
 const text = (value: unknown): string =>

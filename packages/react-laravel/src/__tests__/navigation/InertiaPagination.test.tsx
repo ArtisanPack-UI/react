@@ -129,6 +129,18 @@ describe('InertiaPagination', () => {
     expect(url).toBe('/orders?page=5');
   });
 
+  it('uses top-level page details over an unrelated meta field', () => {
+    const orders = {
+      current_page: 4,
+      last_page: 6,
+      path: '/orders',
+      meta: { description: 'Orders' },
+    };
+    render(<InertiaPagination paginator={orders} />);
+
+    expect(screen.getByRole('button', { name: 'Page 4' })).toHaveAttribute('aria-current', 'page');
+  });
+
   describe('preserveQuery', () => {
     beforeEach(() => {
       window.history.replaceState(
@@ -161,6 +173,22 @@ describe('InertiaPagination', () => {
       expect(url.searchParams.getAll('filters[status][]')).toEqual(['paid', 'open']);
       expect(url.searchParams.getAll('page')).toEqual(['3']);
       expect(url.searchParams.get('sort')).toBe('total');
+    });
+
+    it('replaces path values for keys in the current query and keeps the rest', () => {
+      render(
+        <InertiaPagination
+          paginator={{ ...paginator, path: '/posts?sort=stale&scope=mine' }}
+          preserveQuery
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Page 3' }));
+
+      const url = new URL(mockRouterGet.mock.calls[0][0] as string, 'http://localhost');
+      expect(url.searchParams.getAll('sort')).toEqual(['total']);
+      expect(url.searchParams.get('scope')).toBe('mine');
+      expect(url.searchParams.getAll('filters[status][]')).toEqual(['paid', 'open']);
     });
 
     it('lets preserveParams win over the current query', () => {

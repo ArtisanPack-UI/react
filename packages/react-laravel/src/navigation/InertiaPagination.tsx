@@ -80,7 +80,7 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
     },
     ref,
   ) => {
-    const pageInfo = 'meta' in paginator ? paginator.meta : paginator;
+    const pageInfo = 'current_page' in paginator ? paginator : paginator.meta;
 
     // Stabilize preserveParams to avoid re-creating handlePageChange on every render
     // when consumers pass object literals
@@ -95,9 +95,11 @@ export const InertiaPagination = forwardRef<HTMLElement, InertiaPaginationProps>
 
         const url = new URL(pageInfo.path, window.location.origin);
         if (preserveQuery) {
-          new URLSearchParams(window.location.search).forEach((value, key) => {
-            url.searchParams.append(key, value);
-          });
+          // The current values replace the path's for the same key, so a stale
+          // filter in the path can't ride along; repeated keys keep every value.
+          const current = new URLSearchParams(window.location.search);
+          new Set(current.keys()).forEach((key) => url.searchParams.delete(key));
+          current.forEach((value, key) => url.searchParams.append(key, value));
         }
         url.searchParams.set(pageParam, String(page));
 
