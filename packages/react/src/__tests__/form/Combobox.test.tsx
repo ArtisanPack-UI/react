@@ -1,6 +1,7 @@
 import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Combobox,
@@ -325,5 +326,24 @@ describe('Combobox', () => {
     const ref = createRef<HTMLDivElement>();
     render(<Combobox ref={ref} className="extra" label="Property" options={PROPERTIES} />);
     expect(ref.current).toHaveClass('apui-combobox', 'extra');
+  });
+});
+
+describe('Combobox translations', () => {
+  it('translates the placeholder and the trigger and lets a prop win', () => {
+    const messages = { 'Search…': 'Buscar…', 'Show options': 'Mostrar opciones' };
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={messages}>
+        <Combobox label="Property" options={PROPERTIES} portal={false} />
+      </TranslationProvider>,
+    );
+    expect(input()).toHaveAttribute('placeholder', 'Buscar…');
+    expect(screen.getByRole('button', { name: 'Mostrar opciones' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <Combobox label="Property" options={PROPERTIES} portal={false} placeholder="Find" />
+      </TranslationProvider>,
+    );
+    expect(input()).toHaveAttribute('placeholder', 'Find');
   });
 });

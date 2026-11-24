@@ -24,6 +24,7 @@ import {
   type Ref,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -168,12 +169,12 @@ function CarouselInner<Slide = CarouselSlide>(
     title,
     headingLevel = 3,
     label,
-    previousLabel = 'Previous slide',
-    nextLabel = 'Next slide',
-    indicatorLabel = 'Go to slide {index}',
-    slideLabel = '{index} of {count}',
-    playLabel = 'Start slide rotation',
-    pauseLabel = 'Stop slide rotation',
+    previousLabel: previousLabelProp,
+    nextLabel: nextLabelProp,
+    indicatorLabel: indicatorLabelProp,
+    slideLabel: slideLabelProp,
+    playLabel: playLabelProp,
+    pauseLabel: pauseLabelProp,
     renderSlide,
     classes = {},
     className,
@@ -182,6 +183,13 @@ function CarouselInner<Slide = CarouselSlide>(
   }: CarouselProps<Slide>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  const { t } = useTranslator();
+  const previousLabel = previousLabelProp ?? t('Previous slide');
+  const nextLabel = nextLabelProp ?? t('Next slide');
+  const indicatorLabel = indicatorLabelProp ?? t('Go to slide {index}');
+  const slideLabel = slideLabelProp ?? t('{index} of {count}');
+  const playLabel = playLabelProp ?? t('Start slide rotation');
+  const pauseLabel = pauseLabelProp ?? t('Stop slide rotation');
   const list = slides ?? [];
   const view = Math.max(1, Math.floor(perView));
   const pages = carouselPageCount(list.length, view);
@@ -237,7 +245,7 @@ function CarouselInner<Slide = CarouselSlide>(
       {...mergePartProps(rest, rootProps)}
       ref={ref}
       className={cx('apui-carousel', classes.root, className)}
-      aria-label={label || rest['aria-label'] || title || 'Carousel'}
+      aria-label={label || rest['aria-label'] || title || t('Carousel')}
       style={{ ...rootProps.style, ...style }}
     >
       {/* First in the Tab order, before the rotating slides; CSS places it over the viewport. */}

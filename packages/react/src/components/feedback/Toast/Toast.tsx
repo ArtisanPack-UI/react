@@ -15,6 +15,7 @@
 import { staticToastParts } from '@artisanpack-ui/behavior/react';
 import { forwardRef, useId, type HTMLAttributes, type ReactNode, type Ref } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 import { Button } from '../../form/Button/Button';
@@ -165,7 +166,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       icon,
       actions,
       hideClose = false,
-      closeLabel = TOAST_CLOSE_LABEL,
+      closeLabel: closeLabelProp,
       onOpenChange,
       classes = {},
       className,
@@ -173,6 +174,8 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const closeLabel = closeLabelProp ?? t('Dismiss notification');
     const id = useId();
     const parts = staticToastParts(
       {

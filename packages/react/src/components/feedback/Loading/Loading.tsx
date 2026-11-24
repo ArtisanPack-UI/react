@@ -11,6 +11,7 @@
 
 import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
 /** The indicator a {@link Loading} draws. */
@@ -72,7 +73,7 @@ export const Loading = forwardRef<HTMLSpanElement, LoadingProps>(
       variant = 'spinner',
       size = 'md',
       color = 'primary',
-      label = LOADING_LABEL,
+      label: labelProp,
       overlay = false,
       delay = 300,
       classes = {},
@@ -83,6 +84,8 @@ export const Loading = forwardRef<HTMLSpanElement, LoadingProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Loading');
     const visible = hasContent(children);
     return (
       <span

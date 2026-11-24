@@ -17,6 +17,7 @@
 
 import { forwardRef, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { devWarnOnce } from '../../../internal/parts';
 import { Spotlight, type SpotlightGroup, type SpotlightProps } from '../Spotlight/Spotlight';
 
@@ -121,7 +122,7 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
       items,
       onSelect,
       filterFn,
-      emptyMessage = 'No results found.',
+      emptyMessage: emptyMessageProp,
       shortcut = true,
       maxResults = 20,
       emptyLabel,
@@ -129,6 +130,8 @@ export const SpotlightSearch = forwardRef<HTMLDivElement, SpotlightSearchProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const emptyMessage = emptyMessageProp ?? t('No results found.');
     devWarnOnce('SpotlightSearch', 'SpotlightSearch is deprecated; use Spotlight.');
     const [query, setQuery] = useState('');
     const filter = filterFn ?? defaultFilter;

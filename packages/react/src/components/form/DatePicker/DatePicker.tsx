@@ -19,6 +19,7 @@ import {
 } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
@@ -81,7 +82,7 @@ export interface DatePickerProps extends Omit<
   step?: number;
   /** The IANA time zone, shown under the field in time mode and used for today's date. */
   timeZone?: string;
-  /** BCP 47 locale for month and weekday names, the first day of the week and the default pattern. @defaultValue `'en-US'` */
+  /** BCP 47 locale for month and weekday names, the first day of the week and the default pattern. @defaultValue the `TranslationProvider` locale, else `'en-US'` */
   locale?: string;
   /** The earliest date that can be chosen, ISO. */
   min?: string;
@@ -156,7 +157,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       time = false,
       step = 30,
       timeZone,
-      locale = 'en-US',
+      locale: localeProp,
       min,
       max,
       disabledDates,
@@ -179,12 +180,12 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       portal = true,
       footer,
       triggerLabel,
-      previousLabel = 'Previous month',
-      nextLabel = 'Next month',
-      calendarLabel = 'Calendar',
-      timeLabel = 'Time',
-      endLabel = 'End date',
-      timeZoneLabel = 'Time zone: {zone}',
+      previousLabel: previousLabelProp,
+      nextLabel: nextLabelProp,
+      calendarLabel: calendarLabelProp,
+      timeLabel: timeLabelProp,
+      endLabel: endLabelProp,
+      timeZoneLabel: timeZoneLabelProp,
       classes = {},
       className,
       id: explicitId,
@@ -193,6 +194,14 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
     },
     ref,
   ) => {
+    const { t, locale: translatorLocale } = useTranslator();
+    const previousLabel = previousLabelProp ?? t('Previous month');
+    const nextLabel = nextLabelProp ?? t('Next month');
+    const calendarLabel = calendarLabelProp ?? t('Calendar');
+    const timeLabel = timeLabelProp ?? t('Time');
+    const endLabel = endLabelProp ?? t('End date');
+    const timeZoneLabel = timeZoneLabelProp ?? t('Time zone: {zone}');
+    const locale = localeProp ?? translatorLocale ?? 'en-US';
     const isReadonly = readonly ?? readOnly ?? false;
     const isInvalid = invalid || Boolean(error);
     const isRange = mode === 'range';
@@ -243,7 +252,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       invalid: isInvalid,
       placeholder,
       labels: {
-        trigger: triggerLabel ?? (hasTime ? 'Choose date and time' : 'Choose date'),
+        trigger: triggerLabel ?? (hasTime ? t('Choose date and time') : t('Choose date')),
         previous: previousLabel,
         next: nextLabel,
         calendar: calendarLabel,

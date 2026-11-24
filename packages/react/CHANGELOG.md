@@ -1,5 +1,26 @@
 # @artisanpack-ui/react
 
+## 2.1.0
+
+### Minor Changes
+
+- [#88](https://github.com/ArtisanPack-UI/react/pull/88) [`8debc2d`](https://github.com/ArtisanPack-UI/react/commit/8debc2dc1b47f82daaa4c0fc60ebcc40178ea8c1) Thanks [@ViewFromTheBox](https://github.com/ViewFromTheBox)! - Fill the gaps the ecommerce React ports need from the Table and the Laravel helpers.
+  - `Table` takes `rowLabel(row)` to name each row in the select and expand labels, such as "Select order #1048".
+  - `PaginatorLink` has the optional `page` number Laravel 12.23+ sends.
+  - New `LaravelSimplePaginator`, `LaravelCursorPaginator` and `LaravelResourcePaginator` types for `simplePaginate()`, `cursorPaginate()` and paginated API resource collections. `current_page_url` on the simple paginator is optional, since Laravel only sends it from 12.15.
+  - `InertiaPagination` accepts a paginated API resource collection (page details under `meta`), and `preserveQuery` keeps the current URL's search, filter and sort parameters when changing page.
+
+- [#90](https://github.com/ArtisanPack-UI/react/pull/90) [`45c7c11`](https://github.com/ArtisanPack-UI/react/commit/45c7c1173732b8dca5111514cab12d5cab5bd5b5) Thanks [@ViewFromTheBox](https://github.com/ViewFromTheBox)! - Translate the components' built-in text.
+  - New `TranslationProvider` and `useTranslator()` (also from `@artisanpack-ui/react/i18n`). Wrap the app in the provider with a locale and a catalogue, and every built-in accessible name, placeholder, empty state and message renders in that language. Without a provider the components stay in English, and a prop such as `closeLabel` still wins over the catalogue.
+  - Catalogues keyed by the English text ship under `@artisanpack-ui/react/lang/*.json` for `en`, `es`, `fr`, `de`, `pt_BR`, `ja`, `zh_CN`, `it` and `ar`. Spread one and add your own overrides: `messages={{ ...es, Close: 'Salir' }}`. A catalogue rebuilt with the same entries on every render doesn't re-render the components. The non-English catalogues are machine-translated first passes awaiting review by fluent speakers.
+  - Strings with plural forms use `|`-separated forms in CLDR order (zero, one, two, few, many, other), picked with `Intl.PluralRules` for the locale.
+  - `Breadcrumbs` names its overflow button in the singular for one hidden level: "Show 1 more level" (it was "Show 1 more levels").
+  - `DatePicker` and `Calendar` format dates in the provider's locale unless given their own `locale`.
+
+### Patch Changes
+
+- [#93](https://github.com/ArtisanPack-UI/react/pull/93) [`61918ab`](https://github.com/ArtisanPack-UI/react/commit/61918abc2594178701f84c875732bfeba37372bb) Thanks [@ViewFromTheBox](https://github.com/ViewFromTheBox)! - `SettingsPage`'s `labels` prop takes a new `apiKeyReveal` key that names the API key field's reveal button (default `Show password`). Before, the button always kept `Password`'s default name, so an app translating through `labels` alone couldn't change it.
+
 ## 2.0.0
 
 ### Major Changes

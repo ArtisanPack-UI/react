@@ -2,6 +2,7 @@ import { createRef, useState } from 'react';
 import { renderToString } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Select, type SelectProps } from '../../components/form/Select/Select';
 
@@ -220,5 +221,22 @@ describe('Select', () => {
     expect(container.querySelector('select > option[value="other"]')).not.toBeNull();
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: '1' } });
     expect(onValueChange).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('Select translations', () => {
+  it('translates the placeholder and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ 'Select…': 'Elige…' }}>
+        <Select label="Zone" options={['UTC']} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('option', { name: 'Elige…' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ 'Select…': 'Elige…' }}>
+        <Select label="Zone" options={['UTC']} placeholder="Pick one" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('option', { name: 'Pick one' })).toBeInTheDocument();
   });
 });

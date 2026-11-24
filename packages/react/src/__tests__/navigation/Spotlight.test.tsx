@@ -8,6 +8,7 @@ import {
   type SpotlightGroup,
   type SpotlightProps,
 } from '../../components/navigation/Spotlight/Spotlight';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof SpotlightProps)[] = [
   'open',
@@ -353,5 +354,22 @@ describe('Spotlight', () => {
     const { container } = render(<Spotlight open groups={groups} />);
     expect(container.querySelector('.apui-spotlight')).toBeNull();
     expect(document.body.querySelector('.apui-spotlight')).not.toBeNull();
+  });
+});
+
+describe('Spotlight translation', () => {
+  it('translates its built-in text and keeps explicit props', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Search…': 'Buscar…', Close: 'Cerrar', Navigate: 'Navegar' }}
+      >
+        <Spotlight open portal={false} groups={groups} selectLabel="Abrir" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('combobox')).toHaveAttribute('placeholder', 'Buscar…');
+    expect(screen.getByRole('button', { name: 'Esc, Cerrar' })).toBeInTheDocument();
+    expect(document.body).toHaveTextContent('Navegar');
+    expect(document.body).toHaveTextContent('Abrir');
   });
 });

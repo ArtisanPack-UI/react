@@ -26,6 +26,7 @@
       "@artisanpack-ui/react/chart": ["./packages/react/src/components/data/Chart/Chart"],
       "@artisanpack-ui/react/feedback": ["./packages/react/src/components/feedback"],
       "@artisanpack-ui/react/utility": ["./packages/react/src/components/utility"],
+      "@artisanpack-ui/react/i18n": ["./packages/react/src/i18n/translator"],
       "@artisanpack-ui/react-laravel": ["./packages/react-laravel/src"]
     }
   },

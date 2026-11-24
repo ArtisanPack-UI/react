@@ -9,6 +9,7 @@ import {
   type BreadcrumbItem,
   type BreadcrumbsProps,
 } from '../../components/navigation/Breadcrumbs/Breadcrumbs';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof BreadcrumbsProps)[] = [
   'items',
@@ -149,5 +150,38 @@ describe('Breadcrumbs', () => {
     const ref = createRef<HTMLElement>();
     render(<Breadcrumbs ref={ref} items={trail} />);
     expect(ref.current?.tagName).toBe('NAV');
+  });
+});
+
+describe('Breadcrumbs translation', () => {
+  it('names one hidden level in the singular in English', () => {
+    render(<Breadcrumbs items={trail.slice(0, 3)} maxItems={2} />);
+    expect(screen.getByRole('button', { name: 'Show 1 more level' })).toBeInTheDocument();
+  });
+
+  it('translates the landmark and pluralizes the overflow button', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{
+          Breadcrumb: 'Ruta de navegación',
+          'Show {count} more level|Show {count} more levels':
+            'Mostrar {count} nivel más|Mostrar {count} niveles más',
+        }}
+      >
+        <Breadcrumbs items={trail} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('navigation', { name: 'Ruta de navegación' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mostrar 2 niveles más' })).toBeInTheDocument();
+  });
+
+  it('keeps an explicit label', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ Breadcrumb: 'Ruta de navegación' }}>
+        <Breadcrumbs items={trail} label="Migas" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('navigation', { name: 'Migas' })).toBeInTheDocument();
   });
 });

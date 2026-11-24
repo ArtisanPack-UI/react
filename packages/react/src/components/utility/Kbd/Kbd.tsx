@@ -14,6 +14,7 @@ import { kbdKeys, type KbdLabels } from '@artisanpack-ui/behavior';
 import { useApplePlatform } from '@artisanpack-ui/behavior/react';
 import { forwardRef, useMemo, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, type PartClasses } from '../../../internal/parts';
 
 /** Key cap sizes. Emitted as `data-size`. */
@@ -57,7 +58,26 @@ export const Kbd = forwardRef<HTMLElement, KbdProps>(
     ref,
   ) => {
     const apple = useApplePlatform(platform);
-    const shown = useMemo(() => kbdKeys(keys, apple, labels), [keys, apple, labels]);
+    const { t } = useTranslator();
+    const names = useMemo<KbdLabels>(
+      () => ({
+        command: t('Command'),
+        control: t('Control'),
+        option: t('Option'),
+        shift: t('Shift'),
+        enter: t('Enter'),
+        tab: t('Tab'),
+        escape: t('Escape'),
+        backspace: t('Backspace'),
+        up: t('Up arrow'),
+        down: t('Down arrow'),
+        left: t('Left arrow'),
+        right: t('Right arrow'),
+        ...labels,
+      }),
+      [t, labels],
+    );
+    const shown = useMemo(() => kbdKeys(keys, apple, names), [keys, apple, names]);
 
     if (shown.length === 0) {
       return (

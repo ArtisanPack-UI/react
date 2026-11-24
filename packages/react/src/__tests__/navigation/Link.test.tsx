@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Link, type LinkProps } from '../../components/navigation/Link/Link';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof LinkProps)[] = [
   'href',
@@ -97,5 +98,34 @@ describe('Link', () => {
       </Link>,
     );
     expect(ref.current).toHaveClass('apui-link', 'r', 'extra');
+  });
+});
+
+describe('Link translation', () => {
+  it('translates the external-link announcement and keeps an explicit prop', () => {
+    const { container, rerender } = render(
+      <TranslationProvider
+        locale="es"
+        messages={{ '(opens in a new tab)': '(se abre en una pestaña nueva)' }}
+      >
+        <Link href="https://example.com" external>
+          Docs
+        </Link>
+      </TranslationProvider>,
+    );
+    expect(container.querySelector('.apui-sr-only')).toHaveTextContent(
+      '(se abre en una pestaña nueva)',
+    );
+    rerender(
+      <TranslationProvider
+        locale="es"
+        messages={{ '(opens in a new tab)': '(se abre en una pestaña nueva)' }}
+      >
+        <Link href="https://example.com" external externalLabel="(nueva pestaña)">
+          Docs
+        </Link>
+      </TranslationProvider>,
+    );
+    expect(container.querySelector('.apui-sr-only')).toHaveTextContent('(nueva pestaña)');
   });
 });

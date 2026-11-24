@@ -10,6 +10,7 @@
 
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -148,9 +149,9 @@ export const Stat = forwardRef<HTMLDivElement, StatProps>(
       color = 'neutral',
       emphasis = false,
       bare = false,
-      upLabel = 'Increase',
-      downLabel = 'Decrease',
-      flatLabel = 'No change',
+      upLabel: upLabelProp,
+      downLabel: downLabelProp,
+      flatLabel: flatLabelProp,
       classes = {},
       className,
       children,
@@ -158,6 +159,10 @@ export const Stat = forwardRef<HTMLDivElement, StatProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const upLabel = upLabelProp ?? t('Increase');
+    const downLabel = downLabelProp ?? t('Decrease');
+    const flatLabel = flatLabelProp ?? t('No change');
     const shownDelta = statDelta(delta, change);
     const shownTrend = statTrend(trend, change);
     const iconName = typeof icon === 'string' ? icon : undefined;

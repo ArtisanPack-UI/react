@@ -31,6 +31,7 @@ import {
   type CodeEditorTranslations,
 } from '@artisanpack-ui/behavior';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -204,21 +205,24 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
   ) => {
     const generated = useId();
     const id = explicitId ?? generated;
-    const t = codeEditorTranslations({
-      tabs: tabsLabel,
-      language: languageLabel,
-      position: positionLabel,
-      spaces: spacesLabel,
-      error: errorCountLabel,
-      errors: errorsCountLabel,
-      warning: warningCountLabel,
-      warnings: warningsCountLabel,
-      problems: problemsLabel,
-      line: lineLabel,
-      severityError: severityErrorLabel,
-      severityWarning: severityWarningLabel,
-      severityInfo: severityInfoLabel,
-      instructions: instructionsLabel,
+    const { t } = useTranslator();
+    const strings = codeEditorTranslations({
+      tabs: tabsLabel ?? t('Open files'),
+      language: languageLabel ?? t('Language'),
+      position: positionLabel ?? t('Ln :line, Col :column'),
+      spaces: spacesLabel ?? t('Spaces: :count'),
+      error: errorCountLabel ?? t(':count error'),
+      errors: errorsCountLabel ?? t(':count errors'),
+      warning: warningCountLabel ?? t(':count warning'),
+      warnings: warningsCountLabel ?? t(':count warnings'),
+      problems: problemsLabel ?? t('Problems'),
+      line: lineLabel ?? t('Line :line'),
+      severityError: severityErrorLabel ?? t('Error'),
+      severityWarning: severityWarningLabel ?? t('Warning'),
+      severityInfo: severityInfoLabel ?? t('Info'),
+      instructions:
+        instructionsLabel ??
+        t('Tab inserts indentation. To leave the editor, press Escape, then Tab.'),
     });
     const isReadonly = readonly ?? readOnly ?? false;
     const isInvalid = invalid || Boolean(error);
@@ -242,7 +246,7 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
     const lineTotal = gutterLines(code, rows);
     const severities = severityByLine(diagnostics);
     const activeLine = code.slice(0, caret).split('\n').length;
-    const problems = formatProblems(diagnostics, t);
+    const problems = formatProblems(diagnostics, strings);
     const languageName =
       language === undefined || language === ''
         ? undefined
@@ -323,7 +327,7 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
                   data-part="tabs"
                   id={`${id}-tabs`}
                   role="tablist"
-                  aria-label={t.tabs}
+                  aria-label={strings.tabs}
                   onKeyDown={tabsKeydown}
                 >
                   {tabList.map((item, index) => {
@@ -355,7 +359,7 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
                   data-scope="code-editor"
                   data-part="languageSelect"
                   id={`${id}-language`}
-                  aria-label={t.language}
+                  aria-label={strings.language}
                   value={language ?? ''}
                   disabled={disabled || undefined}
                   onChange={(event) => onLanguageChange?.(event.target.value)}
@@ -436,16 +440,16 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
               className={classes.diagnostics}
               data-scope="code-editor"
               data-part="diagnostics"
-              aria-label={t.problems}
+              aria-label={strings.problems}
             >
               {diagnostics.map((diagnostic, index) => {
                 const severity = diagnostic.severity ?? 'error';
                 const severityName =
                   severity === 'warning'
-                    ? t.severityWarning
+                    ? strings.severityWarning
                     : severity === 'info'
-                      ? t.severityInfo
-                      : t.severityError;
+                      ? strings.severityInfo
+                      : strings.severityError;
                 return (
                   <li
                     key={`${diagnostic.line}-${index}`}
@@ -456,7 +460,7 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
                   >
                     <IconSvg name={SEVERITY_ICONS[severity]} />
                     <span className="apui-sr-only">{severityName}:</span>
-                    <span>{t.line.split(':line').join(String(diagnostic.line))}</span>
+                    <span>{strings.line.split(':line').join(String(diagnostic.line))}</span>
                     <span>{diagnostic.message}</span>
                   </li>
                 );
@@ -465,8 +469,8 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
           ) : null}
           <div className={classes.status} data-scope="code-editor" data-part="status">
             {problems ? <span>{problems}</span> : null}
-            <span>{formatPosition(code, caret, t)}</span>
-            <span>{t.spaces.split(':count').join(String(Math.max(1, tabSize)))}</span>
+            <span>{formatPosition(code, caret, strings)}</span>
+            <span>{strings.spaces.split(':count').join(String(Math.max(1, tabSize)))}</span>
             {languageName ? <span>{languageName}</span> : null}
           </div>
         </div>
@@ -476,7 +480,7 @@ export const CodeEditor = forwardRef<HTMLTextAreaElement, CodeEditorProps>(
           data-part="instructions"
           id={`${id}-instructions`}
         >
-          {t.instructions}
+          {strings.instructions}
         </span>
         {hasHint ? (
           <p className={classes.hint} data-scope="code-editor" data-part="hint" id={`${id}-hint`}>

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Collapse, type CollapseProps } from '../../components/layout/Collapse/Collapse';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof CollapseProps)[] = [
   'open',
@@ -103,5 +104,24 @@ describe('Collapse', () => {
     expect(ref.current).toBe(container.querySelector('.apui-collapse'));
     expect(ref.current?.className).toBe('apui-collapse r');
     expect(screen.getByRole('button', { name: 'More' }).className).toBe('t');
+  });
+});
+
+describe('Collapse translation', () => {
+  it('translates the read-more text and keeps an explicit label', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ 'Read more': 'Leer más' }}>
+        <Collapse variant="read-more">Texto</Collapse>
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Leer más' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ 'Read more': 'Leer más' }}>
+        <Collapse variant="read-more" label="Ver todo">
+          Texto
+        </Collapse>
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Ver todo' })).toBeInTheDocument();
   });
 });

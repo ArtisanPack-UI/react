@@ -14,6 +14,7 @@
 import { lightboxCounter, useLightbox } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 import { Portal } from '../../../internal/portal';
 import { isSafeMediaSrc } from '../../../internal/url';
@@ -122,12 +123,12 @@ export const ImageGallery = forwardRef<HTMLDivElement, ImageGalleryProps>(
       downloadable = false,
       modal = true,
       portal = true,
-      closeLabel = 'Close',
-      previousLabel = 'Previous photo',
-      nextLabel = 'Next photo',
-      downloadLabel = 'Download',
-      counterLabel = '{index} / {count}',
-      thumbsLabel = 'Photos',
+      closeLabel: closeLabelProp,
+      previousLabel: previousLabelProp,
+      nextLabel: nextLabelProp,
+      downloadLabel: downloadLabelProp,
+      counterLabel: counterLabelProp,
+      thumbsLabel: thumbsLabelProp,
       classes = {},
       className,
       style,
@@ -135,6 +136,13 @@ export const ImageGallery = forwardRef<HTMLDivElement, ImageGalleryProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const closeLabel = closeLabelProp ?? t('Close');
+    const previousLabel = previousLabelProp ?? t('Previous photo');
+    const nextLabel = nextLabelProp ?? t('Next photo');
+    const downloadLabel = downloadLabelProp ?? t('Download');
+    const counterLabel = counterLabelProp ?? t('{index} / {count}');
+    const thumbsLabel = thumbsLabelProp ?? t('Photos');
     const list = images ?? [];
     const api = useLightbox({
       count: list.length,

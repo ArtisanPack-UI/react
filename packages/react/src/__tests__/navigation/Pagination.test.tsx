@@ -8,6 +8,7 @@ import {
   paginationRange,
   type PaginationProps,
 } from '../../components/navigation/Pagination/Pagination';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof PaginationProps)[] = [
   'page',
@@ -126,5 +127,28 @@ describe('Pagination', () => {
     const ref = createRef<HTMLElement>();
     render(<Pagination ref={ref} pageCount={2} />);
     expect(ref.current?.tagName).toBe('NAV');
+  });
+});
+
+describe('Pagination translation', () => {
+  it('translates its built-in text and keeps explicit props', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{
+          Pagination: 'Paginación',
+          'Previous page': 'Página anterior',
+          'Page {page}': 'Página {page}',
+          'Showing {from}–{to} of {total}': 'Mostrando {from}–{to} de {total}',
+        }}
+      >
+        <Pagination page={2} total={30} perPage={10} summary nextLabel="Siguiente" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('navigation', { name: 'Paginación' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Página anterior' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Siguiente' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Página 3' })).toBeInTheDocument();
+    expect(screen.getByText('Mostrando 11–20 de 30')).toBeInTheDocument();
   });
 });

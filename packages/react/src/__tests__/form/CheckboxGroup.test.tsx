@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   CheckboxGroup,
@@ -109,5 +110,22 @@ describe('CheckboxGroup', () => {
     const { container } = render(<CheckboxGroup id="g" options={['A', 'B']} error="Pick one." />);
     expect(container.firstElementChild).toHaveAttribute('aria-describedby', 'g-error');
     expect(container.querySelectorAll('.apui-checkbox[data-invalid]')).toHaveLength(2);
+  });
+});
+
+describe('CheckboxGroup translations', () => {
+  it('translates select all and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ 'Select all': 'Seleccionar todo' }}>
+        <CheckboxGroup options={topics} selectAll />
+      </TranslationProvider>,
+    );
+    expect(screen.getByLabelText('Seleccionar todo')).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ 'Select all': 'Seleccionar todo' }}>
+        <CheckboxGroup options={topics} selectAll selectAllLabel="Todos" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByLabelText('Todos')).toBeInTheDocument();
   });
 });

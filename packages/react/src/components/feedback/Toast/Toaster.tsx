@@ -30,12 +30,13 @@ import {
   type HTMLAttributes,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, devWarnOnce, type PartClasses } from '../../../internal/parts';
 import { Portal } from '../../../internal/portal';
 import { Button } from '../../form/Button/Button';
-import { TOAST_CLOSE_LABEL, ToastLayout, type ToastPart } from './Toast';
+import { ToastLayout, type ToastPart } from './Toast';
 
 export type { ToastOptions, ToasterOptions } from '@artisanpack-ui/behavior/react';
 export type { ToasterInstance };
@@ -258,12 +259,15 @@ function ToasterRegion({
   duration,
   offsets,
   toaster,
-  label = 'Notifications',
-  closeLabel = TOAST_CLOSE_LABEL,
+  label: labelProp,
+  closeLabel: closeLabelProp,
   classes = {},
   className,
   ...rest
 }: ToasterProps & { toaster: ToasterInstance }) {
+  const { t } = useTranslator();
+  const label = labelProp ?? t('Notifications');
+  const closeLabel = closeLabelProp ?? t('Dismiss notification');
   useClientLayoutEffect(
     () => configureToaster(toaster, { placement, max, gap, offsets, duration }),
     [toaster, placement, max, gap, offsets, duration],

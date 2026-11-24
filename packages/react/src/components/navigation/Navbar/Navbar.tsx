@@ -21,6 +21,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 import { safeHref } from '../../../internal/url';
 
@@ -86,7 +87,7 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
       links,
       search,
       actions,
-      label = 'Main',
+      label: labelProp,
       classes = {},
       className,
       children,
@@ -94,6 +95,8 @@ export const Navbar = forwardRef<HTMLElement, NavbarProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Main');
     const hasLinks = (links?.length ?? 0) > 0 || Children.count(children) > 0;
     return (
       <NavbarContext.Provider value={classes}>

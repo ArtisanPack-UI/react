@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { createTranslator, useTranslator, type TranslateFunction } from '../../../i18n/translator';
 import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
@@ -55,16 +56,21 @@ export interface PasswordLabels {
   unmet: string;
 }
 
-/** The English defaults for {@link PasswordLabels}. */
-export const PASSWORD_LABELS: PasswordLabels = {
-  strength: 'Strength',
-  weak: 'Weak',
-  fair: 'Fair',
-  good: 'Good',
-  strong: 'Strong',
-  met: 'Met',
-  unmet: 'Not met',
-};
+/** {@link PasswordLabels} through a translate function. */
+export function passwordLabels(t: TranslateFunction): PasswordLabels {
+  return {
+    strength: t('Strength'),
+    weak: t('Weak'),
+    fair: t('Fair'),
+    good: t('Good'),
+    strong: t('Strong'),
+    met: t('Met'),
+    unmet: t('Not met'),
+  };
+}
+
+/** The English defaults for {@link PasswordLabels}. A `TranslationProvider` translates them. */
+export const PASSWORD_LABELS: PasswordLabels = passwordLabels(createTranslator().t);
 
 const LEVEL_NAMES = ['', 'weak', 'fair', 'good', 'strong'] as const;
 
@@ -175,7 +181,7 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
       leadingIcon,
       strengthMeter = false,
       requirements,
-      revealLabel = 'Show password',
+      revealLabel: revealLabelProp,
       labels,
       classes = {},
       icon,
@@ -191,7 +197,9 @@ export const Password = forwardRef<HTMLInputElement, PasswordProps>(
   ) => {
     const isReadonly = readonly ?? readOnly ?? false;
     const isInvalid = invalid || Boolean(error);
-    const text = { ...PASSWORD_LABELS, ...labels };
+    const { t } = useTranslator();
+    const revealLabel = revealLabelProp ?? t('Show password');
+    const text = { ...passwordLabels(t), ...labels };
     const [revealed, setRevealed] = useState(false);
     const [uncontrolled, setUncontrolled] = useState(defaultValue ?? '');
     const isControlled = value !== undefined;

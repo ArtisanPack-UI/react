@@ -11,6 +11,7 @@ export default defineConfig({
     feedback: 'src/components/feedback/index.ts',
     utility: 'src/components/utility/index.ts',
     ai: 'src/components/ai/index.ts',
+    i18n: 'src/i18n/translator.tsx',
   },
   format: ['esm'],
   // The components use hooks and browser APIs, so every module is a client

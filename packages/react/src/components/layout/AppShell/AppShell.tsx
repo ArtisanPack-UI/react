@@ -21,6 +21,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -87,9 +88,9 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(
       sidebar,
       header,
       footer,
-      label = 'Sidebar',
-      skipLabel = 'Skip to main content',
-      collapseLabel = 'Collapse sidebar',
+      label: labelProp,
+      skipLabel: skipLabelProp,
+      collapseLabel: collapseLabelProp,
       classes = {},
       className,
       style,
@@ -98,6 +99,10 @@ export const AppShell = forwardRef<HTMLDivElement, AppShellProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Sidebar');
+    const skipLabel = skipLabelProp ?? t('Skip to main content');
+    const collapseLabel = collapseLabelProp ?? t('Collapse sidebar');
     const id = useId();
     const sidebarId = `${id}-sidebar`;
     const mainId = `${id}-main`;
