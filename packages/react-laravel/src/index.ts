@@ -48,5 +48,8 @@ export type {
   AuthProps,
   SharedPageProps,
   LaravelPaginator,
+  LaravelSimplePaginator,
+  LaravelCursorPaginator,
+  LaravelResourcePaginator,
   PaginatorLink,
 } from './types';

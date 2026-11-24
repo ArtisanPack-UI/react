@@ -198,6 +198,40 @@ describe('Table', () => {
     expect(bodyRows(container)[2]).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('names rows by rowLabel in the select and expand labels', () => {
+    render(
+      <Table
+        headers={headers}
+        rows={rows}
+        selectable
+        expandable
+        rowLabel={(row: Row) => `order #${row.id}`}
+        renderExpansion={() => null}
+      />,
+    );
+    expect(screen.getByRole('checkbox', { name: 'Select order #2' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show details for order #2' })).toBeInTheDocument();
+  });
+
+  it('inserts row labels literally, including $ patterns', () => {
+    render(<Table headers={headers} rows={rows} selectable rowLabel={() => 'A $& B'} />);
+    expect(screen.getAllByRole('checkbox', { name: 'Select A $& B' })).toHaveLength(3);
+  });
+
+  it('falls back to the first column when rowLabel is blank', () => {
+    render(<Table headers={headers} rows={rows} selectable rowLabel={() => '  '} />);
+    expect(screen.getByRole('checkbox', { name: 'Select MTCH' })).toBeInTheDocument();
+  });
+
+  it('keeps selected keys from other pages when toggling the page', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <Table headers={headers} rows={rows} selectable value={[99]} onValueChange={onValueChange} />,
+    );
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select all' }));
+    expect(onValueChange).toHaveBeenLastCalledWith([99, 1, 2, 3]);
+  });
+
   it('expands rows with a named button', async () => {
     const onExpandedChange = vi.fn();
     const { container } = render(
