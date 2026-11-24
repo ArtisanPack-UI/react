@@ -13,6 +13,7 @@
 import { type CollapseApi, useCollapse } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -69,6 +70,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
     const readMore = variant === 'read-more';
     const api: CollapseApi = useCollapse({
       ...(open !== undefined ? { open } : { defaultOpen }),
@@ -76,8 +78,8 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       disabled: disabled || undefined,
       onOpenChange: ({ open: next }) => onOpenChange?.(next),
     });
-    const closedText = hasContent(label) ? label : readMore ? 'Read more' : undefined;
-    const openText = openLabel ?? (readMore ? 'Show less' : undefined);
+    const closedText = hasContent(label) ? label : readMore ? t('Read more') : undefined;
+    const openText = openLabel ?? (readMore ? t('Show less') : undefined);
     const text = api.open && hasContent(openText) ? openText : closedText;
 
     const trigger = (

@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Sparkline, type SparklineProps } from '../../components/data/Sparkline/Sparkline';
 
@@ -76,5 +77,21 @@ describe('Sparkline', () => {
     expect(svg.getAttribute('aria-label')).toBe('Tendencia: 2');
     expect(svg.getAttribute('viewBox')).toBe('0 0 140 48');
     expect(container.querySelector('[data-part="line"]')!.getAttribute('class')).toBe('l');
+  });
+});
+
+describe('Sparkline translations', () => {
+  it('translates the label and keeps an explicit one', () => {
+    const { container } = render(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Trend from {first} to {latest}': 'Tendencia de {first} a {latest}' }}
+      >
+        <Sparkline data={[3, 9]} />
+        <Sparkline data={[1, 2]} label="Up from {first} to {latest}" />
+      </TranslationProvider>,
+    );
+    expect(container.querySelector('[aria-label="Tendencia de 3 a 9"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Up from 1 to 2"]')).not.toBeNull();
   });
 });

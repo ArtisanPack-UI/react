@@ -1,6 +1,7 @@
 import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Signature, type SignatureProps } from '../../components/form/Signature/Signature';
 
@@ -163,5 +164,24 @@ describe('Signature', () => {
     const ref = createRef<HTMLDivElement>();
     render(<Signature ref={ref} aria-label="Sign" />);
     expect(ref.current).toHaveClass('apui-signature');
+  });
+});
+
+describe('Signature translations', () => {
+  it('translates the mode names and placeholder and lets a prop win', () => {
+    const messages = { Draw: 'Dibujar', 'Sign above the line': 'Firma sobre la línea' };
+    const { container, rerender } = render(
+      <TranslationProvider locale="es" messages={messages}>
+        <Signature aria-label="Sign" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Dibujar' })).toBeInTheDocument();
+    expect(container).toHaveTextContent('Firma sobre la línea');
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <Signature aria-label="Sign" drawLabel="Trazar" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Trazar' })).toBeInTheDocument();
   });
 });

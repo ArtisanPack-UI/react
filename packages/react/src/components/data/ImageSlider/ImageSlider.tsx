@@ -13,6 +13,7 @@
 import { useCarousel } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -114,14 +115,14 @@ export const ImageSlider = forwardRef<HTMLDivElement, ImageSliderProps>(
       autoplay = false,
       interval = 5000,
       thumbnails = false,
-      label = 'Photos',
-      previousLabel = 'Previous photo',
-      nextLabel = 'Next photo',
-      indicatorLabel = 'Photo {index}',
-      slideLabel = '{index} of {count}',
-      counterLabel = '{index} / {count}',
-      playLabel = 'Start slide rotation',
-      pauseLabel = 'Stop slide rotation',
+      label: labelProp,
+      previousLabel: previousLabelProp,
+      nextLabel: nextLabelProp,
+      indicatorLabel: indicatorLabelProp,
+      slideLabel: slideLabelProp,
+      counterLabel: counterLabelProp,
+      playLabel: playLabelProp,
+      pauseLabel: pauseLabelProp,
       classes = {},
       className,
       style,
@@ -129,6 +130,15 @@ export const ImageSlider = forwardRef<HTMLDivElement, ImageSliderProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Photos');
+    const previousLabel = previousLabelProp ?? t('Previous photo');
+    const nextLabel = nextLabelProp ?? t('Next photo');
+    const indicatorLabel = indicatorLabelProp ?? t('Photo {index}');
+    const slideLabel = slideLabelProp ?? t('{index} of {count}');
+    const playLabel = playLabelProp ?? t('Start slide rotation');
+    const pauseLabel = pauseLabelProp ?? t('Stop slide rotation');
+    const counterLabel = counterLabelProp ?? t('{index} / {count}');
     const list = images ?? [];
     const api = useCarousel({
       slideCount: list.length,

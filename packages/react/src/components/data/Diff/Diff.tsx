@@ -9,16 +9,10 @@
  * @packageDocumentation
  */
 
-import {
-  DIFF_COUNTS_LABEL,
-  DIFF_EMPTY_LABEL,
-  diffCountsLabel,
-  diffText,
-  splitRows,
-  type DiffSegment,
-} from '@artisanpack-ui/behavior';
+import { diffCountsLabel, diffText, splitRows, type DiffSegment } from '@artisanpack-ui/behavior';
 import { forwardRef, useMemo, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -146,8 +140,8 @@ export const Diff = forwardRef<HTMLDivElement, DiffProps>(
       view = 'unified',
       wordLevel = true,
       context = 3,
-      countsLabel = DIFF_COUNTS_LABEL,
-      emptyLabel = DIFF_EMPTY_LABEL,
+      countsLabel: countsLabelProp,
+      emptyLabel: emptyLabelProp,
       actions,
       classes = {},
       className,
@@ -155,6 +149,9 @@ export const Diff = forwardRef<HTMLDivElement, DiffProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const countsLabel = countsLabelProp ?? t('{additions} additions, {deletions} deletions');
+    const emptyLabel = emptyLabelProp ?? t('No changes');
     const result = useMemo(
       () => diffText(oldContent, newContent, { context, wordLevel }),
       [oldContent, newContent, context, wordLevel],

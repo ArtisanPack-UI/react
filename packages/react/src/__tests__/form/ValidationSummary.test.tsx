@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   ValidationSummary,
@@ -83,5 +84,36 @@ describe('ValidationSummary', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Bad email.' }));
     expect(document.activeElement).toBe(wired);
     wired.remove();
+  });
+});
+
+describe('ValidationSummary translations', () => {
+  it('translates the title with plural forms and lets a title win', () => {
+    const messages = {
+      'Fix {count} field|Fix {count} fields': 'Corrige {count} campo|Corrige {count} campos',
+    };
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={messages}>
+        <ValidationSummary errors={{ a: 'A', b: 'B' }} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Corrige 2 campos')).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <ValidationSummary errors={{ a: 'A' }} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Corrige 1 campo')).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <ValidationSummary errors={{ a: 'A' }} title="Revisa" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Revisa')).toBeInTheDocument();
+  });
+
+  it('keeps the English plural forms without a provider', () => {
+    render(<ValidationSummary errors={{ a: 'A', b: 'B' }} />);
+    expect(screen.getByText('Fix 2 fields')).toBeInTheDocument();
   });
 });

@@ -10,6 +10,7 @@
 
 import { forwardRef, type HTMLAttributes } from 'react';
 
+import { useTranslator, type TranslateFunction } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, type PartClasses } from '../../../internal/parts';
 import { isSafeMediaSrc } from '../../../internal/url';
@@ -48,11 +49,17 @@ export const AVATAR_HASH_COLORS: readonly AvatarColor[] = [
   'info',
 ];
 
-const STATUS_WORDS: Record<AvatarStatus, string> = {
-  online: 'Online',
-  away: 'Away',
-  offline: 'Offline',
-};
+/** The status's built-in hidden text, translated. */
+function statusWord(status: AvatarStatus, t: TranslateFunction): string {
+  switch (status) {
+    case 'online':
+      return t('Online');
+    case 'away':
+      return t('Away');
+    default:
+      return t('Offline');
+  }
+}
 
 /** Up to two letters from a name: the first letters of its first and last words, uppercased. */
 export function avatarInitials(name: string | undefined): string {
@@ -130,11 +137,12 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
     const letters = initials?.trim() ? initials.trim() : avatarInitials(name);
     const iconName = icon ? icon : letters === '' ? 'user' : undefined;
     const image = src && isSafeMediaSrc(src) ? src : undefined;
     const base = alt?.trim() ? alt.trim() : (name ?? '').trim();
-    const words = status ? (statusLabel ? statusLabel : STATUS_WORDS[status]) : undefined;
+    const words = status ? (statusLabel ? statusLabel : statusWord(status, t)) : undefined;
     const label = base === '' ? '' : words ? `${base} (${words})` : base;
 
     return (
@@ -217,19 +225,8 @@ export interface AvatarGroupProps extends HTMLAttributes<HTMLSpanElement> {
  * ```
  */
 export const AvatarGroup = forwardRef<HTMLSpanElement, AvatarGroupProps>(
-  (
-    {
-      avatars = [],
-      max,
-      size = 'md',
-      label,
-      moreLabel = '{count} more',
-      className,
-      children,
-      ...rest
-    },
-    ref,
-  ) => {
+  ({ avatars = [], max, size = 'md', label, moreLabel, className, children, ...rest }, ref) => {
+    const { tChoice } = useTranslator();
     const shown = max !== undefined && max >= 0 ? avatars.slice(0, max) : avatars;
     const hidden = avatars.length - shown.length;
     return (
@@ -246,7 +243,11 @@ export const AvatarGroup = forwardRef<HTMLSpanElement, AvatarGroupProps>(
         {hidden > 0 ? (
           <Avatar
             initials={`+${hidden}`}
-            alt={moreLabel.replace('{count}', String(hidden))}
+            alt={
+              moreLabel !== undefined
+                ? moreLabel.replace('{count}', String(hidden))
+                : tChoice('{count} more', hidden)
+            }
             color="neutral"
             size={size}
           />

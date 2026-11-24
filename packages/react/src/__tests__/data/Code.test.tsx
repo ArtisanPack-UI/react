@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Code, type CodeProps } from '../../components/data/Code/Code';
 
@@ -143,5 +144,19 @@ describe('Code', () => {
     expect(root.className).toBe('apui-code');
     expect(root.hasAttribute('data-inline')).toBe(true);
     expect(root.textContent).toBe('data-theme="dark"');
+  });
+});
+
+describe('Code translations', () => {
+  it('translates the copy button and the fallback name, keeping explicit labels', () => {
+    const { container } = render(
+      <TranslationProvider locale="es" messages={{ Copy: 'Copiar', Code: 'Código' }}>
+        <Code code="x" />
+        <Code code="y" copyLabel="Duplicate" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Copiar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Duplicate' })).toBeInTheDocument();
+    expect(container.querySelector('[aria-label="Código"]')).not.toBeNull();
   });
 });

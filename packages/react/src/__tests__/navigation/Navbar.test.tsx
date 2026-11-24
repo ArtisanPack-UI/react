@@ -9,6 +9,7 @@ import {
   type NavbarLinkData,
   type NavbarProps,
 } from '../../components/navigation/Navbar/Navbar';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof NavbarProps)[] = [
   'layout',
@@ -110,5 +111,26 @@ describe('Navbar', () => {
     expect(container.innerHTML).not.toContain('javascript:');
     links[1]!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(onClick).not.toHaveBeenCalled();
+  });
+});
+
+describe('Navbar translation', () => {
+  it('translates the links landmark and keeps an explicit label', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ Main: 'Principal' }}>
+        <Navbar>
+          <NavbarItem href="/">Inicio</NavbarItem>
+        </Navbar>
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ Main: 'Principal' }}>
+        <Navbar label="Sitio">
+          <NavbarItem href="/">Inicio</NavbarItem>
+        </Navbar>
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('navigation', { name: 'Sitio' })).toBeInTheDocument();
   });
 });

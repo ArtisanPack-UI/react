@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { AppShell, type AppShellProps } from '../../components/layout/AppShell/AppShell';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof AppShellProps)[] = [
   'collapsed',
@@ -93,5 +94,26 @@ describe('AppShell', () => {
     expect(screen.getByRole('complementary', { name: 'Barre latérale' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Réduire' })).toBeTruthy();
     expect(screen.getByText('Aller au contenu')).toBeTruthy();
+  });
+});
+
+describe('AppShell translation', () => {
+  it('translates its built-in text and keeps explicit props', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{
+          'Skip to main content': 'Saltar al contenido principal',
+          'Collapse sidebar': 'Contraer la barra lateral',
+        }}
+      >
+        <AppShell collapsible sidebar={<p>Menú</p>} label="Lateral">
+          Contenido
+        </AppShell>
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Saltar al contenido principal')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Contraer la barra lateral' })).toBeInTheDocument();
+    expect(document.querySelector('[aria-label="Lateral"]')).not.toBeNull();
   });
 });

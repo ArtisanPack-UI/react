@@ -12,7 +12,6 @@
  */
 
 import {
-  CALENDAR_LABELS,
   CALENDAR_MAX_EVENTS,
   calendarGridKeydown,
   calendarModel,
@@ -35,6 +34,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator, type TranslateFunction } from '../../../i18n/translator';
 import { cx, devWarnOnce, flag, type PartClasses } from '../../../internal/parts';
 import { safeHref } from '../../../internal/url';
 import { Button } from '../../form/Button/Button';
@@ -84,7 +84,7 @@ export interface CalendarProps extends Omit<
   events?: readonly CalendarEvent[];
   /** The first day of the week, 0 (Sunday) to 6. Follows the locale unless set. */
   weekStartsOn?: number;
-  /** BCP 47 locale for names and the first day of the week. @defaultValue `'en-US'` */
+  /** BCP 47 locale for names and the first day of the week. Defaults to the `TranslationProvider`'s locale, else `'en-US'`. */
   locale?: string;
   /** IANA zone for today and for times with Z or an offset. @defaultValue `'UTC'` */
   timeZone?: string;
@@ -135,6 +135,26 @@ export interface CalendarProps extends Omit<
   renderDay?: (date: Date, events: CalendarEvent[]) => ReactNode;
 }
 
+/** The calendar's built-in text in the current locale. */
+function calendarLabels(t: TranslateFunction): CalendarLabels {
+  return {
+    today: t('Today'),
+    previous: t('Previous'),
+    next: t('Next'),
+    views: t('Calendar view'),
+    month: t('Month'),
+    week: t('Week'),
+    day: t('Day'),
+    agenda: t('Agenda'),
+    allDay: t('All day'),
+    more: t('+{count} more'),
+    showMore: t('Show {count} more events on {date}'),
+    newEvent: t('New event'),
+    empty: t('No events'),
+    legend: t('Categories'),
+  };
+}
+
 const VIEWS: readonly CalendarView[] = ['month', 'week', 'day', 'agenda'];
 
 const isoOf = (date: Date) =>
@@ -157,7 +177,7 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       today,
       events = [],
       weekStartsOn,
-      locale = 'en-US',
+      locale: localeProp,
       timeZone,
       maxEvents = CALENDAR_MAX_EVENTS,
       creatable = false,
@@ -184,6 +204,8 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     },
     ref,
   ) => {
+    const { t, locale: providerLocale } = useTranslator();
+    const locale = localeProp ?? providerLocale ?? 'en-US';
     const generated = useId();
     const id = idProp ?? `apui-calendar-${generated.replace(/:/g, '')}`;
     if (renderDay)
@@ -216,9 +238,9 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
           locale,
           timeZone,
           maxEvents,
-          labels: { ...CALENDAR_LABELS, ...labels },
+          labels: { ...calendarLabels(t), ...labels },
         }),
-      [view, shownDate, today, events, weekStart, locale, timeZone, maxEvents, labels],
+      [view, shownDate, today, events, weekStart, locale, timeZone, maxEvents, labels, t],
     );
     const text = model.labels;
     const period = `${model.view}:${model.date}`;

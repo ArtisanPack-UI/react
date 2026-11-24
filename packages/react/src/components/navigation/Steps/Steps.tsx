@@ -19,6 +19,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -111,8 +112,8 @@ export const Steps = forwardRef<HTMLOListElement, StepsProps>(
       orientation = 'horizontal',
       clickable = false,
       label,
-      completeLabel = 'Completed',
-      errorLabel = 'Error',
+      completeLabel: completeLabelProp,
+      errorLabel: errorLabelProp,
       classes = {},
       className,
       onValueChange,
@@ -121,6 +122,9 @@ export const Steps = forwardRef<HTMLOListElement, StepsProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const completeLabel = completeLabelProp ?? t('Completed');
+    const errorLabel = errorLabelProp ?? t('Error');
     const fromData = (steps ?? []).map((step, index) => (
       <Step
         key={`apui-step-${index}`}
@@ -163,6 +167,7 @@ Steps.displayName = 'Steps';
 export const Step = forwardRef<HTMLLIElement, StepProps>(
   ({ title, description, state, icon, className, children, ...rest }, ref) => {
     const steps = useContext(StepsContext);
+    const { t } = useTranslator();
     const number = useContext(StepNumberContext);
     const classes = steps?.classes ?? {};
 
@@ -177,9 +182,9 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(
       icon ?? (resolved === 'complete' ? 'check' : resolved === 'error' ? 'x' : undefined);
     const stateLabel =
       resolved === 'complete'
-        ? (steps?.completeLabel ?? 'Completed')
+        ? (steps?.completeLabel ?? t('Completed'))
         : resolved === 'error'
-          ? (steps?.errorLabel ?? 'Error')
+          ? (steps?.errorLabel ?? t('Error'))
           : null;
     const titleContent = hasContent(children) ? children : title;
     const isButton = resolved === 'complete' && steps?.clickable === true;

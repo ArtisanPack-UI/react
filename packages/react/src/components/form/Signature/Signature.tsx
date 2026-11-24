@@ -29,6 +29,7 @@ import {
   type SignatureTranslations,
 } from '@artisanpack-ui/behavior';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -176,17 +177,19 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
   ) => {
     const generated = useId();
     const id = explicitId ?? generated;
-    const t = signatureTranslations({
-      modes: modesLabel,
-      draw: drawLabel,
-      type: typeLabel,
-      upload: uploadLabel,
-      pad: padLabel,
-      typed: typedLabel,
-      uploadTrigger: uploadTriggerLabel,
-      undo: undoLabel,
-      clear: clearLabel,
-      cleared: clearedLabel,
+    const { t } = useTranslator();
+    const strings = signatureTranslations({
+      modes: modesLabel ?? t('Signature method'),
+      draw: drawLabel ?? t('Draw'),
+      type: typeLabel ?? t('Type'),
+      upload: uploadLabel ?? t('Upload'),
+      pad: padLabel ?? t('Signature pad. Draw with a mouse, finger or stylus, or choose Type.'),
+      typed: typedLabel ?? t('Type your full name'),
+      uploadTrigger: uploadTriggerLabel ?? t('Choose an image'),
+      undo: undoLabel ?? t('Undo stroke'),
+      clear: clearLabel ?? t('Clear'),
+      cleared: clearedLabel ?? t('Signature cleared.'),
+      placeholder: t('Sign above the line'),
     });
     const modes = signatureModes(modesProp);
     const [mode, setMode] = useState<SignatureMode>(() => initialSignatureMode(modeProp, modes));
@@ -287,7 +290,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
       pad.current?.clear(true);
       if (current !== '') commit('');
       setAnnouncement('');
-      requestAnimationFrame(() => setAnnouncement(t.cleared));
+      requestAnimationFrame(() => setAnnouncement(strings.cleared));
     };
 
     return (
@@ -298,7 +301,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
         className={cx('apui-signature', classes.root, className)}
         role="group"
         aria-labelledby={hasLabel ? `${id}-label` : undefined}
-        aria-label={hasLabel ? undefined : t.pad}
+        aria-label={hasLabel ? undefined : strings.pad}
         aria-describedby={describedBy}
         data-mode={mode}
         data-pen-color={penColor}
@@ -330,7 +333,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
           data-scope="signature"
           data-part="modes"
           role="group"
-          aria-label={t.modes}
+          aria-label={strings.modes}
           id={`${id}-modes`}
         >
           {modes.map((item) => (
@@ -346,7 +349,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
               disabled={disabled || undefined}
               onClick={() => choose(item)}
             >
-              {t[item]}
+              {strings[item]}
             </button>
           ))}
         </div>
@@ -367,7 +370,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
             data-part="ink"
             id={`${id}-ink`}
             role="img"
-            aria-label={t.pad}
+            aria-label={strings.pad}
             hidden={mode === 'type'}
           />
           <input
@@ -377,7 +380,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
             data-scope="signature"
             data-part="typed"
             id={`${id}-typed`}
-            aria-label={t.typed}
+            aria-label={strings.typed}
             autoComplete="name"
             maxLength={255}
             value={typed}
@@ -403,7 +406,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
                 onChange={(event) => void upload(event)}
               />
               <IconSvg name="upload" />
-              <span>{t.uploadTrigger}</span>
+              <span>{strings.uploadTrigger}</span>
             </label>
           ) : null}
           <div
@@ -419,7 +422,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
               data-scope="signature"
               data-part="undo"
               id={`${id}-undo`}
-              aria-label={t.undo}
+              aria-label={strings.undo}
               disabled={!canUndo || disabled}
               hidden={mode !== 'draw'}
               onClick={() => pad.current?.undo()}
@@ -436,7 +439,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
               onClick={clear}
             >
               <IconSvg name="eraser" />
-              <span>{t.clear}</span>
+              <span>{strings.clear}</span>
             </button>
           </div>
           <span
@@ -445,7 +448,7 @@ export const Signature = forwardRef<HTMLDivElement, SignatureProps>(
             data-part="placeholder"
             aria-hidden="true"
           >
-            {placeholder || t.placeholder}
+            {placeholder || strings.placeholder}
           </span>
         </div>
         <input type="hidden" name={name} value={current} />

@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { CodeEditor, type CodeEditorProps } from '../../components/form/CodeEditor/CodeEditor';
 
@@ -197,5 +198,24 @@ describe('CodeEditor', () => {
     expect(ref.current).toBeDisabled();
     expect(container.firstElementChild).toHaveClass('apui-code-editor', 'mt-3');
     expect(container.firstElementChild).toHaveAttribute('data-readonly', '');
+  });
+});
+
+describe('CodeEditor translations', () => {
+  it('translates the instructions and lets a prop win', () => {
+    const instructions = 'Tab inserts indentation. To leave the editor, press Escape, then Tab.';
+    const { container, rerender } = render(
+      <TranslationProvider locale="es" messages={{ [instructions]: 'Tab sangra.' }}>
+        <CodeEditor aria-label="Code" defaultValue="" />
+      </TranslationProvider>,
+    );
+    expect(container).toHaveTextContent('Tab sangra.');
+    rerender(
+      <TranslationProvider locale="es" messages={{ [instructions]: 'Tab sangra.' }}>
+        <CodeEditor aria-label="Code" defaultValue="" instructionsLabel="Usa Tab." />
+      </TranslationProvider>,
+    );
+    expect(container).toHaveTextContent('Usa Tab.');
+    expect(container).not.toHaveTextContent('Tab sangra.');
   });
 });

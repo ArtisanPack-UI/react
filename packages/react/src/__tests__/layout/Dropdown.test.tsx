@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Dropdown, DropdownItem } from '../../components/layout/Dropdown/Dropdown';
+import { TranslationProvider } from '../../i18n/translator';
 
 const panel = () => document.querySelector('.apui-dropdown-menu') as HTMLElement;
 
@@ -116,5 +117,22 @@ describe('Dropdown (deprecated alias of DropdownMenu)', () => {
     );
     await interact(() => fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' })));
     expect(onSelect).toHaveBeenCalledWith('edit');
+  });
+});
+
+describe('Dropdown translation', () => {
+  it('translates the default trigger label and keeps an explicit one', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ Options: 'Opciones' }}>
+        <Dropdown />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Opciones' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ Options: 'Opciones' }}>
+        <Dropdown label="Más" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Más' })).toBeInTheDocument();
   });
 });

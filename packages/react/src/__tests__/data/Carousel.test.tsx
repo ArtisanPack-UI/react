@@ -2,6 +2,7 @@ import { createRef, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Carousel,
@@ -353,5 +354,23 @@ describe('Carousel', () => {
       rerender(<Carousel slides={SLIDES} index={3} onIndexChange={onIndexChange} />);
       expect(current(container)).toBe(3);
     });
+  });
+});
+
+describe('Carousel translations', () => {
+  it('translates the controls through the provider and keeps explicit labels', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{
+          'Previous slide': 'Diapositiva anterior',
+          'Next slide': 'Siguiente diapositiva',
+        }}
+      >
+        <Carousel slides={SLIDES} nextLabel="Forward" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Diapositiva anterior' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Forward' })).toBeInTheDocument();
   });
 });

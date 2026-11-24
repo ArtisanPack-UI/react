@@ -15,6 +15,7 @@ import {
   type SelectHTMLAttributes,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
@@ -160,7 +161,7 @@ const SelectBase = forwardRef<HTMLSelectElement, SelectProps<SelectValue>>(
       invalid = false,
       disabled = false,
       required = false,
-      placeholder = SELECT_DEFAULT_PLACEHOLDER,
+      placeholder: placeholderProp,
       leadingIcon,
       classes = {},
       icon,
@@ -177,6 +178,8 @@ const SelectBase = forwardRef<HTMLSelectElement, SelectProps<SelectValue>>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const placeholder = placeholderProp ?? t('Select…');
     const hasPlaceholder = placeholder !== '';
     // Without a value, start on the placeholder. Browsers would otherwise
     // select the first enabled option, skipping a required (disabled) placeholder.

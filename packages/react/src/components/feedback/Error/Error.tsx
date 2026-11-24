@@ -12,6 +12,7 @@
 
 import { forwardRef, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { devWarnOnce, hasContent } from '../../../internal/parts';
 import { Button } from '../../form/Button/Button';
 import { ErrorState, type ErrorStateProps } from '../ErrorState/ErrorState';
@@ -39,18 +40,13 @@ export interface ErrorDisplayProps extends Omit<ErrorStateProps, 'title' | 'desc
  */
 export const ErrorDisplay = forwardRef<HTMLDivElement, ErrorDisplayProps>(
   (
-    {
-      title = 'Something went wrong',
-      message,
-      onRetry,
-      retryLabel = 'Try again',
-      actions,
-      children,
-      ...rest
-    },
+    { title: titleProp, message, onRetry, retryLabel: retryLabelProp, actions, children, ...rest },
     ref,
   ) => {
     devWarnOnce('ErrorDisplay', 'ErrorDisplay is deprecated; use ErrorState.');
+    const { t } = useTranslator();
+    const title = titleProp ?? t('Something went wrong');
+    const retryLabel = retryLabelProp ?? t('Try again');
     // The message and any children share the description, message first.
     const description =
       hasContent(message) && hasContent(children) ? (

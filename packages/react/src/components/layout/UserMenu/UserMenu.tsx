@@ -13,6 +13,7 @@
 import { useDropdownMenu } from '@artisanpack-ui/behavior/react';
 import { forwardRef, useCallback, useRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -148,10 +149,10 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
       align = 'start',
       surface = 'overlay',
       portal = true,
-      workspaceLabel = 'Workspace',
-      themeLabel = 'Theme',
+      workspaceLabel: workspaceLabelProp,
+      themeLabel: themeLabelProp,
       themeLabels = {},
-      logoutLabel = 'Log out',
+      logoutLabel: logoutLabelProp,
       trigger,
       classes = {},
       className,
@@ -160,6 +161,10 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const workspaceLabel = workspaceLabelProp ?? t('Workspace');
+    const themeLabel = themeLabelProp ?? t('Theme');
+    const logoutLabel = logoutLabelProp ?? t('Log out');
     const registry = useRef(new Map<string, RegisteredItem>());
     const api = useDropdownMenu({
       open,
@@ -197,9 +202,9 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
       'data-part': 'avatar',
     } as const;
     const labels: Record<UserMenuTheme, string> = {
-      light: themeLabels.light ?? 'Light',
-      dark: themeLabels.dark ?? 'Dark',
-      system: themeLabels.system ?? 'System',
+      light: themeLabels.light ?? t('Light'),
+      dark: themeLabels.dark ?? t('Dark'),
+      system: themeLabels.system ?? t('System'),
     };
     const options = workspaces.filter((option) => option && option.id !== undefined);
     const triggerProps = api.getTriggerProps();

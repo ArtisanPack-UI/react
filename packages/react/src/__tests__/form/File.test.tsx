@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   File as FileUpload,
@@ -100,5 +101,28 @@ describe('File', () => {
   it('formats sizes in decimal units', () => {
     expect(formatFileSize(999)).toBe('999 B');
     expect(formatFileSize(2400000)).toBe('2.4 MB');
+  });
+});
+
+describe('File translations', () => {
+  it('translates the dropzone title and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Drop files here or browse': 'Suelta archivos aquí o explora' }}
+      >
+        <FileUpload />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Suelta archivos aquí o explora')).toBeInTheDocument();
+    rerender(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Drop files here or browse': 'Suelta archivos aquí o explora' }}
+      >
+        <FileUpload title="Upload a contract" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Upload a contract')).toBeInTheDocument();
   });
 });

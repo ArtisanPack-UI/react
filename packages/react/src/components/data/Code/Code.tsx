@@ -14,7 +14,6 @@
  */
 
 import {
-  CLIPBOARD_LABELS,
   clipboardLabel,
   clipboardMessage,
   codeHighlights,
@@ -24,6 +23,7 @@ import {
 import { useClipboard } from '@artisanpack-ui/behavior/react';
 import { Fragment, forwardRef, useEffect, useMemo, useRef, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -81,16 +81,22 @@ export const Code = forwardRef<HTMLElement, CodeProps>(
       inline = false,
       copyable = true,
       label,
-      copyLabel = CLIPBOARD_LABELS.copy,
-      copiedLabel = CLIPBOARD_LABELS.copied,
-      copiedMessage = CLIPBOARD_LABELS.copiedMessage,
-      errorMessage = CLIPBOARD_LABELS.errorMessage,
+      copyLabel: copyLabelProp,
+      copiedLabel: copiedLabelProp,
+      copiedMessage: copiedMessageProp,
+      errorMessage: errorMessageProp,
       classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const copyLabel = copyLabelProp ?? t('Copy');
+    const copiedLabel = copiedLabelProp ?? t('Copied');
+    const copiedMessage = copiedMessageProp ?? t('Copied to clipboard');
+    const errorMessage =
+      errorMessageProp ?? t("Couldn't copy. Select the text and copy it yourself.");
     const clipboard = useClipboard();
     const lines = useMemo(() => codeLines(code), [code]);
     const highlighted = useMemo(() => codeHighlights(highlight), [highlight]);
@@ -188,7 +194,7 @@ export const Code = forwardRef<HTMLElement, CodeProps>(
           data-scope="code"
           data-part="pre"
           role="region"
-          aria-label={codeLabel(label, fileName, language)}
+          aria-label={codeLabel(label, fileName, language, t('Code'))}
           tabIndex={0}
         >
           <code>

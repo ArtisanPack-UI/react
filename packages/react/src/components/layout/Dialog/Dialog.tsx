@@ -12,6 +12,7 @@
 import { useDialog } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -129,7 +130,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       modal = true,
       portal = true,
       hideClose = false,
-      closeLabel = 'Close',
+      closeLabel: closeLabelProp,
       classes = {},
       className,
       children,
@@ -137,6 +138,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const closeLabel = closeLabelProp ?? t('Close');
     const hasTitle = hasContent(title);
     const api = useDialog({
       open,

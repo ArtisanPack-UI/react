@@ -22,6 +22,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { devWarnOnce } from '../../../internal/parts';
 import {
   DropdownMenu,
@@ -65,8 +66,10 @@ function triggerLabel(trigger: ReactElement | null | undefined): ReactNode {
  * @deprecated Use `DropdownMenu`.
  */
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
-  ({ trigger, label = 'Options', end = false, top: _top, hover: _hover, align, ...rest }, ref) => {
+  ({ trigger, label: labelProp, end = false, top: _top, hover: _hover, align, ...rest }, ref) => {
     devWarnOnce('Dropdown', 'Dropdown is deprecated; use DropdownMenu.');
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Options');
     return (
       <DropdownMenu
         {...rest}

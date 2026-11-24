@@ -9,9 +9,10 @@
  * @packageDocumentation
  */
 
-import { SPARKLINE_LABEL, sparklineValues } from '@artisanpack-ui/behavior';
+import { sparklineValues } from '@artisanpack-ui/behavior';
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 import { Progress } from '../Progress/Progress';
@@ -127,9 +128,9 @@ export const KpiCard = forwardRef<HTMLDivElement, KpiCardProps>(
     {
       stat = {},
       sparkline,
-      sparklineLabel = SPARKLINE_LABEL,
+      sparklineLabel: sparklineLabelProp,
       target,
-      targetLabel = '{percent}% of goal',
+      targetLabel: targetLabelProp,
       period,
       classes = {},
       className,
@@ -137,6 +138,9 @@ export const KpiCard = forwardRef<HTMLDivElement, KpiCardProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const sparklineLabel = sparklineLabelProp ?? t('Trend from {first} to {latest}');
+    const targetLabel = targetLabelProp ?? t('{percent}% of goal');
     const color = stat.color ?? 'neutral';
     const delta = statDelta(stat.delta, stat.change);
     const trend = statTrend(stat.trend, stat.change);
@@ -192,9 +196,9 @@ export const KpiCard = forwardRef<HTMLDivElement, KpiCardProps>(
                     delta={delta}
                     trend={trend}
                     labels={{
-                      up: stat.upLabel ?? 'Increase',
-                      down: stat.downLabel ?? 'Decrease',
-                      flat: stat.flatLabel ?? 'No change',
+                      up: stat.upLabel ?? t('Increase'),
+                      down: stat.downLabel ?? t('Decrease'),
+                      flat: stat.flatLabel ?? t('No change'),
                     }}
                     className={classes.delta}
                   />

@@ -8,6 +8,7 @@
 
 import { forwardRef, useId, useState, type FieldsetHTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { normalizeChoices, type ChoiceOption, type ChoiceValue } from '../../../internal/choice';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
@@ -91,7 +92,7 @@ export const CheckboxGroup = forwardRef<HTMLFieldSetElement, CheckboxGroupProps>
       variant = 'default',
       columns = 1,
       selectAll = false,
-      selectAllLabel = CHECKBOX_GROUP_DEFAULT_SELECT_ALL_LABEL,
+      selectAllLabel: selectAllLabelProp,
       name,
       classes = {},
       className,
@@ -102,6 +103,8 @@ export const CheckboxGroup = forwardRef<HTMLFieldSetElement, CheckboxGroupProps>
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const selectAllLabel = selectAllLabelProp ?? t('Select all');
     const generated = useId();
     const id = explicitId ?? generated;
     const [uncontrolled, setUncontrolled] = useState<ChoiceValue[]>(defaultValue);

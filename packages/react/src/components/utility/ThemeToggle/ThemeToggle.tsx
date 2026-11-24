@@ -59,6 +59,7 @@ import {
 } from 'react';
 
 import { useOptionalTheme, type ColorScheme } from '../../../hooks/use-theme';
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
 import { Portal } from '../../../internal/portal';
@@ -178,6 +179,7 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
     const [systemDark, setSystemDark] = useState(false);
     const current: ThemeChoice = controlled ? (isThemeChoice(value) ? value : 'system') : own;
     const currentRef = useRef(current);
+    const { t } = useTranslator();
     // Event handlers and watchers read the committed values.
     useEffect(() => {
       providerRef.current = provider;
@@ -188,14 +190,14 @@ export const ThemeToggle = forwardRef<HTMLDivElement, ThemeToggleProps>(
       current === 'system' ? (systemDark ? 'dark' : 'light') : (current as Theme);
     const offered = themeChoices(choices);
     const labels = themeToggleLabels({
-      label,
-      lightLabel,
-      darkLabel,
-      highContrastLabel,
-      systemLabel,
-      matchSystemLabel,
-      switchToLightLabel,
-      switchToDarkLabel,
+      label: label ?? t('Theme'),
+      lightLabel: lightLabel ?? t('Light'),
+      darkLabel: darkLabel ?? t('Dark'),
+      highContrastLabel: highContrastLabel ?? t('High contrast'),
+      systemLabel: systemLabel ?? t('System'),
+      matchSystemLabel: matchSystemLabel ?? t('Match system'),
+      switchToLightLabel: switchToLightLabel ?? t('Switch to light theme'),
+      switchToDarkLabel: switchToDarkLabel ?? t('Switch to dark theme'),
     });
 
     useEffect(() => {

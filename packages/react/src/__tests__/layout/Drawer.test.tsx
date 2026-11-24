@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Drawer, type DrawerProps } from '../../components/layout/Drawer/Drawer';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof DrawerProps)[] = [
   'open',
@@ -188,5 +189,22 @@ describe('Drawer', () => {
     expect(container.innerHTML).not.toMatch(
       /\b(drawer-side|drawer-toggle|drawer-overlay|bg-base-100)\b/,
     );
+  });
+});
+
+describe('Drawer translation', () => {
+  it('translates the close button and keeps an explicit label', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ Close: 'Cerrar' }}>
+        <Drawer open portal={false} title="Filtros" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ Close: 'Cerrar' }}>
+        <Drawer open portal={false} title="Filtros" closeLabel="Salir" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeInTheDocument();
   });
 });

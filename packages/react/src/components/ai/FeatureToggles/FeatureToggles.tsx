@@ -11,6 +11,7 @@ import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
 import type { AiApiClient, AiFeature } from '../types';
 import { errorMessage } from '../errorMessage';
+import { createTranslator, useTranslator, type TranslateFunction } from '../../../i18n/translator';
 
 /** The text a {@link FeatureToggles} shows. Translate it through `labels`. */
 export interface FeatureTogglesLabels {
@@ -22,12 +23,19 @@ export interface FeatureTogglesLabels {
   error: string;
 }
 
+/** {@link FeatureTogglesLabels} through a translator: the English defaults, or the active locale's. */
+export function featureTogglesLabels(t: TranslateFunction): FeatureTogglesLabels {
+  return {
+    loading: t('Loading features…'),
+    empty: t('No AI features registered.'),
+    error: t('Something went wrong.'),
+  };
+}
+
 /** The English defaults for {@link FeatureTogglesLabels}. */
-export const FEATURE_TOGGLES_LABELS: FeatureTogglesLabels = {
-  loading: 'Loading features…',
-  empty: 'No AI features registered.',
-  error: 'Something went wrong.',
-};
+export const FEATURE_TOGGLES_LABELS: FeatureTogglesLabels = featureTogglesLabels(
+  createTranslator().t,
+);
 
 /**
  * Props for {@link FeatureToggles}.
@@ -49,7 +57,8 @@ export interface FeatureTogglesProps {
  * switch and rolls back on API failure.
  */
 export function FeatureToggles({ client, heading, onToggle, labels }: FeatureTogglesProps) {
-  const text = { ...FEATURE_TOGGLES_LABELS, ...labels };
+  const { t } = useTranslator();
+  const text = { ...featureTogglesLabels(t), ...labels };
   const [features, setFeatures] = useState<AiFeature[] | null>(null);
   // The failure itself, so its message is formatted with the current labels.
   const [failure, setFailure] = useState<{ reason: unknown } | null>(null);

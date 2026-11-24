@@ -10,6 +10,7 @@
 
 import { forwardRef, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, type PartClasses } from '../../../internal/parts';
 
@@ -80,10 +81,10 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
       perPage = 10,
       siblings = 1,
       summary = false,
-      label = 'Pagination',
-      previousLabel = 'Previous page',
-      nextLabel = 'Next page',
-      pageLabel = 'Page {page}',
+      label: labelProp,
+      previousLabel: previousLabelProp,
+      nextLabel: nextLabelProp,
+      pageLabel: pageLabelProp,
       summaryLabel,
       classes = {},
       className,
@@ -92,6 +93,11 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Pagination');
+    const previousLabel = previousLabelProp ?? t('Previous page');
+    const nextLabel = nextLabelProp ?? t('Next page');
+    const pageLabel = pageLabelProp ?? t('Page {page}');
     const per = Math.max(1, perPage);
     const count = Math.max(1, pageCount ?? (total !== undefined ? Math.ceil(total / per) : 1));
     const current = Math.max(1, Math.min(page, count));
@@ -102,7 +108,9 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
       const to = total === undefined ? current * per : Math.min(total, current * per);
       const template =
         summaryLabel ??
-        (total === undefined ? 'Page {page} of {pageCount}' : 'Showing {from}–{to} of {total}');
+        (total === undefined
+          ? t('Page {page} of {pageCount}')
+          : t('Showing {from}–{to} of {total}'));
       summaryText = template
         .replaceAll('{from}', String(total === undefined ? from : Math.min(total, from)))
         .replaceAll('{to}', String(to))

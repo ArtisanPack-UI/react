@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen } from '@testing-library/react';
 import { beforeAll, describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   ImageSlider,
@@ -178,5 +179,21 @@ describe('ImageSlider', () => {
     const autoplay = part(document, 'autoplay-trigger')!;
     expect(['Reproducir', 'Pausar']).toContain(autoplay.getAttribute('aria-label'));
     expect(autoplay.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+describe('ImageSlider translations', () => {
+  it('translates the region and controls, keeping explicit labels', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ Photos: 'Fotos', 'Previous photo': 'Foto anterior' }}
+      >
+        <ImageSlider images={IMAGES} nextLabel="Forward" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('region', { name: 'Fotos' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Foto anterior' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Forward' })).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   RichTextEditor,
@@ -209,5 +210,24 @@ describe('RichTextEditor', () => {
     const ref = createRef<HTMLDivElement>();
     render(<RichTextEditor ref={ref} />);
     expect(ref.current).toHaveClass('apui-rich-text-editor');
+  });
+});
+
+describe('RichTextEditor translations', () => {
+  it('translates the toolbar and lets a prop win', () => {
+    const messages = { Formatting: 'Formato', Bold: 'Negrita' };
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={messages}>
+        <RichTextEditor aria-label="Body" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('toolbar', { name: 'Formato' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Negrita' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <RichTextEditor aria-label="Body" toolbarLabel="Herramientas" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('toolbar', { name: 'Herramientas' })).toBeInTheDocument();
   });
 });

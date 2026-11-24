@@ -13,15 +13,11 @@
  * @packageDocumentation
  */
 
-import {
-  CLIPBOARD_LABELS,
-  CLIPBOARD_TIMEOUT,
-  clipboardLabel,
-  clipboardMessage,
-} from '@artisanpack-ui/behavior';
+import { CLIPBOARD_TIMEOUT, clipboardLabel, clipboardMessage } from '@artisanpack-ui/behavior';
 import { useClipboard } from '@artisanpack-ui/behavior/react';
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
 
@@ -90,10 +86,10 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
       timeout = CLIPBOARD_TIMEOUT,
       variant = 'button',
       size = 'sm',
-      label = CLIPBOARD_LABELS.copy,
-      copiedLabel = CLIPBOARD_LABELS.copied,
-      copiedMessage = CLIPBOARD_LABELS.copiedMessage,
-      errorMessage = CLIPBOARD_LABELS.errorMessage,
+      label: labelProp,
+      copiedLabel: copiedLabelProp,
+      copiedMessage: copiedMessageProp,
+      errorMessage: errorMessageProp,
       classes = {},
       className,
       onCopied,
@@ -103,6 +99,12 @@ export const Clipboard = forwardRef<HTMLElement, ClipboardProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Copy');
+    const copiedLabel = copiedLabelProp ?? t('Copied');
+    const copiedMessage = copiedMessageProp ?? t('Copied to clipboard');
+    const errorMessage =
+      errorMessageProp ?? t("Couldn't copy. Select the text and copy it yourself.");
     const value = valueProp ?? text ?? '';
     const clipboard = useClipboard({ timeout });
     const { reset } = clipboard;
