@@ -2,6 +2,7 @@ import { createRef, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   DatePicker,
@@ -261,5 +262,30 @@ describe('DatePicker', () => {
     expect(screen.getByRole('button', { name: 'Choisir une date' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mois précédent' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mois suivant' })).toBeInTheDocument();
+  });
+});
+
+describe('DatePicker translations', () => {
+  it('translates the trigger, follows the provider locale and lets props win', () => {
+    const { unmount } = render(
+      <TranslationProvider locale="de" messages={{ 'Choose date': 'Datum wählen' }}>
+        <DatePicker label="Move-in date" defaultValue="2026-11-12" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Datum wählen' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Move-in date')).toHaveValue('12.11.2026');
+    unmount();
+    render(
+      <TranslationProvider locale="de" messages={{ 'Choose date': 'Datum wählen' }}>
+        <DatePicker
+          label="Move-in date"
+          defaultValue="2026-11-12"
+          locale="en-US"
+          triggerLabel="Pick"
+        />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Pick' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Move-in date')).toHaveValue('11/12/2026');
   });
 });

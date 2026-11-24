@@ -13,6 +13,7 @@
 import { useDrawer } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 import { Portal } from '../../../internal/portal';
@@ -114,7 +115,7 @@ export const Drawer = forwardRef<HTMLElement, DrawerProps>(
       modal = true,
       portal = true,
       hideClose = false,
-      closeLabel = 'Close',
+      closeLabel: closeLabelProp,
       classes = {},
       className,
       children,
@@ -122,6 +123,8 @@ export const Drawer = forwardRef<HTMLElement, DrawerProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const closeLabel = closeLabelProp ?? t('Close');
     const hasTitle = hasContent(title);
     const api = useDrawer({
       open,

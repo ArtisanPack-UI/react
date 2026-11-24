@@ -16,6 +16,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
 import { useFormReset } from '../../../internal/form-reset';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
@@ -118,7 +119,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       required = false,
       value,
       defaultValue,
-      remainingLabel = TEXTAREA_REMAINING_LABEL,
+      remainingLabel: remainingLabelProp,
       classes = {},
       className,
       id: explicitId,
@@ -130,6 +131,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const remainingLabel = remainingLabelProp ?? t('Characters left: {count}');
     const isReadonly = readonly ?? readOnly ?? false;
     const isInvalid = invalid || Boolean(error);
     const [uncontrolled, setUncontrolled] = useState(defaultValue ?? '');

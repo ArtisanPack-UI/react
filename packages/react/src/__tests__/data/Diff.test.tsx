@@ -1,6 +1,7 @@
 import { createRef } from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Diff, type DiffProps } from '../../components/data/Diff/Diff';
 
@@ -102,5 +103,18 @@ describe('Diff', () => {
     expect(
       withActions.querySelector('[data-part="header"] > [data-part="actions"] > button'),
     ).not.toBeNull();
+  });
+});
+
+describe('Diff translations', () => {
+  it('translates the empty text and keeps an explicit one', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ 'No changes': 'Sin cambios' }}>
+        <Diff oldContent="a" newContent="a" />
+        <Diff oldContent="b" newContent="b" emptyLabel="Same" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Sin cambios')).toBeInTheDocument();
+    expect(screen.getByText('Same')).toBeInTheDocument();
   });
 });

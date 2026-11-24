@@ -4,6 +4,7 @@ import {
   SpotlightSearch,
   type SpotlightItem,
 } from '../../components/navigation/SpotlightSearch/SpotlightSearch';
+import { TranslationProvider } from '../../i18n/translator';
 
 const items: SpotlightItem[] = [
   { key: 'home', label: 'Go to Home', group: 'Pages', icon: 'house' },
@@ -112,5 +113,16 @@ describe('SpotlightSearch (deprecated alias of Spotlight)', () => {
     await interact(() => fireEvent.keyDown(window, { key: 'k', code: 'KeyK', ctrlKey: true }));
     await interact(() => fireEvent.keyDown(window, { key: 'k', code: 'KeyK', metaKey: true }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('SpotlightSearch translation', () => {
+  it('translates the empty message', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ 'No results found.': 'Sin resultados.' }}>
+        <SpotlightSearch open onClose={vi.fn()} portal={false} items={[]} />
+      </TranslationProvider>,
+    );
+    expect(document.body).toHaveTextContent('Sin resultados.');
   });
 });

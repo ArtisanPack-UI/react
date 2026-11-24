@@ -16,6 +16,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp, useFieldIds } from '../../../internal/field';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -168,7 +169,8 @@ export const Range = forwardRef<HTMLInputElement, RangeProps>(
     ref,
   ) => {
     const isInvalid = invalid || Boolean(error);
-    const names = { start: 'Minimum', end: 'Maximum', ...thumbLabels };
+    const { t } = useTranslator();
+    const names = { start: t('Minimum'), end: t('Maximum'), ...thumbLabels };
     const midpoint = min + (max - min) / 2;
     const [uncontrolled, setUncontrolled] = useState<RangeValue | undefined>(defaultValue);
     const isControlled = value !== undefined;

@@ -22,6 +22,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, type PartClasses } from '../../../internal/parts';
 import { safeHref } from '../../../internal/url';
@@ -95,7 +96,7 @@ export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
   maxItems?: number;
   /** The nav landmark's accessible name; translate it. @defaultValue `'Breadcrumb'` */
   label?: string;
-  /** The overflow button's accessible name, with `{count}`; translate it. @defaultValue `'Show {count} more levels'` */
+  /** The overflow button's accessible name, with `{count}`; translate it. @defaultValue `'Show {count} more level'` or `'Show {count} more levels'`, by count */
   overflowLabel?: string;
   /** Extra classes per part; `classes.root` merges with `className`. */
   classes?: PartClasses<BreadcrumbsPart>;
@@ -122,8 +123,8 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
     {
       items = [],
       maxItems = 4,
-      label = 'Breadcrumb',
-      overflowLabel = 'Show {count} more levels',
+      label: labelProp,
+      overflowLabel,
       classes = {},
       className,
       children,
@@ -131,6 +132,8 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
     },
     ref,
   ) => {
+    const { t, tChoice } = useTranslator();
+    const label = labelProp ?? t('Breadcrumb');
     const composed: Level[] = Children.toArray(children)
       .filter(
         (child): child is ReactElement<BreadcrumbsItemProps> =>
@@ -242,7 +245,11 @@ export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(
               className={classes.overflow}
               data-scope="breadcrumbs"
               data-part="overflow"
-              aria-label={overflowLabel.replace('{count}', String(hiddenCount))}
+              aria-label={
+                overflowLabel !== undefined
+                  ? overflowLabel.replace('{count}', String(hiddenCount))
+                  : tChoice('Show {count} more level|Show {count} more levels', hiddenCount)
+              }
               aria-expanded={expanded}
               onClick={() => {
                 focusRevealed.current = true;

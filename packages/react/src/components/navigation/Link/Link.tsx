@@ -10,6 +10,7 @@
 
 import { forwardRef, type AnchorHTMLAttributes, type ReactNode, type Ref } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconPart } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
 import { safeHref } from '../../../internal/url';
@@ -68,7 +69,7 @@ export const Link = forwardRef<HTMLElement, LinkProps>(
       tone = 'primary',
       standalone = false,
       external = false,
-      externalLabel = '(opens in a new tab)',
+      externalLabel: externalLabelProp,
       leadingIcon,
       trailingIcon,
       icon,
@@ -82,6 +83,8 @@ export const Link = forwardRef<HTMLElement, LinkProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const externalLabel = externalLabelProp ?? t('(opens in a new tab)');
     const linkHref = safeHref(href === '' ? undefined : href);
     const trailing = trailingIcon ?? (external ? 'external-link' : undefined);
     const content = (

@@ -19,6 +19,7 @@ import {
 } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp, FieldLabel, useFieldIds } from '../../../internal/field';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
@@ -162,13 +163,13 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
       open,
       defaultOpen,
       portal = true,
-      triggerLabel = COLOR_PICKER_DEFAULT_PICKER_LABEL,
-      areaLabel = 'Saturation and brightness',
-      hueLabel = 'Hue',
-      alphaLabel = 'Opacity',
-      formatLabel = 'Format',
-      eyeDropperLabel = 'Pick a color from the screen',
-      swatchesLabel = COLOR_PICKER_DEFAULT_SWATCHES_LABEL,
+      triggerLabel: triggerLabelProp,
+      areaLabel: areaLabelProp,
+      hueLabel: hueLabelProp,
+      alphaLabel: alphaLabelProp,
+      formatLabel: formatLabelProp,
+      eyeDropperLabel: eyeDropperLabelProp,
+      swatchesLabel: swatchesLabelProp,
       classes = {},
       className,
       id: explicitId,
@@ -180,6 +181,14 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const triggerLabel = triggerLabelProp ?? t('Choose a color');
+    const areaLabel = areaLabelProp ?? t('Saturation and brightness');
+    const hueLabel = hueLabelProp ?? t('Hue');
+    const alphaLabel = alphaLabelProp ?? t('Opacity');
+    const formatLabel = formatLabelProp ?? t('Format');
+    const eyeDropperLabel = eyeDropperLabelProp ?? t('Pick a color from the screen');
+    const swatchesLabel = swatchesLabelProp ?? t('Swatches');
     const isInvalid = invalid || Boolean(error);
     const { id, helpId, errorId, describedBy } = useFieldIds(
       explicitId,

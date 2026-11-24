@@ -17,6 +17,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator, type TranslateChoiceFunction } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -81,14 +82,14 @@ export interface ValidationSummaryProps extends Omit<
   classes?: PartClasses<ValidationSummaryPart>;
 }
 
-const defaultTitle = (count: number, color: ValidationSummaryColor) =>
+const defaultTitle = (
+  count: number,
+  color: ValidationSummaryColor,
+  tChoice: TranslateChoiceFunction,
+) =>
   color === 'warning'
-    ? count === 1
-      ? '1 recommendation'
-      : `${count} recommendations`
-    : count === 1
-      ? 'Fix 1 field'
-      : `Fix ${count} fields`;
+    ? tChoice('{count} recommendation|{count} recommendations', count)
+    : tChoice('Fix {count} field|Fix {count} fields', count);
 
 /**
  * Lists a form's errors after a failed submit. With the error color it
@@ -102,6 +103,7 @@ const defaultTitle = (count: number, color: ValidationSummaryColor) =>
  */
 export const ValidationSummary = forwardRef<HTMLDivElement, ValidationSummaryProps>(
   ({ errors, color = 'error', title, classes = {}, className, ...rest }, forwardedRef) => {
+    const { tChoice } = useTranslator();
     const list = normalizeValidationErrors(errors);
     const count = list.length;
     const rootRef = useRef<HTMLDivElement | null>(null);
@@ -148,7 +150,7 @@ export const ValidationSummary = forwardRef<HTMLDivElement, ValidationSummaryPro
           <IconSvg name={color === 'error' ? 'circle-alert' : 'triangle-alert'} />
         </span>
         <p className={classes.title} data-scope="validation-summary" data-part="title">
-          {hasContent(title) ? title : defaultTitle(count, color)}
+          {hasContent(title) ? title : defaultTitle(count, color, tChoice)}
         </p>
         <ul className={classes.list} data-scope="validation-summary" data-part="list">
           {list.map((error, index) => (

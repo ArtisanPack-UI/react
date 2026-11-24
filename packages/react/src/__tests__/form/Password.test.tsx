@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { renderToString } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Password,
@@ -151,5 +152,22 @@ describe('Password', () => {
     render(<Password ref={ref} label="A" />);
     expect(ref.current).toBe(screen.getByLabelText('A'));
     expect(renderToString(<Password label="B" />)).toContain('class="apui-password"');
+  });
+});
+
+describe('Password translations', () => {
+  it('translates the reveal button and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ 'Show password': 'Mostrar contraseña' }}>
+        <Password label="Password" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Mostrar contraseña' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ 'Show password': 'Mostrar contraseña' }}>
+        <Password label="Password" revealLabel="Ver" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Ver' })).toBeInTheDocument();
   });
 });

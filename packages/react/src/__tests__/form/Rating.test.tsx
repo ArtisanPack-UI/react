@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Rating, type RatingProps } from '../../components/form/Rating/Rating';
 
@@ -74,5 +75,22 @@ describe('Rating', () => {
   it('disables every radio', () => {
     render(<Rating disabled />);
     for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
+  });
+});
+
+describe('Rating translations', () => {
+  it('translates the value label and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ ':value out of :max': ':value de :max' }}>
+        <Rating readonly value={4} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByLabelText('4 de 5')).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ ':value out of :max': ':value de :max' }}>
+        <Rating readonly value={4} valueLabel=":value / :max" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByLabelText('4 / 5')).toBeInTheDocument();
   });
 });

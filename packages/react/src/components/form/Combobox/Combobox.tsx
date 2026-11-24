@@ -15,7 +15,6 @@
  */
 
 import {
-  COMBOBOX_LABELS,
   type ComboboxItem,
   formatLabel,
   highlight,
@@ -31,6 +30,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { FieldError, FieldHelp } from '../../../internal/field';
 import { IconPart, IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
@@ -226,7 +226,7 @@ export const Combobox = forwardRef<HTMLDivElement, ComboboxProps>(
       invalid = false,
       disabled = false,
       required = false,
-      placeholder = COMBOBOX_LABELS.placeholder,
+      placeholder: placeholderProp,
       name,
       value,
       defaultValue,
@@ -242,13 +242,13 @@ export const Combobox = forwardRef<HTMLDivElement, ComboboxProps>(
       portal = true,
       leadingIcon,
       icon,
-      emptyLabel = COMBOBOX_LABELS.empty,
-      loadingLabel = COMBOBOX_LABELS.loading,
-      createLabel = COMBOBOX_LABELS.create,
-      removeLabel = COMBOBOX_LABELS.remove,
-      removedLabel = COMBOBOX_LABELS.removed,
-      clearLabel = COMBOBOX_LABELS.clear,
-      triggerLabel = COMBOBOX_LABELS.trigger,
+      emptyLabel: emptyLabelProp,
+      loadingLabel: loadingLabelProp,
+      createLabel: createLabelProp,
+      removeLabel: removeLabelProp,
+      removedLabel: removedLabelProp,
+      clearLabel: clearLabelProp,
+      triggerLabel: triggerLabelProp,
       classes = {},
       empty,
       renderItem,
@@ -262,6 +262,15 @@ export const Combobox = forwardRef<HTMLDivElement, ComboboxProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const placeholder = placeholderProp ?? t('Search…');
+    const emptyLabel = emptyLabelProp ?? t('No matches for “{search}”.');
+    const loadingLabel = loadingLabelProp ?? t('Loading…');
+    const createLabel = createLabelProp ?? t('Create “{value}”');
+    const removeLabel = removeLabelProp ?? t('Remove {label}');
+    const removedLabel = removedLabelProp ?? t('Removed {label}.');
+    const clearLabel = clearLabelProp ?? t('Clear');
+    const triggerLabel = triggerLabelProp ?? t('Show options');
     const generated = useId();
     const id = explicitId ?? generated;
     const inputId = `${id}-control`;

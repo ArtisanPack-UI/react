@@ -19,6 +19,7 @@ import {
 } from '@artisanpack-ui/behavior/react';
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { mergePartProps } from '../../../internal/merge';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
@@ -169,14 +170,14 @@ export const Spotlight = forwardRef<HTMLDivElement, SpotlightProps>(
       loading = false,
       shortcut = 'mod+k',
       recent = false,
-      label = 'Search',
-      placeholder = 'Search…',
-      emptyLabel = 'No results.',
-      loadingLabel = 'Searching…',
-      recentLabel = 'Recent',
-      closeLabel = 'Close',
-      navigateLabel = 'Navigate',
-      selectLabel = 'Open',
+      label: labelProp,
+      placeholder: placeholderProp,
+      emptyLabel: emptyLabelProp,
+      loadingLabel: loadingLabelProp,
+      recentLabel: recentLabelProp,
+      closeLabel: closeLabelProp,
+      navigateLabel: navigateLabelProp,
+      selectLabel: selectLabelProp,
       trigger,
       footer,
       modal = true,
@@ -188,6 +189,15 @@ export const Spotlight = forwardRef<HTMLDivElement, SpotlightProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Search');
+    const placeholder = placeholderProp ?? t('Search…');
+    const emptyLabel = emptyLabelProp ?? t('No results.');
+    const loadingLabel = loadingLabelProp ?? t('Searching…');
+    const recentLabel = recentLabelProp ?? t('Recent');
+    const closeLabel = closeLabelProp ?? t('Close');
+    const navigateLabel = navigateLabelProp ?? t('Navigate');
+    const selectLabel = selectLabelProp ?? t('Open');
     const api = useSpotlight({
       id,
       groups,

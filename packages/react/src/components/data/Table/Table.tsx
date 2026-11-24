@@ -28,6 +28,7 @@ import {
 
 import { Checkbox } from '../../form/Checkbox/Checkbox';
 import { Pagination, type PaginationProps } from '../../navigation/Pagination/Pagination';
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -233,16 +234,16 @@ function TableInner<Row>(
     expanded,
     sortBy,
     loading = false,
-    emptyText = 'No records found.',
+    emptyText: emptyTextProp,
     empty,
     toolbar,
     footer,
     pagination,
-    selectAllLabel = 'Select all',
-    selectRowLabel = 'Select {row}',
-    sortLabel = 'Sort by {column}',
-    expandLabel = 'Show details for {row}',
-    actionsLabel = 'Actions',
+    selectAllLabel: selectAllLabelProp,
+    selectRowLabel: selectRowLabelProp,
+    sortLabel: sortLabelProp,
+    expandLabel: expandLabelProp,
+    actionsLabel: actionsLabelProp,
     classes = {},
     className,
     renderCell,
@@ -268,6 +269,13 @@ function TableInner<Row>(
   }: TableProps<Row>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  const { t } = useTranslator();
+  const emptyText = emptyTextProp ?? t('No records found.');
+  const selectAllLabel = selectAllLabelProp ?? t('Select all');
+  const selectRowLabel = selectRowLabelProp ?? t('Select {row}');
+  const sortLabel = sortLabelProp ?? t('Sort by {column}');
+  const expandLabel = expandLabelProp ?? t('Show details for {row}');
+  const actionsLabel = actionsLabelProp ?? t('Actions');
   const baseId = useId();
   const controlledValue = value ?? (selectedKeys ? [...selectedKeys] : undefined);
   const resolvedDensity = density ?? (compact ? 'compact' : undefined);

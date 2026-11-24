@@ -1,6 +1,7 @@
 import { createRef } from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Stat, type StatProps } from '../../components/data/Stat/Stat';
 
@@ -111,5 +112,18 @@ describe('Stat', () => {
     expect(root.getAttribute('data-size')).toBe('lg');
     expect(root.getAttribute('data-color')).toBe('primary');
     expect(container.querySelector('[data-part="value"]')!.className).toBe('v');
+  });
+});
+
+describe('Stat translations', () => {
+  it('translates the hidden delta text and keeps an explicit one', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ Increase: 'Aumento', Decrease: 'Disminución' }}>
+        <Stat value="1" change={5} />
+        <Stat value="2" change={-5} downLabel="Drop" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Aumento')).toBeInTheDocument();
+    expect(screen.getByText('Drop')).toBeInTheDocument();
   });
 });

@@ -36,6 +36,7 @@ import {
   type RichTextTranslations,
 } from '@artisanpack-ui/behavior';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, hasContent, type PartClasses } from '../../../internal/parts';
 
@@ -215,31 +216,32 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
   ) => {
     const generated = useId();
     const id = explicitId ?? generated;
-    const t = richTextTranslations({
-      toolbar: toolbarLabel,
-      bold: boldLabel,
-      italic: italicLabel,
-      underline: underlineLabel,
-      strike: strikeLabel,
-      heading2: heading2Label,
-      heading3: heading3Label,
-      bulletList: bulletListLabel,
-      orderedList: orderedListLabel,
-      quote: quoteLabel,
-      code: codeLabel,
-      link: linkLabel,
-      image: imageLabel,
-      undo: undoLabel,
-      redo: redoLabel,
-      linkPrompt: linkPromptLabel,
-      imagePrompt: imagePromptLabel,
-      imageAltPrompt: imageAltPromptLabel,
-      shortcuts: shortcutsLabel,
-      word: wordLabel,
-      words: wordsLabel,
-      character: characterLabel,
-      characters: charactersLabel,
-      limit: limitLabel,
+    const { t } = useTranslator();
+    const strings = richTextTranslations({
+      toolbar: toolbarLabel ?? t('Formatting'),
+      bold: boldLabel ?? t('Bold'),
+      italic: italicLabel ?? t('Italic'),
+      underline: underlineLabel ?? t('Underline'),
+      strike: strikeLabel ?? t('Strikethrough'),
+      heading2: heading2Label ?? t('Heading 2'),
+      heading3: heading3Label ?? t('Heading 3'),
+      bulletList: bulletListLabel ?? t('Bulleted list'),
+      orderedList: orderedListLabel ?? t('Numbered list'),
+      quote: quoteLabel ?? t('Quote'),
+      code: codeLabel ?? t('Code'),
+      link: linkLabel ?? t('Link'),
+      image: imageLabel ?? t('Image'),
+      undo: undoLabel ?? t('Undo'),
+      redo: redoLabel ?? t('Redo'),
+      linkPrompt: linkPromptLabel ?? t('Link URL'),
+      imagePrompt: imagePromptLabel ?? t('Image URL'),
+      imageAltPrompt: imageAltPromptLabel ?? t('Describe the image'),
+      shortcuts: shortcutsLabel ?? t('Markdown shortcuts on'),
+      word: wordLabel ?? t(':count word'),
+      words: wordsLabel ?? t(':count words'),
+      character: characterLabel ?? t(':count character'),
+      characters: charactersLabel ?? t(':count characters'),
+      limit: limitLabel ?? t(':count / :max characters'),
     });
     const items = resolveToolbar(toolbar, output);
     const [internal, setInternal] = useState(defaultValue ?? '');
@@ -317,15 +319,17 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
       const engine = surface.current;
       if (!engine || !editable) return;
       if (command === 'link') {
-        const url = engine.active().has('link') ? '' : window.prompt(t.linkPrompt, 'https://');
+        const url = engine.active().has('link')
+          ? ''
+          : window.prompt(strings.linkPrompt, 'https://');
         if (url === null) return;
         engine.run('link', safeLinkUrl(url) ?? '');
         return;
       }
       if (command === 'image') {
-        const src = safeImageUrl(window.prompt(t.imagePrompt, 'https://'));
+        const src = safeImageUrl(window.prompt(strings.imagePrompt, 'https://'));
         if (!src) return;
-        engine.run('image', { src, alt: window.prompt(t.imageAltPrompt, '') ?? '' });
+        engine.run('image', { src, alt: window.prompt(strings.imageAltPrompt, '') ?? '' });
         return;
       }
       engine.run(command);
@@ -380,7 +384,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
             data-part="toolbar"
             id={`${id}-toolbar`}
             role="toolbar"
-            aria-label={t.toolbar}
+            aria-label={strings.toolbar}
             aria-controls={`${id}-content`}
             onKeyDown={toolbarKeydown}
           >
@@ -409,7 +413,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
                   data-part="button"
                   data-command={item}
                   id={`${id}-${item}`}
-                  aria-label={t[item]}
+                  aria-label={strings[item]}
                   tabIndex={tabIndex}
                   aria-pressed={toggle ? active.has(item) : undefined}
                   disabled={!editable || undefined}
@@ -452,9 +456,9 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
           ) : null}
           {counter || maxLength ? (
             <div className={classes.footer} data-scope="rich-text-editor" data-part="footer">
-              <span>{t.shortcuts}</span>
+              <span>{strings.shortcuts}</span>
               <span className={classes.count} data-scope="rich-text-editor" data-part="count">
-                {countLabel(text, t, maxLength)}
+                {countLabel(text, strings, maxLength)}
               </span>
             </div>
           ) : null}

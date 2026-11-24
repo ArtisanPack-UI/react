@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Dialog, type DialogProps } from '../../components/layout/Dialog/Dialog';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof DialogProps)[] = [
   'open',
@@ -345,5 +346,22 @@ describe('Dialog', () => {
     const { unmount } = render(<Dialog defaultOpen title="T" />);
     act(() => unmount());
     expect(document.querySelector('.apui-dialog')).toBeNull();
+  });
+});
+
+describe('Dialog translation', () => {
+  it('translates the close button and keeps an explicit label', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ Close: 'Cerrar' }}>
+        <Dialog open portal={false} title="Hola" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ Close: 'Cerrar' }}>
+        <Dialog open portal={false} title="Hola" closeLabel="Salir" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeInTheDocument();
   });
 });

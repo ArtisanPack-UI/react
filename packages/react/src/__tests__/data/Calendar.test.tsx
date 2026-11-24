@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Calendar,
@@ -238,5 +239,28 @@ describe('Calendar', () => {
     expect(q(container, '[data-date="2026-11-03"] [data-part="event-title"]').textContent).toBe(
       '2.x event',
     );
+  });
+});
+
+describe('Calendar translations', () => {
+  it('translates the toolbar and follows the provider locale', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ Today: 'Hoy', Month: 'Mes' }}>
+        <Calendar {...base} date="2026-11-02" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Hoy' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Mes' })).toBeInTheDocument();
+    expect(document.body.textContent?.toLowerCase()).toContain('noviembre');
+  });
+
+  it('keeps explicit labels and locale over the provider', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ Today: 'Hoy' }}>
+        <Calendar {...base} date="2026-11-02" locale="en-US" labels={{ today: 'Now' }} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Now' })).toBeInTheDocument();
+    expect(document.body.textContent).toContain('November');
   });
 });

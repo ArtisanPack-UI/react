@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { renderToString } from 'react-dom/server';
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Textarea,
@@ -146,5 +147,28 @@ describe('Textarea', () => {
     });
     expect(control.value).toBe('abc');
     expect(count).toHaveTextContent('3 / 20');
+  });
+});
+
+describe('Textarea translations', () => {
+  it('translates the remaining count and lets a prop win', () => {
+    const messages = { 'Characters left: {count}': 'Caracteres restantes: {count}' };
+    const { container, rerender } = render(
+      <TranslationProvider locale="es" messages={messages}>
+        <Textarea aria-label="Notes" maxLength={10} defaultValue="abc" />
+      </TranslationProvider>,
+    );
+    expect(container).toHaveTextContent('Caracteres restantes: 7');
+    rerender(
+      <TranslationProvider locale="es" messages={messages}>
+        <Textarea
+          aria-label="Notes"
+          maxLength={10}
+          defaultValue="abc"
+          remainingLabel="Quedan {count}"
+        />
+      </TranslationProvider>,
+    );
+    expect(container).toHaveTextContent('Quedan 7');
   });
 });

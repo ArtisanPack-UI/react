@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { DropdownMenuItem } from '../../components/layout/DropdownMenu/DropdownMenu';
 import { UserMenu, type UserMenuProps } from '../../components/layout/UserMenu/UserMenu';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof UserMenuProps)[] = [
   'user',
@@ -147,5 +148,21 @@ describe('UserMenu', () => {
     );
     expect(screen.queryAllByRole('menuitemradio')).toHaveLength(0);
     expect(document.querySelector('[data-part="theme"]')).toBeNull();
+  });
+});
+
+describe('UserMenu translation', () => {
+  it('translates its built-in text and keeps explicit props', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Log out': 'Cerrar sesión', Light: 'Claro', Theme: 'Tema' }}
+      >
+        <UserMenu user={USER} defaultOpen portal={false} themeLabels={{ dark: 'Noche' }} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('menuitem', { name: 'Cerrar sesión' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Claro' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Noche' })).toBeInTheDocument();
   });
 });

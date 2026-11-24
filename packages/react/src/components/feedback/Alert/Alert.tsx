@@ -12,6 +12,7 @@
 
 import { forwardRef, useState, type HTMLAttributes, type ReactNode } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { IconSvg } from '../../../internal/icon';
 import { cx, hasContent, type PartClasses } from '../../../internal/parts';
 import { Button } from '../../form/Button/Button';
@@ -102,7 +103,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
       icon,
       actions,
       dismissible = false,
-      closeLabel = ALERT_CLOSE_LABEL,
+      closeLabel: closeLabelProp,
       onOpenChange,
       classes = {},
       className,
@@ -111,6 +112,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const closeLabel = closeLabelProp ?? t('Dismiss');
     const [dismissed, setDismissed] = useState(false);
     const body = hasContent(children) ? children : description;
     const iconNode =

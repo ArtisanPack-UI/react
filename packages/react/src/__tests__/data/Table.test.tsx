@@ -2,6 +2,7 @@ import { createRef, useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Table,
@@ -385,5 +386,24 @@ describe('Table', () => {
   it('reads dot paths', () => {
     expect(tableValue({ a: { b: 1 } }, 'a.b')).toBe(1);
     expect(tableValue({ a: null }, 'a.b')).toBeUndefined();
+  });
+});
+
+describe('Table translations', () => {
+  it('translates the built-in text and keeps explicit labels', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{
+          'No records found.': 'No se encontraron registros.',
+          'Select all': 'Seleccionar todo',
+        }}
+      >
+        <Table headers={headers} rows={[]} />
+        <Table headers={headers} rows={rows} selectable selectAllLabel="Pick every row" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('No se encontraron registros.')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Pick every row' })).toBeInTheDocument();
   });
 });

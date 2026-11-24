@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { renderToString } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Range, formatRangeValue, type RangeProps } from '../../components/form/Range/Range';
 
@@ -143,5 +144,18 @@ describe('Range', () => {
     render(<Range name="radius" aria-label="Radius" />);
     const control = screen.getByRole('slider', { name: 'Radius' });
     expect(control).toHaveAttribute('name', 'radius');
+  });
+});
+
+describe('Range translations', () => {
+  it('translates the thumb names and lets thumbLabels win', () => {
+    render(
+      <TranslationProvider locale="es" messages={{ Minimum: 'Mínimo', Maximum: 'Máximo' }}>
+        <Range label="Price" dual defaultValue={[20, 60]} thumbLabels={{ end: 'Hasta' }} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByText('Mínimo')).toBeInTheDocument();
+    expect(screen.getByText('Hasta')).toBeInTheDocument();
+    expect(screen.queryByText('Máximo')).not.toBeInTheDocument();
   });
 });

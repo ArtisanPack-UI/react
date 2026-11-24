@@ -8,6 +8,7 @@
 
 import { forwardRef, useId, useState, type ChangeEvent, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { fillTemplate } from '../../../internal/choice';
 import { IconSvg } from '../../../internal/icon';
 import { cx, flag, type PartClasses } from '../../../internal/parts';
@@ -78,7 +79,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
       size = 'md',
       count,
       label,
-      valueLabel = RATING_DEFAULT_VALUE_LABEL,
+      valueLabel: valueLabelProp,
       countLabel,
       name,
       classes = {},
@@ -89,6 +90,8 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const valueLabel = valueLabelProp ?? t(':value out of :max');
     const generated = useId();
     const id = explicitId ?? generated;
     const [uncontrolled, setUncontrolled] = useState<number | undefined>(defaultValue);

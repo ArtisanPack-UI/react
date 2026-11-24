@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { KpiCard, type KpiCardProps } from '../../components/data/KpiCard/KpiCard';
 
@@ -82,5 +83,21 @@ describe('KpiCard', () => {
       container.querySelector('[data-part="top"] > [data-part="period"] > select'),
     ).not.toBeNull();
     expect(ref.current).toBe(container.firstElementChild);
+  });
+});
+
+describe('KpiCard translations', () => {
+  it('translates the sparkline label and delta text, keeping explicit ones', () => {
+    const { container } = render(
+      <TranslationProvider
+        locale="es"
+        messages={{ 'Trend from {first} to {latest}': 'Tendencia de {first} a {latest}' }}
+      >
+        <KpiCard stat={stat} sparkline={[2, 4, 8]} />
+        <KpiCard stat={stat} sparkline={[1, 3]} sparklineLabel="From {first} to {latest}" />
+      </TranslationProvider>,
+    );
+    expect(container.querySelector('[aria-label="Tendencia de 2 a 8"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="From 1 to 3"]')).not.toBeNull();
   });
 });

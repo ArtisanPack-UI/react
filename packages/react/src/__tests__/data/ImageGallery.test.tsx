@@ -2,6 +2,7 @@ import { createRef, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   ImageGallery,
@@ -235,5 +236,22 @@ describe('ImageGallery', () => {
     expect(screen.getByRole('link', { name: 'Descargar' })).toHaveAttribute('href', '/a.jpg');
     expect(screen.getByRole('group', { name: 'Fotos' })).toBeInTheDocument();
     expect(part(content(), 'title')).toHaveTextContent('Foto 1 de 3 · The lobby');
+  });
+});
+
+describe('ImageGallery translations', () => {
+  it('translates the lightbox controls and keeps explicit labels', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ Close: 'Cerrar', 'Previous photo': 'Foto anterior' }}
+      >
+        <ImageGallery images={IMAGES} portal={false} nextLabel="Forward" />
+      </TranslationProvider>,
+    );
+    const lightbox = content();
+    expect(lightbox.querySelector('[aria-label="Cerrar"]')).not.toBeNull();
+    expect(lightbox.querySelector('[aria-label="Foto anterior"]')).not.toBeNull();
+    expect(lightbox.querySelector('[aria-label="Forward"]')).not.toBeNull();
   });
 });

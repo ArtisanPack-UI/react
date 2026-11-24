@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import {
   Avatar,
@@ -97,5 +98,35 @@ describe('Avatar', () => {
     expect(screen.getByRole('group', { name: 'Members' })).toHaveClass('apui-avatar-group');
     expect(container.querySelectorAll('.apui-avatar[data-size="sm"]')).toHaveLength(3);
     expect(screen.getByRole('img', { name: '2 more' })).toHaveTextContent('+2');
+  });
+});
+
+describe('Avatar translations', () => {
+  it('translates the status and the +N name through the provider', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ Online: 'En línea', '{count} more': '{count} más' }}
+      >
+        <Avatar name="Ada Lovelace" status="online" />
+        <AvatarGroup avatars={[{ name: 'A' }, { name: 'B' }, { name: 'C' }]} max={1} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('img', { name: 'Ada Lovelace (En línea)' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '2 más' })).toBeInTheDocument();
+  });
+
+  it('keeps explicit labels over the catalogue', () => {
+    render(
+      <TranslationProvider
+        locale="es"
+        messages={{ Online: 'En línea', '{count} more': '{count} más' }}
+      >
+        <Avatar name="Ada" status="online" statusLabel="Available" />
+        <AvatarGroup avatars={[{ name: 'A' }, { name: 'B' }]} max={1} moreLabel="{count} others" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('img', { name: 'Ada (Available)' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '1 others' })).toBeInTheDocument();
   });
 });

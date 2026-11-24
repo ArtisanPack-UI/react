@@ -21,6 +21,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { fillTemplate } from '../../../internal/choice';
 import { FieldError, FieldLabel, useFieldIds } from '../../../internal/field';
 import { IconSvg } from '../../../internal/icon';
@@ -136,7 +137,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
   (
     {
       label,
-      title = FILE_DEFAULT_TITLE,
+      title: titleProp,
       hint,
       error,
       invalid = false,
@@ -147,7 +148,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       maxSize,
       variant = 'dropzone',
       value,
-      removeLabel = FILE_DEFAULT_REMOVE_LABEL,
+      removeLabel: removeLabelProp,
       classes = {},
       className,
       id: explicitId,
@@ -160,6 +161,9 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     },
     forwardedRef,
   ) => {
+    const { t } = useTranslator();
+    const title = titleProp ?? t('Drop files here or browse');
+    const removeLabel = removeLabelProp ?? t('Remove :name');
     const [chosen, setChosen] = useState<FileItem[]>([]);
     const [dragging, setDragging] = useState(false);
     const depth = useRef(0);

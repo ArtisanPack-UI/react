@@ -11,7 +11,6 @@
 
 import {
   SPARKLINE_HEIGHT,
-  SPARKLINE_LABEL,
   SPARKLINE_WIDTH,
   sparklineGeometry,
   sparklineLabel,
@@ -19,6 +18,7 @@ import {
 } from '@artisanpack-ui/behavior';
 import { forwardRef, type SVGAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, type PartClasses } from '../../../internal/parts';
 
 export type { SparklineVariant };
@@ -62,13 +62,15 @@ export const Sparkline = forwardRef<SVGSVGElement, SparklineProps>(
       variant = 'line',
       width = SPARKLINE_WIDTH,
       height = SPARKLINE_HEIGHT,
-      label = SPARKLINE_LABEL,
+      label: labelProp,
       classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const label = labelProp ?? t('Trend from {first} to {latest}');
     const shown: SparklineVariant = VARIANTS.includes(variant) ? variant : 'line';
     const geometry = sparklineGeometry(data, shown, width, height);
 

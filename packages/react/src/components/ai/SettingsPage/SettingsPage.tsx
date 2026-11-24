@@ -23,6 +23,7 @@ import type {
 } from '../types';
 import { AiApiError } from '../createAiApiClient';
 import { errorMessage } from '../errorMessage';
+import { createTranslator, useTranslator, type TranslateFunction } from '../../../i18n/translator';
 
 /** The text a {@link SettingsPage} shows. Translate it through `labels`. */
 export interface SettingsPageLabels {
@@ -70,30 +71,35 @@ export interface SettingsPageLabels {
   instructions: string;
 }
 
+/** {@link SettingsPageLabels} through a translator: the English defaults, or the active locale's. */
+export function settingsPageLabels(t: TranslateFunction): SettingsPageLabels {
+  return {
+    loading: t('Loading AI settings…'),
+    loadFailed: t("The AI settings couldn't be loaded."),
+    retry: t('Retry'),
+    error: t('Something went wrong.'),
+    save: t('Save settings'),
+    saved: t('Settings saved.'),
+    credentials: t('Credentials'),
+    provider: t('Provider'),
+    apiKey: t('API key'),
+    apiKeyStored: t('Leave blank to keep the stored key.'),
+    baseUrl: t('Base URL'),
+    baseUrlRequired: t('Required for Ollama.'),
+    baseUrlOptional: t('Optional.'),
+    defaultModel: t('Default model'),
+    testConnection: t('Test connection'),
+    testOk: t('OK'),
+    testFailed: t('Failed'),
+    overrides: t('Per-feature overrides'),
+    model: t('Model'),
+    modelPlaceholder: t('inherit default'),
+    instructions: t('Instructions'),
+  };
+}
+
 /** The English defaults for {@link SettingsPageLabels}. */
-export const SETTINGS_PAGE_LABELS: SettingsPageLabels = {
-  loading: 'Loading AI settings…',
-  loadFailed: "The AI settings couldn't be loaded.",
-  retry: 'Retry',
-  error: 'Something went wrong.',
-  save: 'Save settings',
-  saved: 'Settings saved.',
-  credentials: 'Credentials',
-  provider: 'Provider',
-  apiKey: 'API key',
-  apiKeyStored: 'Leave blank to keep the stored key.',
-  baseUrl: 'Base URL',
-  baseUrlRequired: 'Required for Ollama.',
-  baseUrlOptional: 'Optional.',
-  defaultModel: 'Default model',
-  testConnection: 'Test connection',
-  testOk: 'OK',
-  testFailed: 'Failed',
-  overrides: 'Per-feature overrides',
-  model: 'Model',
-  modelPlaceholder: 'inherit default',
-  instructions: 'Instructions',
-};
+export const SETTINGS_PAGE_LABELS: SettingsPageLabels = settingsPageLabels(createTranslator().t);
 
 /**
  * Props for {@link SettingsPage}.
@@ -186,7 +192,8 @@ export function SettingsPage({
   heading,
   labels,
 }: SettingsPageProps) {
-  const text = { ...SETTINGS_PAGE_LABELS, ...labels };
+  const { t } = useTranslator();
+  const text = { ...settingsPageLabels(t), ...labels };
   const [initial, setInitial] = useState<AiSettingsResponse | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(true);

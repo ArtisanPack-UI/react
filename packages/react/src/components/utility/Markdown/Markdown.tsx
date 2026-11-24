@@ -12,9 +12,10 @@
  * @packageDocumentation
  */
 
-import { MARKDOWN_LABELS, renderMarkdown, type MarkdownMode } from '@artisanpack-ui/behavior';
+import { renderMarkdown, type MarkdownMode } from '@artisanpack-ui/behavior';
 import { forwardRef, useMemo, useState, type HTMLAttributes } from 'react';
 
+import { useTranslator } from '../../../i18n/translator';
 import { cx, type PartClasses } from '../../../internal/parts';
 import { Textarea } from '../../form/Textarea/Textarea';
 import { Tabs } from '../../layout/Tabs/Tabs';
@@ -81,18 +82,25 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
       onSourceChange,
       mode = 'preview',
       sanitize = true,
-      tabsLabel = MARKDOWN_LABELS.tabs,
-      writeLabel = MARKDOWN_LABELS.write,
-      previewLabel = MARKDOWN_LABELS.preview,
-      splitLabel = MARKDOWN_LABELS.split,
-      editorLabel = MARKDOWN_LABELS.editor,
-      outputLabel = MARKDOWN_LABELS.output,
+      tabsLabel: tabsLabelProp,
+      writeLabel: writeLabelProp,
+      previewLabel: previewLabelProp,
+      splitLabel: splitLabelProp,
+      editorLabel: editorLabelProp,
+      outputLabel: outputLabelProp,
       classes = {},
       className,
       ...rest
     },
     ref,
   ) => {
+    const { t } = useTranslator();
+    const tabsLabel = tabsLabelProp ?? t('Markdown mode');
+    const writeLabel = writeLabelProp ?? t('Write');
+    const previewLabel = previewLabelProp ?? t('Preview');
+    const splitLabel = splitLabelProp ?? t('Split');
+    const editorLabel = editorLabelProp ?? t('Markdown source');
+    const outputLabel = outputLabelProp ?? t('Rendered preview');
     const source = sourceProp ?? '';
     const editing = mode === 'write' || mode === 'split';
     // A parent that passes source and onSourceChange owns the value, so an

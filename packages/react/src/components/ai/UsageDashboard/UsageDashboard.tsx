@@ -11,6 +11,7 @@ import { Text } from '../../layout/Text/Text';
 import { fillTemplate } from '../../../internal/choice';
 import type { AiApiClient, AiUsageResponse } from '../types';
 import { errorMessage } from '../errorMessage';
+import { createTranslator, useTranslator, type TranslateFunction } from '../../../i18n/translator';
 
 /** The text a {@link UsageDashboard} shows. Translate it through `labels`. */
 export interface UsageDashboardLabels {
@@ -50,26 +51,33 @@ export interface UsageDashboardLabels {
   live: string;
 }
 
+/** {@link UsageDashboardLabels} through a translator: the English defaults, or the active locale's. */
+export function usageDashboardLabels(t: TranslateFunction): UsageDashboardLabels {
+  return {
+    loading: t('Loading usage…'),
+    refreshFailed: t("Couldn't refresh usage. Showing the last figures loaded."),
+    error: t('Something went wrong.'),
+    requests: t('Requests'),
+    inputTokens: t('Input tokens'),
+    outputTokens: t('Output tokens'),
+    cost: t('Cost'),
+    byFeature: t('By feature'),
+    feature: t('Feature'),
+    input: t('Input'),
+    output: t('Output'),
+    noFeatureUsage: t('No feature usage in this range.'),
+    daily: t('Daily'),
+    day: t('Day'),
+    tokens: t('Tokens'),
+    noDailyUsage: t('No daily usage in this range.'),
+    live: t('Live · refreshing every :seconds s'),
+  };
+}
+
 /** The English defaults for {@link UsageDashboardLabels}. */
-export const USAGE_DASHBOARD_LABELS: UsageDashboardLabels = {
-  loading: 'Loading usage…',
-  refreshFailed: "Couldn't refresh usage. Showing the last figures loaded.",
-  error: 'Something went wrong.',
-  requests: 'Requests',
-  inputTokens: 'Input tokens',
-  outputTokens: 'Output tokens',
-  cost: 'Cost',
-  byFeature: 'By feature',
-  feature: 'Feature',
-  input: 'Input',
-  output: 'Output',
-  noFeatureUsage: 'No feature usage in this range.',
-  daily: 'Daily',
-  day: 'Day',
-  tokens: 'Tokens',
-  noDailyUsage: 'No daily usage in this range.',
-  live: 'Live · refreshing every :seconds s',
-};
+export const USAGE_DASHBOARD_LABELS: UsageDashboardLabels = usageDashboardLabels(
+  createTranslator().t,
+);
 
 /**
  * Props for {@link UsageDashboard}.
@@ -93,12 +101,12 @@ export interface UsageDashboardProps {
   labels?: Partial<UsageDashboardLabels>;
 }
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat().format(value);
+function formatNumber(value: number, locale?: string): string {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
-function formatCost(value: number): string {
-  return new Intl.NumberFormat(undefined, {
+function formatCost(value: number, locale?: string): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
@@ -109,25 +117,25 @@ function formatCost(value: number): string {
 type FeatureRow = AiUsageResponse['by_feature'][number];
 type DailyRow = AiUsageResponse['daily'][number];
 
-const renderNumber = (value: unknown) => formatNumber(value as number);
-const renderCost = (value: unknown) => formatCost(value as number);
+const renderNumber = (locale?: string) => (value: unknown) => formatNumber(value as number, locale);
+const renderCost = (locale?: string) => (value: unknown) => formatCost(value as number, locale);
 
-function featureColumns(text: UsageDashboardLabels): TableColumn<FeatureRow>[] {
+function featureColumns(text: UsageDashboardLabels, locale?: string): TableColumn<FeatureRow>[] {
   return [
     { key: 'feature_key', label: text.feature },
-    { key: 'requests', label: text.requests, numeric: true, render: renderNumber },
-    { key: 'input_tokens', label: text.input, numeric: true, render: renderNumber },
-    { key: 'output_tokens', label: text.output, numeric: true, render: renderNumber },
-    { key: 'cost', label: text.cost, numeric: true, render: renderCost },
+    { key: 'requests', label: text.requests, numeric: true, render: renderNumber(locale) },
+    { key: 'input_tokens', label: text.input, numeric: true, render: renderNumber(locale) },
+    { key: 'output_tokens', label: text.output, numeric: true, render: renderNumber(locale) },
+    { key: 'cost', label: text.cost, numeric: true, render: renderCost(locale) },
   ];
 }
 
-function dailyColumns(text: UsageDashboardLabels): TableColumn<DailyRow>[] {
+function dailyColumns(text: UsageDashboardLabels, locale?: string): TableColumn<DailyRow>[] {
   return [
     { key: 'period', label: text.day },
-    { key: 'requests', label: text.requests, numeric: true, render: renderNumber },
-    { key: 'total_tokens', label: text.tokens, numeric: true, render: renderNumber },
-    { key: 'cost', label: text.cost, numeric: true, render: renderCost },
+    { key: 'requests', label: text.requests, numeric: true, render: renderNumber(locale) },
+    { key: 'total_tokens', label: text.tokens, numeric: true, render: renderNumber(locale) },
+    { key: 'cost', label: text.cost, numeric: true, render: renderCost(locale) },
   ];
 }
 
@@ -144,7 +152,8 @@ export function UsageDashboard({
   heading,
   labels,
 }: UsageDashboardProps) {
-  const text = { ...USAGE_DASHBOARD_LABELS, ...labels };
+  const { t, locale } = useTranslator();
+  const text = { ...usageDashboardLabels(t), ...labels };
   const [usage, setUsage] = useState<AiUsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   // The failure itself, so its message is formatted with the current labels.
@@ -211,15 +220,15 @@ export function UsageDashboard({
       {error ? <Alert color="warning" title={text.refreshFailed} description={error} /> : null}
 
       <Stack orientation="horizontal" gap="4" wrap>
-        <Stat label={text.requests} value={formatNumber(usage.totals.requests)} />
-        <Stat label={text.inputTokens} value={formatNumber(usage.totals.input_tokens)} />
-        <Stat label={text.outputTokens} value={formatNumber(usage.totals.output_tokens)} />
-        <Stat label={text.cost} value={formatCost(usage.totals.cost)} />
+        <Stat label={text.requests} value={formatNumber(usage.totals.requests, locale)} />
+        <Stat label={text.inputTokens} value={formatNumber(usage.totals.input_tokens, locale)} />
+        <Stat label={text.outputTokens} value={formatNumber(usage.totals.output_tokens, locale)} />
+        <Stat label={text.cost} value={formatCost(usage.totals.cost, locale)} />
       </Stack>
 
       <Table
         title={text.byFeature}
-        headers={featureColumns(text)}
+        headers={featureColumns(text, locale)}
         rows={usage.by_feature}
         keyBy="feature_key"
         density="compact"
@@ -228,7 +237,7 @@ export function UsageDashboard({
 
       <Table
         title={text.daily}
-        headers={dailyColumns(text)}
+        headers={dailyColumns(text, locale)}
         rows={usage.daily}
         keyBy="period"
         density="compact"

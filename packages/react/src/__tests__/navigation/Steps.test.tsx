@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { Step, Steps, type StepsProps } from '../../components/navigation/Steps/Steps';
+import { TranslationProvider } from '../../i18n/translator';
 
 const declaredProps: (keyof StepsProps)[] = [
   'steps',
@@ -113,5 +114,22 @@ describe('Steps', () => {
     const ref = createRef<HTMLOListElement>();
     render(<Steps ref={ref} steps={[{ title: 'A' }]} />);
     expect(ref.current?.tagName).toBe('OL');
+  });
+});
+
+describe('Steps translation', () => {
+  it('translates the state labels and keeps explicit props', () => {
+    const { container } = render(
+      <TranslationProvider locale="es" messages={{ Completed: 'Completado', Error: 'Fallo' }}>
+        <Steps value={3} errorLabel="Error grave">
+          <Step title="A" />
+          <Step title="B" state="error" />
+          <Step title="C" />
+        </Steps>
+      </TranslationProvider>,
+    );
+    const markers = container.querySelectorAll('[data-part="marker"]');
+    expect(markers[0]).toHaveTextContent('Completado');
+    expect(markers[1]).toHaveTextContent('Error grave');
   });
 });

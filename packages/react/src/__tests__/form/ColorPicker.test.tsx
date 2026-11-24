@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { TranslationProvider } from '../../i18n/translator';
 import { expectReactParity } from '@artisanpack-ui/testing/react';
 import { ColorPicker, type ColorPickerProps } from '../../components/form/ColorPicker/ColorPicker';
 
@@ -205,5 +206,22 @@ describe('ColorPicker', () => {
     render(<ColorPicker label="Locked" disabled defaultValue="#000000" />);
     expect(screen.getByLabelText('Locked')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Choose a color' })).toBeDisabled();
+  });
+});
+
+describe('ColorPicker translations', () => {
+  it('translates the trigger and lets a prop win', () => {
+    const { rerender } = render(
+      <TranslationProvider locale="es" messages={{ 'Choose a color': 'Elige un color' }}>
+        <ColorPicker label="Primary" defaultValue="#1F74BF" portal={false} />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Elige un color' })).toBeInTheDocument();
+    rerender(
+      <TranslationProvider locale="es" messages={{ 'Choose a color': 'Elige un color' }}>
+        <ColorPicker label="Primary" defaultValue="#1F74BF" portal={false} triggerLabel="Color" />
+      </TranslationProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Color' })).toBeInTheDocument();
   });
 });
