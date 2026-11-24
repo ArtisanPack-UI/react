@@ -1,6 +1,6 @@
 ---
 title: Laravel and Inertia
-menu_order: 6
+menu_order: 53
 ---
 
 # Laravel and Inertia
@@ -17,7 +17,7 @@ It supports `@inertiajs/react` 2 and 3, and React 18 and 19.
 
 ## Set up
 
-1. Load the CSS once, in your Inertia entry (usually `resources/js/app.tsx`) or your Tailwind stylesheet, as in [Getting Started](Getting-Started).
+1. Load the CSS once, in your Inertia entry (usually `resources/js/app.tsx`) or your Tailwind stylesheet, as in [Getting Started](getting-started.md).
 2. Apply the theme before the first paint. In an Inertia app the `<head>` is your Blade root view, where a React component can't render. Put the script there: if the app also uses Livewire UI Components, the `@apuiThemeScript` directive outputs the same script as `ThemeScript`; otherwise inline the output of `themeScript()` from `@artisanpack-ui/behavior`. See [Themes](https://docs.artisanpackui.dev/documentation/design-system/theming/themes).
 
 Everything is exported from the package root, and from the subpaths `/navigation`, `/form`, `/layout`, `/auth` and `/feedback`.

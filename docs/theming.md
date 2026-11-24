@@ -1,6 +1,6 @@
 ---
 title: Theming
-menu_order: 5
+menu_order: 49
 ---
 
 # Theming
@@ -52,7 +52,7 @@ import { ThemeScript } from '@artisanpack-ui/react';
 | `defaultValue` | `'system'`     | The choice to apply when nothing is stored.                 |
 | `nonce`        |                | A Content Security Policy nonce for the inline script.      |
 
-The script only runs when the browser parses it from server-rendered HTML. When React renders it on the client, it doesn't run, so `ThemeScript` then applies the stored choice when it mounts, if `<html>` has no `data-theme` yet. That happens after the first paint, so in a client-rendered app inline the output of `themeScript()` from `@artisanpack-ui/behavior` in `index.html` instead. For Next.js and Inertia, see [Server Rendering](Server-Rendering) and [Laravel and Inertia](Laravel-Inertia).
+The script only runs when the browser parses it from server-rendered HTML. When React renders it on the client, it doesn't run, so `ThemeScript` then applies the stored choice when it mounts, if `<html>` has no `data-theme` yet. That happens after the first paint, so in a client-rendered app inline the output of `themeScript()` from `@artisanpack-ui/behavior` in `index.html` instead. For Next.js and Inertia, see [Server Rendering](server-rendering.md) and [Laravel and Inertia](laravel-inertia.md).
 
 ## Setting the theme from code
 
