@@ -82,7 +82,7 @@ export interface PaginatorLink {
   active: boolean;
   /**
    * The page number this link goes to, or null for an ellipsis or a disabled
-   * previous/next link. Sent by Laravel 12 and later.
+   * previous/next link. Sent by Laravel 12.23 and later.
    */
   page?: number | null;
 }
@@ -94,7 +94,8 @@ export interface PaginatorLink {
 export interface LaravelSimplePaginator<T = unknown> {
   data: T[];
   current_page: number;
-  current_page_url: string;
+  /** The current page's URL. Sent by Laravel 12.15 and later. */
+  current_page_url?: string;
   per_page: number;
   from: number | null;
   to: number | null;
